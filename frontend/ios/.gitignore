@@ -27,6 +27,9 @@ Flutter/flutter_export_environment.sh
 ServiceDefinitions.json
 Runner/GeneratedPluginRegistrant.*
 
+# Sensitive API credentials - DO NOT COMMIT
+Runner/AppDelegate.swift
+
 # Exceptions to above rules.
 !default.mode1v3
 !default.mode2v3

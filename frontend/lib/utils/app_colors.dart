@@ -38,13 +38,23 @@ class AppColors {
   // Registration screen specific neutrals
   // Neutral-800 — slightly lighter than primary for inputs
   static const Color neutral800 = Color(0xFF162A4D);
-  
+
   // Neutral-700 — border color
   static const Color neutral700 = Color(0xFF1E3A66);
-  
+
   // Neutral-400 — placeholder text
   static const Color neutral400 = Color(0xFF94A3B8);
-  
+
   // Neutral-300 — secondary text
   static const Color neutral300 = Color(0xFFCBD5E1);
+
+  // Alert Status Colors
+  // Danger/Error — Red
+  static const Color danger = Color(0xFFEF4444);
+
+  // Warning — Amber
+  static const Color warning = Color(0xFFFBBF24);
+
+  // Success — Green
+  static const Color success = Color(0xFF10B981);
 }
