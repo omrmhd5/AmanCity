@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_theme.dart';
 import 'custom_text.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -53,7 +54,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               text: widget.label,
               size: 14,
               weight: FontWeight.w500,
-              color: AppColors.darkText,
+              color: AppTheme.getPrimaryTextColor(),
             ),
           ),
         Focus(
@@ -65,10 +66,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
             controller: widget.controller,
             obscureText: _obscureText,
             validator: widget.validator,
+            style: TextStyle(color: AppTheme.getPrimaryTextColor()),
             decoration: InputDecoration(
               hintText: widget.placeholder,
-              hintStyle: const TextStyle(
-                color: AppColors.slateGray,
+              hintStyle: TextStyle(
+                color: AppColors.slateGray.withOpacity(0.6),
                 fontSize: 14,
               ),
               prefixIcon: Icon(
@@ -91,14 +93,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     )
                   : null,
               filled: true,
-              fillColor: Colors.white,
+              fillColor: AppTheme.currentMode == AppThemeMode.dark
+                  ? Colors.white.withOpacity(0.08)
+                  : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: AppColors.softGray),
+                borderSide: BorderSide(color: AppTheme.getBorderColor()),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: AppColors.softGray),
+                borderSide: BorderSide(color: AppTheme.getBorderColor()),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),

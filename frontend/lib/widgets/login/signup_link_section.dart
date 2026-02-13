@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../custom_text.dart';
 import '../custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../utils/navigation_service.dart' as navigation;
 
 class SignUpLinkSection extends StatelessWidget {
@@ -14,22 +15,24 @@ class SignUpLinkSection extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CustomText(
+          CustomText(
             text: "Don't have an account? ",
             size: 13,
             weight: FontWeight.w400,
-            color: AppColors.slateGray,
+            color: AppTheme.getSecondaryTextColor(),
           ),
           CustomGestureDetector(
             onTap: () {
               navigation.Navigator.goTo('/register');
             },
             enableScale: false,
-            child: const CustomText(
+            child: CustomText(
               text: 'Sign Up',
               size: 13,
               weight: FontWeight.w600,
-              color: AppColors.primary,
+              color: AppTheme.currentMode == AppThemeMode.dark
+                  ? AppColors.secondary
+                  : AppColors.primary,
             ),
           ),
         ],

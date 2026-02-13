@@ -3,6 +3,7 @@ import '../custom_button.dart';
 import '../custom_text.dart';
 import '../custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../utils/navigation_service.dart' as navigation;
 
 class RegisterFooter extends StatelessWidget {
@@ -26,11 +27,17 @@ class RegisterFooter extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primary.withOpacity(0),
-              AppColors.primary,
-              AppColors.primary,
-            ],
+            colors: AppTheme.currentMode == AppThemeMode.dark
+                ? [
+                    AppColors.primary.withOpacity(0),
+                    AppColors.primary,
+                    AppColors.primary,
+                  ]
+                : [
+                    AppColors.lightBackground.withOpacity(0),
+                    AppColors.lightBackground,
+                    AppColors.lightBackground,
+                  ],
           ),
         ),
         padding: EdgeInsets.fromLTRB(
@@ -46,29 +53,33 @@ class RegisterFooter extends StatelessWidget {
               text: 'REGISTER ACCOUNT',
               onPressed: onRegisterPressed,
               isLoading: isLoading,
-              backgroundColor: AppColors.white,
-              textColor: AppColors.primary,
+              backgroundColor: AppTheme.currentMode == AppThemeMode.dark
+                  ? AppColors.secondary
+                  : AppColors.primary,
+              textColor: AppColors.white,
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CustomText(
+                CustomText(
                   text: 'Already have an account? ',
                   size: 13,
                   weight: FontWeight.w400,
-                  color: Color(0xFFCBD5E1),
+                  color: AppTheme.getSecondaryTextColor(),
                 ),
                 CustomGestureDetector(
                   onTap: () {
                     navigation.Navigator.goBack();
                   },
                   enableScale: false,
-                  child: const CustomText(
+                  child: CustomText(
                     text: 'Login',
                     size: 13,
                     weight: FontWeight.w600,
-                    color: AppColors.white,
+                    color: AppTheme.currentMode == AppThemeMode.dark
+                        ? AppColors.secondary
+                        : AppColors.primary,
                   ),
                 ),
               ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_text.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class RegisterHeader extends StatelessWidget {
   const RegisterHeader({Key? key}) : super(key: key);
@@ -16,26 +17,38 @@ class RegisterHeader extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppTheme.currentMode == AppThemeMode.dark
+                  ? Colors.white.withOpacity(0.1)
+                  : AppColors.softGray,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(
+                color: AppTheme.currentMode == AppThemeMode.dark
+                    ? Colors.white.withOpacity(0.1)
+                    : AppColors.softGray,
+              ),
             ),
-            child: const Icon(Icons.security, color: AppColors.white, size: 24),
+            child: Icon(
+              Icons.security,
+              color: AppTheme.currentMode == AppThemeMode.dark
+                  ? AppColors.white
+                  : AppColors.primary,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 16),
-          const CustomText(
+          CustomText(
             text: 'User Registration',
             size: 28,
             weight: FontWeight.w700,
-            color: AppColors.white,
+            color: AppTheme.getPrimaryTextColor(),
           ),
           const SizedBox(height: 8),
-          const CustomText(
+          CustomText(
             text:
                 'Create a secure account to access real-time safety alerts and reporting tools.',
             size: 13,
             weight: FontWeight.w400,
-            color: Color(0xFFCBD5E1),
+            color: AppTheme.getSecondaryTextColor(),
             maxLines: 2,
           ),
         ],

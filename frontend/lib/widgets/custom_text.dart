@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_theme.dart';
 
 class CustomText extends StatelessWidget {
   final String text;
@@ -16,7 +17,7 @@ class CustomText extends StatelessWidget {
     required this.text,
     this.size = 14,
     this.weight = FontWeight.w400,
-    this.color = AppColors.darkText,
+    this.color = const Color(0xFF1A1A1A), // Will be overridden by theme
     this.textAlign = TextAlign.left,
     this.maxLines = 999,
     this.overflow = TextOverflow.clip,
@@ -25,6 +26,11 @@ class CustomText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Use theme-aware color if using default
+    final textColor = color == const Color(0xFF1A1A1A)
+        ? AppTheme.getPrimaryTextColor()
+        : color;
+
     return Text(
       text,
       textAlign: textAlign,
@@ -33,7 +39,7 @@ class CustomText extends StatelessWidget {
       style: TextStyle(
         fontSize: size,
         fontWeight: weight,
-        color: color,
+        color: textColor,
         height: height,
       ),
     );

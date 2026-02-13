@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_theme.dart';
 
 enum ButtonSize { small, medium, large }
 
@@ -64,24 +65,50 @@ class CustomButton extends StatelessWidget {
 
   Color _getBackgroundColor() {
     if (backgroundColor != null) return backgroundColor!;
-    switch (type) {
-      case ButtonType.primary:
-        return AppColors.primary;
-      case ButtonType.secondary:
-        return AppColors.secondary;
-      case ButtonType.tertiary:
-        return AppColors.softGray;
+
+    // Use theme-aware colors
+    if (AppTheme.currentMode == AppThemeMode.dark) {
+      switch (type) {
+        case ButtonType.primary:
+          return AppColors.secondary; // Teal is more visible on dark
+        case ButtonType.secondary:
+          return AppColors.primary.withOpacity(0.3);
+        case ButtonType.tertiary:
+          return Colors.white.withOpacity(0.1);
+      }
+    } else {
+      switch (type) {
+        case ButtonType.primary:
+          return AppColors.primary;
+        case ButtonType.secondary:
+          return AppColors.secondary;
+        case ButtonType.tertiary:
+          return AppColors.softGray;
+      }
     }
   }
 
   Color _getTextColor() {
     if (textColor != null) return textColor!;
-    switch (type) {
-      case ButtonType.primary:
-      case ButtonType.secondary:
-        return Colors.white;
-      case ButtonType.tertiary:
-        return AppColors.darkText;
+
+    // Use theme-aware colors
+    if (AppTheme.currentMode == AppThemeMode.dark) {
+      switch (type) {
+        case ButtonType.primary:
+          return AppColors.primary; // Dark text on teal button
+        case ButtonType.secondary:
+          return Colors.white;
+        case ButtonType.tertiary:
+          return Colors.white;
+      }
+    } else {
+      switch (type) {
+        case ButtonType.primary:
+        case ButtonType.secondary:
+          return Colors.white;
+        case ButtonType.tertiary:
+          return AppColors.darkText;
+      }
     }
   }
 
@@ -95,9 +122,7 @@ class CustomButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: _getBackgroundColor(),
           disabledBackgroundColor: _getBackgroundColor().withOpacity(0.6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 4,
           shadowColor: _getBackgroundColor().withOpacity(0.3),
         ),
@@ -106,9 +131,7 @@ class CustomButton extends StatelessWidget {
                 height: _getHeight() * 0.5,
                 width: _getHeight() * 0.5,
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    _getTextColor(),
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(_getTextColor()),
                   strokeWidth: 2,
                 ),
               )
@@ -130,7 +153,7 @@ class CustomButton extends StatelessWidget {
                       color: _getTextColor(),
                       size: _getFontSize() + 2,
                     ),
-                  ]
+                  ],
                 ],
               ),
       ),

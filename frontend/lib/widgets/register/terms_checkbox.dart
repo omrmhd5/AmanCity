@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../utils/navigation_service.dart' as navigation;
 
 class TermsCheckBox extends StatelessWidget {
@@ -28,11 +30,21 @@ class TermsCheckBox extends StatelessWidget {
                 onChanged(newValue ?? false);
               },
               fillColor: MaterialStateProperty.all(
-                isChecked ? Colors.white : Colors.transparent,
+                isChecked
+                    ? (AppTheme.currentMode == AppThemeMode.dark
+                          ? Colors.white
+                          : AppColors.primary)
+                    : Colors.transparent,
               ),
-              checkColor: const Color(0xFF0B1D3A),
+              checkColor: AppTheme.currentMode == AppThemeMode.dark
+                  ? AppColors.primary
+                  : AppColors.white,
               side: BorderSide(
-                color: isChecked ? Colors.white : const Color(0xFF404A5C),
+                color: isChecked
+                    ? (AppTheme.currentMode == AppThemeMode.dark
+                          ? Colors.white
+                          : AppColors.primary)
+                    : const Color(0xFF404A5C),
                 width: 1.5,
               ),
             ),
@@ -42,14 +54,17 @@ class TermsCheckBox extends StatelessWidget {
             child: RichText(
               text: TextSpan(
                 children: [
-                  const TextSpan(
+                  TextSpan(
                     text: 'I agree to the ',
-                    style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12),
+                    style: TextStyle(
+                      color: AppTheme.getSecondaryTextColor(),
+                      fontSize: 12,
+                    ),
                   ),
                   TextSpan(
                     text: 'Terms of Service',
-                    style: const TextStyle(
-                      color: Color(0xFFFFFFFF),
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
@@ -60,14 +75,17 @@ class TermsCheckBox extends StatelessWidget {
                         navigation.Navigator.goTo('/terms');
                       },
                   ),
-                  const TextSpan(
+                  TextSpan(
                     text: ' and ',
-                    style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12),
+                    style: TextStyle(
+                      color: AppTheme.getSecondaryTextColor(),
+                      fontSize: 12,
+                    ),
                   ),
                   TextSpan(
                     text: 'Privacy Policy',
-                    style: const TextStyle(
-                      color: Color(0xFFFFFFFF),
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
@@ -78,9 +96,12 @@ class TermsCheckBox extends StatelessWidget {
                         navigation.Navigator.goTo('/privacy-policy');
                       },
                   ),
-                  const TextSpan(
+                  TextSpan(
                     text: '.',
-                    style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12),
+                    style: TextStyle(
+                      color: AppTheme.getSecondaryTextColor(),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
