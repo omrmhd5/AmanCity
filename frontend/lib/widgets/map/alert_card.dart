@@ -31,12 +31,7 @@ class AlertCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.getCardBackgroundColor(),
           borderRadius: BorderRadius.circular(12),
-          border: Border(
-            left: BorderSide(color: borderColor, width: 4),
-            top: BorderSide(color: AppTheme.getBorderColor(), width: 1),
-            right: BorderSide(color: AppTheme.getBorderColor(), width: 1),
-            bottom: BorderSide(color: AppTheme.getBorderColor(), width: 1),
-          ),
+          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -45,73 +40,91 @@ class AlertCard extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with icon and type
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: borderColor.withOpacity(0.2),
-                      ),
-                      child: Icon(icon, color: borderColor, size: 14),
-                    ),
-                    const SizedBox(width: 8),
-                    CustomText(
-                      text: alertType,
-                      size: 11,
-                      weight: FontWeight.w600,
-                      color: borderColor,
-                    ),
-                  ],
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              // Colored left border
+              Container(width: 4, color: borderColor),
+              // Card content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: _buildContent(),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with icon and type
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: borderColor.withOpacity(0.2),
+                  ),
+                  child: Icon(icon, color: borderColor, size: 14),
+                ),
+                const SizedBox(width: 8),
                 CustomText(
-                  text: timeAgo,
-                  size: 9,
-                  weight: FontWeight.w400,
-                  color: AppTheme.getSecondaryTextColor(),
+                  text: alertType,
+                  size: 11,
+                  weight: FontWeight.w600,
+                  color: borderColor,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            // Description
             CustomText(
-              text: description,
-              size: 10,
+              text: timeAgo,
+              size: 9,
               weight: FontWeight.w400,
               color: AppTheme.getSecondaryTextColor(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            // Distance
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on,
-                  size: 12,
-                  color: AppTheme.getSecondaryTextColor(),
-                ),
-                const SizedBox(width: 4),
-                CustomText(
-                  text: distance,
-                  size: 9,
-                  weight: FontWeight.w400,
-                  color: AppTheme.getSecondaryTextColor(),
-                ),
-              ],
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 8),
+        // Description
+        CustomText(
+          text: description,
+          size: 10,
+          weight: FontWeight.w400,
+          color: AppTheme.getSecondaryTextColor(),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 8),
+        // Distance
+        Row(
+          children: [
+            Icon(
+              Icons.location_on,
+              size: 12,
+              color: AppTheme.getSecondaryTextColor(),
+            ),
+            const SizedBox(width: 4),
+            CustomText(
+              text: distance,
+              size: 9,
+              weight: FontWeight.w400,
+              color: AppTheme.getSecondaryTextColor(),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

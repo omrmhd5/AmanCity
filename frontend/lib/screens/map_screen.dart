@@ -1,11 +1,19 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
-import '../widgets/custom_text.dart';
-import '../widgets/map/map_view_background.dart';
-import '../widgets/map/alert_card.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/map_sos_button.dart';
+import '../widgets/map/incident_detail_sheet.dart';
+import '../widgets/map/poi_detail_sheet.dart';
+import '../widgets/map/map_loading_indicator.dart';
+import '../widgets/map/nearby_alerts_section.dart';
+import '../models/map_incident.dart';
+import '../models/emergency_poi.dart';
+import '../models/danger_zone.dart';
+import '../services/mock_map_data_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
@@ -14,74 +22,240 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
+class _MapScreenState extends State<MapScreen> {
+  GoogleMapController? _mapController;
   String? selectedFilter;
-  late AnimationController _pulseController1;
-  late AnimationController _pulseController2;
-  late AnimationController _userMarkerController;
+
+  // Map data
+  final Set<Marker> _markers = {};
+  final Set<Circle> _circles = {};
+  List<MapIncident> _incidents = [];
+  List<EmergencyPOI> _pois = [];
+  List<DangerZone> _dangerZones = [];
+
+  // Cairo initial position
+  static const LatLng _cairoCenter = LatLng(30.0444, 31.2357);
+  static const double _initialZoom = 14.0;
+
+  // User location
+  LatLng? _userLocation;
+  bool _isLoadingLocation = false;
 
   @override
   void initState() {
     super.initState();
-    _pulseController1 = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-    _pulseController2 = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-    _userMarkerController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
+    _loadMockData();
+    _getUserLocation();
   }
 
   @override
   void dispose() {
-    _pulseController1.dispose();
-    _pulseController2.dispose();
-    _userMarkerController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
-  // Mock data for nearby alerts
-  final List<Map<String, dynamic>> nearbyAlerts = [
-    {
-      'type': 'Verbal Harassment',
-      'description': 'Reported near central area. Large group gathering.',
-      'timeAgo': '2m ago',
-      'distance': '200m away',
-      'color': AppColors.danger,
-      'icon': Icons.record_voice_over,
-    },
-    {
-      'type': 'Caution Area',
-      'description': 'Low lighting reported on main street walkway.',
-      'timeAgo': '15m ago',
-      'distance': '0.5km away',
-      'color': Colors.amber,
-      'icon': Icons.warning,
-    },
-    {
-      'type': 'Safe Zone Active',
-      'description': 'Police presence increased near main bridge entrance.',
-      'timeAgo': 'Now',
-      'distance': '1.2km away',
-      'color': AppColors.secondary,
-      'icon': Icons.thumb_up,
-    },
-  ];
+  void _loadMockData() {
+    setState(() {
+      _incidents = MockMapDataService.getMockIncidents();
+      _pois = MockMapDataService.getMockPOIs();
+      _dangerZones = MockMapDataService.getMockDangerZones();
+    });
+    _updateMapElements();
+  }
+
+  Future<void> _getUserLocation() async {
+    setState(() => _isLoadingLocation = true);
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() => _isLoadingLocation = false);
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _userLocation = LatLng(position.latitude, position.longitude);
+        _isLoadingLocation = false;
+      });
+
+      _updateMapElements();
+    } catch (e) {
+      setState(() => _isLoadingLocation = false);
+      debugPrint('Error getting location: $e');
+    }
+  }
+
+  void _updateMapElements() {
+    _markers.clear();
+    _circles.clear();
+
+    // Add incident markers
+    for (var incident in _incidents) {
+      _markers.add(
+        Marker(
+          markerId: MarkerId(incident.id),
+          position: incident.position,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            _getHueFromColor(incident.severityColor),
+          ),
+          infoWindow: InfoWindow(
+            title: incident.title,
+            snippet: incident.description,
+          ),
+          onTap: () => _onIncidentTapped(incident),
+        ),
+      );
+    }
+
+    // Add POI markers
+    for (var poi in _pois) {
+      _markers.add(
+        Marker(
+          markerId: MarkerId(poi.id),
+          position: poi.position,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            _getHueFromColor(poi.markerColor),
+          ),
+          infoWindow: InfoWindow(title: poi.name, snippet: poi.typeLabel),
+          onTap: () => _onPOITapped(poi),
+        ),
+      );
+    }
+
+    // Add user location marker if available
+    if (_userLocation != null) {
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('user_location'),
+          position: _userLocation!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
+          infoWindow: const InfoWindow(title: 'Your Location'),
+        ),
+      );
+    }
+
+    // Add danger zones as circles
+    for (var zone in _dangerZones) {
+      _circles.add(
+        Circle(
+          circleId: CircleId(zone.id),
+          center: zone.center,
+          radius: zone.radiusMeters,
+          fillColor: zone.zoneColor,
+          strokeColor: zone.strokeColor,
+          strokeWidth: 2,
+        ),
+      );
+    }
+
+    setState(() {});
+  }
+
+  double _getHueFromColor(Color color) {
+    if (color == AppColors.danger || color.value == Colors.red.value) {
+      return BitmapDescriptor.hueRed;
+    } else if (color.value == Colors.amber.value ||
+        color.value == Colors.orange.value) {
+      return BitmapDescriptor.hueOrange;
+    } else if (color.value == Colors.green.value) {
+      return BitmapDescriptor.hueGreen;
+    } else if (color == AppColors.secondary) {
+      return BitmapDescriptor.hueCyan;
+    } else if (color.value == Colors.blue.value) {
+      return BitmapDescriptor.hueBlue;
+    }
+    return BitmapDescriptor.hueRed;
+  }
+
+  void _onIncidentTapped(MapIncident incident) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => IncidentDetailSheet(
+        incident: incident,
+        timeAgo: _getTimeAgo(incident.timestamp),
+      ),
+    );
+  }
+
+  void _onPOITapped(EmergencyPOI poi) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => POIDetailSheet(poi: poi),
+    );
+  }
+
+  String _getTimeAgo(DateTime timestamp) {
+    final difference = DateTime.now().difference(timestamp);
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${difference.inDays}d ago';
+    }
+  }
+
+  // Mock data for nearby alerts carousel
+  List<Map<String, dynamic>> get nearbyAlerts {
+    return _incidents.take(3).map((incident) {
+      return {
+        'type': incident.title,
+        'description': incident.description,
+        'timeAgo': _getTimeAgo(incident.timestamp),
+        'distance':
+            '${((incident.position.latitude - _cairoCenter.latitude).abs() * 111).toStringAsFixed(1)}km away',
+        'color': incident.severityColor,
+        'icon': incident.typeIcon,
+      };
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Map background
-        const MapViewBackground(),
-
-        // Incident markers on map
-        _buildMapMarkers(),
+        // Google Map
+        GoogleMap(
+          initialCameraPosition: const CameraPosition(
+            target: _cairoCenter,
+            zoom: _initialZoom,
+          ),
+          onMapCreated: (GoogleMapController controller) {
+            _mapController = controller;
+            // Apply dark/light theme to map
+            _setMapStyle();
+          },
+          markers: _markers,
+          circles: _circles,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          mapToolbarEnabled: false,
+          compassEnabled: true,
+          trafficEnabled: false,
+          buildingsEnabled: true,
+        ),
 
         // Filter section
         SafeArea(
@@ -91,6 +265,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 MapFilterSection(
                   onFilterChanged: (filter) {
                     setState(() => selectedFilter = filter);
+                    _applyFilter(filter);
                   },
                 ),
               ],
@@ -98,13 +273,37 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           ),
         ),
 
+        // My Location button
+        Positioned(
+          right: 16,
+          bottom: 220,
+          child: FloatingActionButton(
+            mini: true,
+            backgroundColor: AppTheme.getCardBackgroundColor(),
+            onPressed: () {
+              if (_userLocation != null) {
+                _mapController?.animateCamera(
+                  CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
+                );
+              } else {
+                _getUserLocation();
+              }
+            },
+            child: Icon(
+              Icons.my_location,
+              color: AppColors.secondary,
+              size: 20,
+            ),
+          ),
+        ),
+
         // SOS button
         Positioned(
           right: 16,
-          bottom: 140,
+          bottom: 160,
           child: MapSOSButton(
             onPressed: () {
-              // SOS action
+              // SOS action - could integrate with emergency services
             },
           ),
         ),
@@ -116,227 +315,104 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           right: 0,
           child: _buildNearbyAlertsSection(),
         ),
+
+        // Loading indicator
+        if (_isLoadingLocation)
+          const Positioned(
+            top: 100,
+            left: 0,
+            right: 0,
+            child: MapLoadingIndicator(),
+          ),
       ],
     );
   }
 
-  Widget _buildMapMarkers() {
-    return Stack(
-      children: [
-        // Red danger marker with pulsing effect
-        Positioned(
-          top: MediaQuery.of(context).size.height * 0.35,
-          left: MediaQuery.of(context).size.width * 0.25,
-          child: _buildIncidentMarker(
-            icon: Icons.priority_high,
-            label: 'Harassment',
-            color: AppColors.danger,
-            isPulsing: true,
-          ),
-        ),
-        // Safe zone marker
-        Positioned(
-          top: MediaQuery.of(context).size.height * 0.62,
-          right: MediaQuery.of(context).size.width * 0.15,
-          child: _buildIncidentMarker(
-            icon: Icons.verified_user,
-            label: '',
-            color: AppColors.secondary,
-            size: 32,
-          ),
-        ),
-        // User location marker (center)
-        Positioned(
-          top: MediaQuery.of(context).size.height * 0.5,
-          left: MediaQuery.of(context).size.width * 0.5,
-          child: Transform.translate(
-            offset: const Offset(-8, -8),
-            child: _buildUserMarker(),
-          ),
-        ),
-      ],
-    );
+  Future<void> _setMapStyle() async {
+    if (_mapController == null) return;
+
+    // Apply different styles based on theme
+    if (AppTheme.currentMode == AppThemeMode.dark) {
+      const String darkMapStyle = '''
+      [
+        {
+          "elementType": "geometry",
+          "stylers": [{"color": "#212121"}]
+        },
+        {
+          "elementType": "labels.icon",
+          "stylers": [{"visibility": "off"}]
+        },
+        {
+          "elementType": "labels.text.fill",
+          "stylers": [{"color": "#757575"}]
+        },
+        {
+          "elementType": "labels.text.stroke",
+          "stylers": [{"color": "#212121"}]
+        },
+        {
+          "featureType": "administrative",
+          "elementType": "geometry",
+          "stylers": [{"color": "#757575"}]
+        },
+        {
+          "featureType": "poi",
+          "elementType": "labels.text.fill",
+          "stylers": [{"color": "#757575"}]
+        },
+        {
+          "featureType": "poi.park",
+          "elementType": "geometry",
+          "stylers": [{"color": "#181818"}]
+        },
+        {
+          "featureType": "road",
+          "elementType": "geometry.fill",
+          "stylers": [{"color": "#2c2c2c"}]
+        },
+        {
+          "featureType": "road",
+          "elementType": "labels.text.fill",
+          "stylers": [{"color": "#8a8a8a"}]
+        },
+        {
+          "featureType": "water",
+          "elementType": "geometry",
+          "stylers": [{"color": "#000000"}]
+        },
+        {
+          "featureType": "water",
+          "elementType": "labels.text.fill",
+          "stylers": [{"color": "#3d3d3d"}]
+        }
+      ]
+      ''';
+      await _mapController?.setMapStyle(darkMapStyle);
+    } else {
+      await _mapController?.setMapStyle(null); // Use default light style
+    }
   }
 
-  Widget _buildIncidentMarker({
-    required IconData icon,
-    required String label,
-    required Color color,
-    double size = 40,
-    bool isPulsing = false,
-  }) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            if (isPulsing)
-              FadeTransition(
-                opacity: Tween<double>(begin: 0.3, end: 0.0).animate(
-                  CurvedAnimation(
-                    parent: _pulseController1,
-                    curve: Curves.easeInOut,
-                  ),
-                ),
-                child: Container(
-                  width: size * 1.5,
-                  height: size * 1.5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withOpacity(0.6),
-                  ),
-                ),
-              ),
-            Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color,
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.5),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: Colors.white, size: size * 0.5),
-            ),
-          ],
-        ),
-        if (label.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: CustomText(
-              text: label,
-              size: 10,
-              weight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildUserMarker() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Outer pulsing ring
-        SizedBox(
-          width: 64,
-          height: 64,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.8, end: 1.2).animate(
-              CurvedAnimation(
-                parent: _userMarkerController,
-                curve: Curves.easeInOut,
-              ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.secondary.withOpacity(0.2),
-              ),
-            ),
-          ),
-        ),
-        // Inner marker
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.secondary.withOpacity(0.2),
-          ),
-          child: Container(
-            width: 16,
-            height: 16,
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: AppColors.secondary, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withOpacity(0.5),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+  void _applyFilter(String? filter) {
+    // Filter logic - could filter markers/circles based on selection
+    // For now, just reload all data
+    // In production, this would filter _incidents, _pois based on type
+    if (filter != null) {
+      // Example: filter by type
+      setState(() {
+        // Could filter _incidents, _pois here
+      });
+    }
+    _updateMapElements();
   }
 
   Widget _buildNearbyAlertsSection() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        color: AppTheme.getCardBackgroundColor(),
-        border: Border(
-          top: BorderSide(color: AppTheme.getBorderColor(), width: 1),
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                text: 'Nearby Alerts',
-                size: 13,
-                weight: FontWeight.w600,
-                color: AppTheme.getPrimaryTextColor(),
-              ),
-              GestureDetector(
-                onTap: () {},
-                child: CustomText(
-                  text: 'View all',
-                  size: 11,
-                  weight: FontWeight.w500,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Alert cards carousel
-          SizedBox(
-            height: 140,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: nearbyAlerts.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final alert = nearbyAlerts[index];
-                return AlertCard(
-                  alertType: alert['type'],
-                  description: alert['description'],
-                  timeAgo: alert['timeAgo'],
-                  distance: alert['distance'],
-                  borderColor: alert['color'],
-                  icon: alert['icon'],
-                  onTap: () {
-                    // Handle alert tap
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+    return NearbyAlertsSection(
+      alerts: nearbyAlerts,
+      onViewAll: () {
+        // TODO: Navigate to full alerts list
+      },
     );
   }
 }
