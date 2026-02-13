@@ -4,6 +4,7 @@ import '../widgets/login/login_form.dart';
 import '../widgets/login/social_login_section.dart';
 import '../widgets/login/signup_link_section.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: Stack(
         children: [
           // Background gradient
@@ -49,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primary.withOpacity(0.1),
+                    AppTheme.getGradientStartColor(),
                     Colors.transparent,
                   ],
                 ),

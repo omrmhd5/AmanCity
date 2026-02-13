@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_text.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class LoginHeader extends StatelessWidget {
   const LoginHeader({Key? key}) : super(key: key);
@@ -26,23 +27,31 @@ class LoginHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.shield, color: AppColors.white, size: 32),
+            child: Icon(
+              Icons.shield,
+              color: AppTheme.currentMode == AppThemeMode.dark
+                  ? AppColors.primary
+                  : AppColors.white,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 16),
           // App Title
-          const CustomText(
+          CustomText(
             text: 'AmanCity',
             size: 32,
             weight: FontWeight.w700,
-            color: AppColors.primary,
+            color: AppTheme.currentMode == AppThemeMode.dark
+                ? Colors.white
+                : AppColors.primary,
           ),
           const SizedBox(height: 8),
           // Tagline
-          const CustomText(
+          CustomText(
             text: 'Your Safety, Our Priority.',
             size: 13,
             weight: FontWeight.w500,
-            color: AppColors.slateGray,
+            color: AppTheme.getSecondaryTextColor(),
           ),
         ],
       ),

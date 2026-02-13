@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../widgets/register/register_header.dart';
 import '../widgets/register/personal_identity_section.dart';
-import '../widgets/register/account_type_selector.dart';
 import '../widgets/register/terms_checkbox.dart';
 import '../widgets/register/register_footer.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_theme.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -16,8 +16,6 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   late TextEditingController _fullNameController;
   late TextEditingController _phoneController;
-  String? _selectedCity;
-  AccountType _accountType = AccountType.citizen;
   bool _agreeToTerms = false;
   bool _isLoading = false;
 
@@ -38,7 +36,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleRegister() {
     if (_fullNameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
-        _selectedCity == null ||
         !_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -66,7 +63,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: Stack(
         children: [
           // Background gradient
@@ -76,8 +73,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.primary,
-                  AppColors.primary.withOpacity(0.95),
+                  AppTheme.getBackgroundColor(),
+                  AppTheme.getBackgroundColor().withOpacity(0.95),
                 ],
               ),
             ),
@@ -99,21 +96,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           PersonalIdentitySection(
                             fullNameController: _fullNameController,
                             phoneController: _phoneController,
-                            selectedCity: _selectedCity,
-                            onCityChanged: (String? newValue) {
-                              setState(() {
-                                _selectedCity = newValue;
-                              });
-                            },
-                          ),
-                          // Account Type Section
-                          AccountTypeSelector(
-                            selectedType: _accountType,
-                            onTypeChanged: (AccountType newType) {
-                              setState(() {
-                                _accountType = newType;
-                              });
-                            },
+                            selectedCity: null,
+                            onCityChanged: (_) {},
                           ),
                           const SizedBox(height: 24),
                           // Terms Checkbox

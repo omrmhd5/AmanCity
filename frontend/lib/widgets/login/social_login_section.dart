@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../custom_text.dart';
 import '../custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class SocialLoginSection extends StatelessWidget {
   final VoidCallback onGooglePressed;
@@ -21,17 +22,21 @@ class SocialLoginSection extends StatelessWidget {
         // Divider
         Row(
           children: [
-            Expanded(child: Divider(color: AppColors.softGray, thickness: 1)),
+            Expanded(
+              child: Divider(color: AppTheme.getBorderColor(), thickness: 1),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: CustomText(
                 text: 'Or continue with',
                 size: 12,
                 weight: FontWeight.w400,
-                color: AppColors.slateGray,
+                color: AppTheme.getSecondaryTextColor(),
               ),
             ),
-            Expanded(child: Divider(color: AppColors.softGray, thickness: 1)),
+            Expanded(
+              child: Divider(color: AppTheme.getBorderColor(), thickness: 1),
+            ),
           ],
         ),
         const SizedBox(height: 24),
@@ -47,24 +52,26 @@ class SocialLoginSection extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.softGray),
+                    border: Border.all(color: AppTheme.getBorderColor()),
                     borderRadius: BorderRadius.circular(8),
-                    color: AppColors.white,
+                    color: AppTheme.currentMode == AppThemeMode.dark
+                        ? Colors.white.withOpacity(0.08)
+                        : AppColors.white,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.language,
-                        color: AppColors.darkText,
+                        color: AppTheme.getPrimaryTextColor(),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      const CustomText(
+                      CustomText(
                         text: 'Google',
                         size: 13,
                         weight: FontWeight.w500,
-                        color: AppColors.darkText,
+                        color: AppTheme.getPrimaryTextColor(),
                       ),
                     ],
                   ),
@@ -81,24 +88,26 @@ class SocialLoginSection extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.softGray),
+                    border: Border.all(color: AppTheme.getBorderColor()),
                     borderRadius: BorderRadius.circular(8),
-                    color: AppColors.white,
+                    color: AppTheme.currentMode == AppThemeMode.dark
+                        ? Colors.white.withOpacity(0.08)
+                        : AppColors.white,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.apple,
-                        color: AppColors.darkText,
+                        color: AppTheme.getPrimaryTextColor(),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      const CustomText(
+                      CustomText(
                         text: 'Apple',
                         size: 13,
                         weight: FontWeight.w500,
-                        color: AppColors.darkText,
+                        color: AppTheme.getPrimaryTextColor(),
                       ),
                     ],
                   ),

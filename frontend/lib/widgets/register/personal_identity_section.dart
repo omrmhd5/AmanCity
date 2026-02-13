@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import '../custom_text_field.dart';
 import '../custom_text.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class PersonalIdentitySection extends StatefulWidget {
   final TextEditingController fullNameController;
   final TextEditingController phoneController;
-  final String? selectedCity;
-  final Function(String?) onCityChanged;
+  final String? selectedCity; // Kept for compatibility
+  final Function(String?) onCityChanged; // Kept for compatibility
 
   const PersonalIdentitySection({
     Key? key,
@@ -23,16 +24,6 @@ class PersonalIdentitySection extends StatefulWidget {
 }
 
 class _PersonalIdentitySectionState extends State<PersonalIdentitySection> {
-  final List<String> _cities = [
-    'Cairo',
-    'Alexandria',
-    'Giza',
-    'Shubra El-Kheima',
-    'Port Said',
-    'Suez',
-    'Luxor',
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -52,11 +43,11 @@ class _PersonalIdentitySectionState extends State<PersonalIdentitySection> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CustomText(
+            CustomText(
               text: 'Phone Number',
               size: 14,
               weight: FontWeight.w500,
-              color: AppColors.white,
+              color: AppTheme.getPrimaryTextColor(),
             ),
             const SizedBox(height: 8),
             Row(
@@ -67,15 +58,17 @@ class _PersonalIdentitySectionState extends State<PersonalIdentitySection> {
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF162A4D),
+                    color: AppTheme.currentMode == AppThemeMode.dark
+                        ? const Color(0xFF162A4D)
+                        : AppColors.lightGray,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF1E3A66)),
+                    border: Border.all(color: AppTheme.getBorderColor()),
                   ),
-                  child: const CustomText(
+                  child: CustomText(
                     text: '🇪🇬 +20',
                     size: 14,
                     weight: FontWeight.w500,
-                    color: AppColors.white,
+                    color: AppTheme.getPrimaryTextColor(),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -83,27 +76,35 @@ class _PersonalIdentitySectionState extends State<PersonalIdentitySection> {
                   child: TextField(
                     controller: widget.phoneController,
                     keyboardType: TextInputType.phone,
-                    style: const TextStyle(
-                      color: AppColors.white,
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
                       hintText: '100 123 4567',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                      hintStyle: TextStyle(
+                        color: AppColors.slateGray.withOpacity(0.6),
+                      ),
                       filled: true,
-                      fillColor: const Color(0xFF162A4D),
+                      fillColor: AppTheme.currentMode == AppThemeMode.dark
+                          ? const Color(0xFF162A4D)
+                          : AppColors.lightGray,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF1E3A66)),
+                        borderSide: BorderSide(
+                          color: AppTheme.getBorderColor(),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF1E3A66)),
+                        borderSide: BorderSide(
+                          color: AppTheme.getBorderColor(),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                          color: Colors.white,
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),
@@ -117,56 +118,11 @@ class _PersonalIdentitySectionState extends State<PersonalIdentitySection> {
               ],
             ),
             const SizedBox(height: 6),
-            const CustomText(
+            CustomText(
               text: 'Used for emergency verification only.',
               size: 10,
               weight: FontWeight.w400,
-              color: Color(0xFF94A3B8),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        // Region / City
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CustomText(
-              text: 'Region / City',
-              size: 14,
-              weight: FontWeight.w500,
-              color: AppColors.white,
-            ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF1E3A66)),
-              ),
-              child: DropdownButton<String>(
-                value: widget.selectedCity,
-                hint: Padding(
-                  padding: const EdgeInsets.only(left: 12),
-                  child: CustomText(
-                    text: 'Select your city...',
-                    color: const Color(0xFF94A3B8),
-                    size: 14,
-                  ),
-                ),
-                isExpanded: true,
-                underline: const SizedBox(),
-                style: const TextStyle(color: AppColors.white, fontSize: 14),
-                dropdownColor: const Color(0xFF162A4D),
-                items: _cities.map((String city) {
-                  return DropdownMenuItem<String>(
-                    value: city,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Text(city),
-                    ),
-                  );
-                }).toList(),
-                onChanged: widget.onCityChanged,
-              ),
+              color: AppTheme.getSecondaryTextColor(),
             ),
           ],
         ),
@@ -177,21 +133,17 @@ class _PersonalIdentitySectionState extends State<PersonalIdentitySection> {
   Widget _buildSectionDivider(String title) {
     return Row(
       children: [
-        Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
-        ),
+        Expanded(child: Container(height: 1, color: AppTheme.getBorderColor())),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: CustomText(
             text: title,
             size: 11,
             weight: FontWeight.w600,
-            color: const Color(0xFF94A3B8),
+            color: AppTheme.getSecondaryTextColor(),
           ),
         ),
-        Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
-        ),
+        Expanded(child: Container(height: 1, color: AppTheme.getBorderColor())),
       ],
     );
   }
