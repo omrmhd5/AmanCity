@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 import 'utils/app_colors.dart';
+import 'utils/navigation_service.dart' as navigation;
 import 'routes/app_routes.dart';
 
 void main() {
@@ -19,10 +20,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Inter',
       ),
+      navigatorKey: navigation.Navigator.navigatorKey,
       home: const LoginScreen(),
       onGenerateRoute: AppRoutes.generateRoute,
       debugShowCheckedModeBanner: false,
     );
   }
 }
-

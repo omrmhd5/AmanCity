@@ -137,9 +137,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Sticky Footer
           RegisterFooter(
             onRegisterPressed: _handleRegister,
-            onLoginPressed: () {
-              Navigator.pop(context);
-            },
             isLoading: _isLoading,
           ),
         ],

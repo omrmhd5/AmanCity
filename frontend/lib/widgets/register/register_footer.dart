@@ -3,16 +3,15 @@ import '../custom_button.dart';
 import '../custom_text.dart';
 import '../custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/navigation_service.dart' as navigation;
 
 class RegisterFooter extends StatelessWidget {
   final VoidCallback onRegisterPressed;
-  final VoidCallback onLoginPressed;
   final bool isLoading;
 
   const RegisterFooter({
     Key? key,
     required this.onRegisterPressed,
-    required this.onLoginPressed,
     this.isLoading = false,
   }) : super(key: key);
 
@@ -61,7 +60,9 @@ class RegisterFooter extends StatelessWidget {
                   color: Color(0xFFCBD5E1),
                 ),
                 CustomGestureDetector(
-                  onTap: onLoginPressed,
+                  onTap: () {
+                    navigation.Navigator.goBack();
+                  },
                   enableScale: false,
                   child: const CustomText(
                     text: 'Login',
