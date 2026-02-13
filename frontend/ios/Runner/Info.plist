@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	
+	<!-- Location permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to show nearby safety incidents and emergency services.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to your location to alert you of nearby safety incidents even when the app is in the background.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to provide safety alerts and show emergency services near you.</string>
 </dict>
 </plist>
