@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_text.dart';
+import '../widgets/custom_gesture_detector.dart';
 import '../utils/app_colors.dart';
 
 enum AccountType { citizen, womenAtRisk }
@@ -52,7 +53,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _selectedCity == null ||
         !_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and accept terms')),
+        const SnackBar(
+          content: Text('Please fill all fields and accept terms'),
+        ),
       );
       return;
     }
@@ -66,9 +69,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Registration successful!')));
     });
   }
 
@@ -174,8 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF162A4D),
-                                      borderRadius:
-                                          BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: const Color(0xFF1E3A66),
                                       ),
@@ -204,22 +206,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         filled: true,
                                         fillColor: const Color(0xFF162A4D),
                                         border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: Color(0xFF1E3A66),
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: Color(0xFF1E3A66),
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: Colors.white,
                                             width: 2,
@@ -227,9 +232,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 16,
-                                        ),
+                                              horizontal: 12,
+                                              vertical: 16,
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -284,8 +289,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     return DropdownMenuItem<String>(
                                       value: city,
                                       child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 12),
+                                        padding: const EdgeInsets.only(
+                                          left: 12,
+                                        ),
                                         child: Text(city),
                                       ),
                                     );
@@ -335,9 +341,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       _agreeToTerms = newValue ?? false;
                                     });
                                   },
-                                  fillColor:
-                                      MaterialStateProperty.all(
-                                    _agreeToTerms ? Colors.white : Colors.transparent,
+                                  fillColor: MaterialStateProperty.all(
+                                    _agreeToTerms
+                                        ? Colors.white
+                                        : Colors.transparent,
                                   ),
                                   checkColor: AppColors.primary,
                                   side: BorderSide(
@@ -366,14 +373,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           color: AppColors.white,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          decoration:
-                                              TextDecoration.underline,
+                                          decoration: TextDecoration.underline,
                                         ),
-                                        recognizer:
-                                            TapGestureRecognizer()
-                                              ..onTap = () {
-                                                // Handle terms tap
-                                              },
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            // Handle terms tap
+                                          },
                                       ),
                                       const TextSpan(
                                         text: ' and ',
@@ -388,14 +393,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           color: AppColors.white,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          decoration:
-                                              TextDecoration.underline,
+                                          decoration: TextDecoration.underline,
                                         ),
-                                        recognizer:
-                                            TapGestureRecognizer()
-                                              ..onTap = () {
-                                                // Handle privacy policy tap
-                                              },
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            // Handle privacy policy tap
+                                          },
                                       ),
                                       const TextSpan(
                                         text: '.',
@@ -462,10 +465,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         weight: FontWeight.w400,
                         color: Color(0xFFCBD5E1),
                       ),
-                      GestureDetector(
+                      CustomGestureDetector(
                         onTap: () {
                           Navigator.pop(context);
                         },
+                        enableScale: false,
                         child: const CustomText(
                           text: 'Login',
                           size: 13,
@@ -488,10 +492,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
-          ),
+          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -503,10 +504,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
         Expanded(
-          child: Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
-          ),
+          child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
         ),
       ],
     );
@@ -519,12 +517,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required AccountType value,
   }) {
     final isSelected = _accountType == value;
-    return GestureDetector(
+    return CustomGestureDetector(
       onTap: () {
         setState(() {
           _accountType = value;
         });
       },
+      enableScale: false,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -544,10 +543,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF94A3B8),
-                  width: 2,
-                ),
+                border: Border.all(color: const Color(0xFF94A3B8), width: 2),
               ),
               child: isSelected
                   ? Center(
@@ -585,11 +581,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(
-              icon,
-              color: const Color(0xFF94A3B8),
-              size: 20,
-            ),
+            Icon(icon, color: const Color(0xFF94A3B8), size: 20),
           ],
         ),
       ),
