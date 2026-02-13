@@ -80,11 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     // Sign Up Link Section
-                    SignUpLinkSection(
-                      onSignUpPressed: () {
-                        Navigator.pushNamed(context, '/register');
-                      },
-                    ),
+                    SignUpLinkSection(),
                   ],
                 ),
               ),

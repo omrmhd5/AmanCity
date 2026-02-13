@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import '../../utils/navigation_service.dart' as navigation;
 
 class TermsCheckBox extends StatelessWidget {
   final bool isChecked;
@@ -54,7 +56,8 @@ class TermsCheckBox extends StatelessWidget {
                     ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        // Handle terms tap
+                        // Navigate to Terms of Service page
+                        navigation.Navigator.goTo('/terms');
                       },
                   ),
                   const TextSpan(
@@ -71,7 +74,8 @@ class TermsCheckBox extends StatelessWidget {
                     ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        // Handle privacy policy tap
+                        // Navigate to Privacy Policy page
+                        navigation.Navigator.goTo('/privacy-policy');
                       },
                   ),
                   const TextSpan(

@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import '../custom_text.dart';
 import '../custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/navigation_service.dart' as navigation;
 
 class SignUpLinkSection extends StatelessWidget {
-  final VoidCallback onSignUpPressed;
-
-  const SignUpLinkSection({Key? key, required this.onSignUpPressed})
-    : super(key: key);
+  const SignUpLinkSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +21,9 @@ class SignUpLinkSection extends StatelessWidget {
             color: AppColors.slateGray,
           ),
           CustomGestureDetector(
-            onTap: onSignUpPressed,
+            onTap: () {
+              navigation.Navigator.goTo('/register');
+            },
             enableScale: false,
             child: const CustomText(
               text: 'Sign Up',
