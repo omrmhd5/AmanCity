@@ -5,6 +5,7 @@ import '../widgets/login/social_login_section.dart';
 import '../widgets/login/signup_link_section.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
+import '../utils/navigation_service.dart' as navigation;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -21,14 +22,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
     // Simulate login delay
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(milliseconds: 50), () {
       setState(() {
         _isLoading = false;
       });
-      // Navigate or handle login
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login successful!')));
+      // Navigate to home screen
+      navigation.Navigator.goToClearAll('/home');
     });
   }
 

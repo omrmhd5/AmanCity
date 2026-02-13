@@ -5,6 +5,7 @@ import '../widgets/register/terms_checkbox.dart';
 import '../widgets/register/register_footer.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
+import '../utils/navigation_service.dart' as navigation;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -54,9 +55,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Registration successful!')));
+      // Navigate to home screen
+      navigation.Navigator.goToClearAll('/home');
     });
   }
 
