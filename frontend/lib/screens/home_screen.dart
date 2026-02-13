@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/bottom_navbar.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
+import 'map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -53,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildContent() {
     switch (_currentNavItem) {
       case NavItem.map:
-        return _buildPlaceholder('Map View');
+        return const MapScreen();
       case NavItem.report:
         return _buildPlaceholder('Report Incident');
       case NavItem.home:
