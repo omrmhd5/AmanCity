@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
-import '../custom_text.dart';
+import '../custom_search_bar.dart';
+import '../custom_filter_chips.dart';
 
 class MapFilterSection extends StatefulWidget {
   final ValueChanged<String?>? onFilterChanged;
@@ -17,10 +18,9 @@ class _MapFilterSectionState extends State<MapFilterSection> {
   final searchController = TextEditingController();
 
   final List<Map<String, dynamic>> filters = [
-    {'label': 'Safe Zones', 'icon': Icons.verified_user},
     {'label': 'Hospitals', 'icon': Icons.local_hospital},
-    {'label': 'Police', 'icon': Icons.local_police},
-    {'label': 'Cafés', 'icon': Icons.local_cafe},
+    {'label': 'Police Stations', 'icon': Icons.local_police},
+    {'label': 'Fire Stations', 'icon': Icons.fire_truck},
   ];
 
   @override
@@ -39,46 +39,9 @@ class _MapFilterSectionState extends State<MapFilterSection> {
           Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppTheme.getCardBackgroundColor(),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.getBorderColor(),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12, right: 8),
-                        child: Icon(
-                          Icons.search,
-                          color: AppColors.secondary,
-                          size: 20,
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: searchController,
-                          style: TextStyle(
-                            color: AppTheme.getPrimaryTextColor(),
-                            fontSize: 13,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Search location...',
-                            hintStyle: TextStyle(
-                              color: AppTheme.getSecondaryTextColor(),
-                              fontSize: 13,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                child: CustomSearchBar(
+                  hintText: 'Search location...',
+                  controller: searchController,
                 ),
               ),
               const SizedBox(width: 12),
@@ -86,8 +49,8 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppTheme.getCardBackgroundColor(),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.getCardBackgroundColor().withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: AppTheme.getBorderColor(),
                     width: 1,
@@ -97,7 +60,7 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {},
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(24),
                     child: Icon(
                       Icons.tune,
                       color: AppTheme.getPrimaryTextColor(),
@@ -110,61 +73,17 @@ class _MapFilterSectionState extends State<MapFilterSection> {
           ),
           const SizedBox(height: 12),
           // Filter chips
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: filters.length,
-              itemBuilder: (context, index) {
-                final filter = filters[index];
-                final isSelected = selectedFilter == filter['label'];
-                return Padding(
-                  padding: EdgeInsets.only(
-                    right: index == filters.length - 1 ? 0 : 8,
-                  ),
-                  child: FilterChip(
-                    label: Row(
-                      children: [
-                        Icon(
-                          filter['icon'],
-                          size: 14,
-                          color: isSelected
-                              ? Colors.white
-                              : AppTheme.getSecondaryTextColor(),
-                        ),
-                        const SizedBox(width: 6),
-                        CustomText(
-                          text: filter['label'],
-                          size: 11,
-                          weight: FontWeight.w500,
-                          color: isSelected
-                              ? Colors.white
-                              : AppTheme.getSecondaryTextColor(),
-                        ),
-                      ],
-                    ),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = selected ? filter['label'] : null;
-                        widget.onFilterChanged?.call(selectedFilter);
-                      });
-                    },
-                    backgroundColor: AppTheme.getCardBackgroundColor(),
-                    selectedColor: AppColors.secondary,
-                    side: BorderSide(
-                      color: isSelected
-                          ? AppColors.secondary
-                          : AppTheme.getBorderColor(),
-                      width: 1,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                );
-              },
-            ),
+          CustomFilterChips(
+            filters: filters,
+            selectedFilter: selectedFilter,
+            onFilterChanged: (selected) {
+              setState(() {
+                selectedFilter = selected;
+                widget.onFilterChanged?.call(selectedFilter);
+              });
+            },
+            showIcon: true,
+            selectedColor: AppColors.secondary,
           ),
         ],
       ),

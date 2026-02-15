@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/login_screen.dart';
 import 'utils/app_colors.dart';
 import 'utils/navigation_service.dart' as navigation;
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
-        fontFamily: 'Inter',
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       navigatorKey: navigation.Navigator.navigatorKey,
       home: const LoginScreen(),

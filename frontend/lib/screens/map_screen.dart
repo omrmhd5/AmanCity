@@ -5,11 +5,10 @@ import 'package:geolocator/geolocator.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../widgets/map/map_filter_section.dart';
-import '../widgets/map/map_sos_button.dart';
 import '../widgets/map/incident_detail_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
 import '../widgets/map/map_loading_indicator.dart';
-import '../widgets/map/nearby_alerts_section.dart';
+import '../widgets/map/nearby_alerts_sheet.dart';
 import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
@@ -276,10 +275,12 @@ class _MapScreenState extends State<MapScreen> {
         // My Location button
         Positioned(
           right: 16,
-          bottom: 220,
+          bottom: 100,
           child: FloatingActionButton(
             mini: true,
-            backgroundColor: AppTheme.getCardBackgroundColor(),
+            backgroundColor: AppTheme.getCardBackgroundColor().withOpacity(
+              0.85,
+            ),
             onPressed: () {
               if (_userLocation != null) {
                 _mapController?.animateCamera(
@@ -294,17 +295,6 @@ class _MapScreenState extends State<MapScreen> {
               color: AppColors.secondary,
               size: 20,
             ),
-          ),
-        ),
-
-        // SOS button
-        Positioned(
-          right: 16,
-          bottom: 160,
-          child: MapSOSButton(
-            onPressed: () {
-              // SOS action - could integrate with emergency services
-            },
           ),
         ),
 
@@ -408,10 +398,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildNearbyAlertsSection() {
-    return NearbyAlertsSection(
+    return NearbyAlertsSheet(
       alerts: nearbyAlerts,
-      onViewAll: () {
-        // TODO: Navigate to full alerts list
+      onScrollControllerReady: (controller) {
+        // Scroll controller callback
       },
     );
   }
