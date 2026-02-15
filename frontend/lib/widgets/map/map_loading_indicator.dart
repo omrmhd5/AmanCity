@@ -10,35 +10,43 @@ class MapLoadingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: AppTheme.getCardBackgroundColor(),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+              spreadRadius: 2,
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 16,
-              height: 16,
+              width: 24,
+              height: 24,
               child: CircularProgressIndicator(
-                strokeWidth: 2,
+                strokeWidth: 2.5,
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(height: 12),
             CustomText(
               text: 'Getting your location...',
-              size: 12,
-              weight: FontWeight.w500,
+              size: 13,
+              weight: FontWeight.w600,
               color: AppTheme.getPrimaryTextColor(),
+            ),
+            const SizedBox(height: 4),
+            CustomText(
+              text: 'Please wait',
+              size: 11,
+              weight: FontWeight.w400,
+              color: AppTheme.getSecondaryTextColor().withOpacity(0.7),
             ),
           ],
         ),
