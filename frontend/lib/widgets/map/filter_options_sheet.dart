@@ -11,22 +11,42 @@ class FilterOptionsSheet extends StatefulWidget {
 }
 
 class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
-  final List<Map<String, dynamic>> filterOptions = [
-    {'title': 'Incident Types', 'icon': Icons.warning, 'color': Colors.red},
+  final List<Map<String, dynamic>> incidentTypes = [
     {
-      'title': 'Emergency Services',
-      'icon': Icons.local_hospital,
-      'color': AppColors.secondary,
+      'title': 'Fire / Smoke',
+      'icon': Icons.local_fire_department,
+      'color': Colors.red,
     },
-    {'title': 'Danger Zones', 'icon': Icons.flag, 'color': Colors.amber},
     {
-      'title': 'Distance Range',
-      'icon': Icons.location_on,
-      'color': Colors.blue,
+      'title': 'Road Accident',
+      'icon': Icons.directions_car,
+      'color': Colors.orange,
+    },
+    {'title': 'Flood / Water', 'icon': Icons.water, 'color': Colors.blue},
+    {'title': 'Debris / Blockage', 'icon': Icons.block, 'color': Colors.amber},
+    {
+      'title': 'Road / Infrastructure Damage',
+      'icon': Icons.construction,
+      'color': Colors.brown,
+    },
+    {
+      'title': 'Building Collapse',
+      'icon': Icons.domain_disabled,
+      'color': Colors.grey,
+    },
+    {
+      'title': 'Weapon Visible / Threat Object',
+      'icon': Icons.warning,
+      'color': Colors.deepPurple,
+    },
+    {
+      'title': 'Theft / Assault / Suspicious Movement',
+      'icon': Icons.security,
+      'color': Colors.red.shade700,
     },
   ];
 
-  Set<String> selectedFilters = {};
+  Set<String> selectedIncidentTypes = {};
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +83,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      text: 'Filter Options',
+                      text: 'Incident Types',
                       size: 16,
                       weight: FontWeight.w800,
                       color: AppTheme.getPrimaryTextColor(),
@@ -88,10 +108,10 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 child: Column(
-                  children: List.generate(filterOptions.length, (index) {
-                    final option = filterOptions[index];
-                    final isSelected = selectedFilters.contains(
-                      option['title'],
+                  children: List.generate(incidentTypes.length, (index) {
+                    final incident = incidentTypes[index];
+                    final isSelected = selectedIncidentTypes.contains(
+                      incident['title'],
                     );
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -99,9 +119,9 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                         onTap: () {
                           setState(() {
                             if (isSelected) {
-                              selectedFilters.remove(option['title']);
+                              selectedIncidentTypes.remove(incident['title']);
                             } else {
-                              selectedFilters.add(option['title']);
+                              selectedIncidentTypes.add(incident['title']);
                             }
                           });
                         },
@@ -112,7 +132,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isSelected
-                                  ? option['color']
+                                  ? incident['color']
                                   : AppTheme.getBorderColor(),
                               width: isSelected ? 2 : 1,
                             ),
@@ -124,18 +144,18 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                                 height: 40,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: option['color'].withOpacity(0.15),
+                                  color: incident['color'].withOpacity(0.15),
                                 ),
                                 child: Icon(
-                                  option['icon'],
-                                  color: option['color'],
+                                  incident['icon'],
+                                  color: incident['color'],
                                   size: 20,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: CustomText(
-                                  text: option['title'],
+                                  text: incident['title'],
                                   size: 14,
                                   weight: FontWeight.w600,
                                   color: AppTheme.getPrimaryTextColor(),
@@ -144,7 +164,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                               if (isSelected)
                                 Icon(
                                   Icons.check_circle,
-                                  color: option['color'],
+                                  color: incident['color'],
                                   size: 20,
                                 ),
                             ],
@@ -165,7 +185,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      setState(() => selectedFilters.clear());
+                      setState(() => selectedIncidentTypes.clear());
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
