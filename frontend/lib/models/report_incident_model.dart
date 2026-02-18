@@ -2,7 +2,7 @@
 enum IncidentCategory { harassment, suspicious, theft, medical, fire, other }
 
 /// Enum for evidence types available when reporting
-enum EvidenceType { photo, video, textOnly }
+enum EvidenceType { photo, video }
 
 /// Simple location data class
 class LatLng {
