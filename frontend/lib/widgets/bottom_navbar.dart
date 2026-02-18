@@ -41,7 +41,7 @@ class BottomNavBar extends StatelessWidget {
             children: [
               _buildNavItem(icon: Icons.map, label: 'Map', item: NavItem.map),
               _buildNavItem(
-                icon: Icons.edit,
+                icon: Icons.announcement,
                 label: 'Report',
                 item: NavItem.report,
               ),

@@ -57,7 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildContent() {
     switch (_currentNavItem) {
       case NavItem.map:
-        return const MapScreen();
+        return MapScreen(
+          onReportPressed: () => _onNavItemTapped(NavItem.report),
+        );
       case NavItem.report:
         return const ReportIncidentScreen();
       case NavItem.home:
