@@ -3,6 +3,7 @@ import '../widgets/bottom_navbar.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import 'map_screen.dart';
+import 'report_incident_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,10 +16,12 @@ class _HomeScreenState extends State<HomeScreen> {
   NavItem _currentNavItem = NavItem.home;
 
   void _onNavItemTapped(NavItem item) {
+    if (item == _currentNavItem) return;
+
+    // Switch tabs without navigation stack buildup
     setState(() {
       _currentNavItem = item;
     });
-    // TODO: Navigate to different screens based on selected item
   }
 
   @override
@@ -56,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case NavItem.map:
         return const MapScreen();
       case NavItem.report:
-        return _buildPlaceholder('Report Incident');
+        return const ReportIncidentScreen();
       case NavItem.home:
         return _buildWelcomePage();
       case NavItem.alerts:

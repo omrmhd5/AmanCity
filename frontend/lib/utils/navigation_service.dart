@@ -12,7 +12,7 @@ class Navigator {
     );
   }
 
-  /// Navigate and replace current route
+  /// Navigate and replace current route (better for tab navigation)
   static Future<dynamic>? goToReplacement(
     String routeName, {
     Object? arguments,
@@ -90,5 +90,19 @@ class Navigator {
       return true;
     });
     return routeName;
+  }
+
+  /// Navigate using replacement (ideal for tab navigation)
+  /// Replaces current route instead of pushing, preventing stack buildup
+  static Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
+    return navigatorKey.currentState?.pushReplacementNamed(
+      routeName,
+      arguments: arguments,
+    );
+  }
+
+  /// Pop and navigate (handles cases where you want to go back then forward)
+  static void popAndNavigateTo(String routeName, {Object? arguments}) {
+    navigatorKey.currentState?.popAndPushNamed(routeName, arguments: arguments);
   }
 }
