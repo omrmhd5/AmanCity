@@ -32,14 +32,6 @@ class EvidenceTypeSelector extends StatelessWidget {
           isSelected: selectedType == EvidenceType.video,
           onTap: () => onTypeSelected(EvidenceType.video),
         ),
-        const SizedBox(width: 12),
-        _buildEvidenceButton(
-          type: EvidenceType.textOnly,
-          label: 'Text Only',
-          icon: Icons.description,
-          isSelected: selectedType == EvidenceType.textOnly,
-          onTap: () => onTypeSelected(EvidenceType.textOnly),
-        ),
       ],
     );
   }
@@ -98,17 +90,14 @@ class EvidenceTypeSelector extends StatelessWidget {
                       child: Icon(icon, color: AppColors.secondary, size: 24),
                     ),
                     const SizedBox(height: 8),
-                    // Label
+                    // Text label
                     Text(
                       label,
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         color: AppTheme.getPrimaryTextColor(),
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

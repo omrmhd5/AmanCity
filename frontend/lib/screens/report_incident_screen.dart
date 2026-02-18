@@ -1,9 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../models/report_incident_model.dart';
-import '../widgets/report/incident_type_button.dart';
 import '../widgets/report/location_context_card.dart';
 import '../widgets/report/evidence_type_selector.dart';
 
@@ -15,15 +16,24 @@ class ReportIncidentScreen extends StatefulWidget {
 }
 
 class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
-  IncidentCategory? _selectedCategory;
   EvidenceType? _selectedEvidenceType;
   LatLng? _currentLocation;
   bool _isLoadingLocation = false;
+  TextEditingController _descriptionController = TextEditingController();
+  bool _isSubmitting = false;
+  File? _selectedFile;
+  bool _isPickingFile = false;
 
   @override
   void initState() {
     super.initState();
     _getUserLocation();
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _getUserLocation() async {
@@ -43,17 +53,65 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     }
   }
 
-  void _onIncidentTypeSelected(IncidentCategory category) {
-    setState(() {
-      _selectedCategory = category;
-    });
-    // TODO: Navigate to next step with selected category
+  Future<void> _onEvidenceTypeSelected(EvidenceType type) async {
+    setState(() => _isPickingFile = true);
+
+    try {
+      final picker = ImagePicker();
+      XFile? pickedFile;
+
+      if (type == EvidenceType.photo) {
+        pickedFile = await picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
+      } else if (type == EvidenceType.video) {
+        pickedFile = await picker.pickVideo(source: ImageSource.gallery);
+      }
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedEvidenceType = type;
+          _selectedFile = File(pickedFile!.path);
+          _isPickingFile = false;
+        });
+      } else {
+        setState(() => _isPickingFile = false);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick file: $e')));
+      setState(() => _isPickingFile = false);
+    }
   }
 
-  void _onEvidenceTypeSelected(EvidenceType type) {
-    setState(() {
-      _selectedEvidenceType = type;
-    });
+  Future<void> _submitReport() async {
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a photo or video')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    // TODO: Upload file and submit report to backend
+    await Future.delayed(const Duration(seconds: 2));
+
+    setState(() => _isSubmitting = false);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report submitted successfully')),
+      );
+      // Reset form
+      setState(() {
+        _selectedEvidenceType = null;
+        _selectedFile = null;
+        _descriptionController.clear();
+      });
+    }
   }
 
   @override
@@ -76,187 +134,276 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
             ),
           ),
           // Main content
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 12.0,
-                  ),
-                  child: Text(
-                    'Report Incident',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.getPrimaryTextColor(),
-                    ),
-                  ),
-                ),
-                // Location Context Card
-                if (_currentLocation != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 16.0,
-                    ),
-                    child: LocationContextCard(
-                      latitude: _currentLocation!.latitude,
-                      longitude: _currentLocation!.longitude,
-                      isLoading: _isLoadingLocation,
-                    ),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: _buildLocationLoadingShimmer(),
-                  ),
-                // Evidence Type Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Evidence Type',
+          GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
+                      child: Text(
+                        'Report Incident',
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.getSecondaryTextColor(),
-                          letterSpacing: 0.5,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.getPrimaryTextColor(),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      EvidenceTypeSelector(
-                        selectedType: _selectedEvidenceType,
-                        onTypeSelected: _onEvidenceTypeSelected,
+                    ),
+                    // Location Context Card
+                    if (_currentLocation != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 16.0,
+                        ),
+                        child: LocationContextCard(
+                          latitude: _currentLocation!.latitude,
+                          longitude: _currentLocation!.longitude,
+                          isLoading: _isLoadingLocation,
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildLocationLoadingShimmer(),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Incident Categories Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'What happened?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.getSecondaryTextColor(),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Grid of incident categories
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        IncidentTypeButton(
-                          category: IncidentCategory.harassment,
-                          title: 'Harassment',
-                          subtitle: 'Verbal or physical advances',
-                          icon: Icons.back_hand,
-                          iconColor: const Color(0xFF4F46E5),
-                          backgroundColor: const Color(
-                            0xFF4F46E5,
-                          ).withOpacity(0.1),
-                          isSelected:
-                              _selectedCategory == IncidentCategory.harassment,
-                          onTap: () => _onIncidentTypeSelected(
-                            IncidentCategory.harassment,
+                    // Evidence Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Upload Evidence',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.getSecondaryTextColor(),
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-                        IncidentTypeButton(
-                          category: IncidentCategory.suspicious,
-                          title: 'Suspicious',
-                          subtitle: 'Unusual behavior or objects',
-                          icon: Icons.visibility,
-                          iconColor: const Color(0xFFD97706),
-                          backgroundColor: const Color(
-                            0xFFD97706,
-                          ).withOpacity(0.1),
-                          isSelected:
-                              _selectedCategory == IncidentCategory.suspicious,
-                          onTap: () => _onIncidentTypeSelected(
-                            IncidentCategory.suspicious,
-                          ),
-                        ),
-                        IncidentTypeButton(
-                          category: IncidentCategory.theft,
-                          title: 'Theft',
-                          subtitle: 'Lost property or robbery',
-                          icon: Icons.local_mall,
-                          iconColor: const Color(0xFF9333EA),
-                          backgroundColor: const Color(
-                            0xFF9333EA,
-                          ).withOpacity(0.1),
-                          isSelected:
-                              _selectedCategory == IncidentCategory.theft,
-                          onTap: () =>
-                              _onIncidentTypeSelected(IncidentCategory.theft),
-                        ),
-                        IncidentTypeButton(
-                          category: IncidentCategory.medical,
-                          title: 'Medical',
-                          subtitle: 'Injury or health crisis',
-                          icon: Icons.medical_services,
-                          iconColor: const Color(0xFF10B981),
-                          backgroundColor: const Color(
-                            0xFF10B981,
-                          ).withOpacity(0.1),
-                          isSelected:
-                              _selectedCategory == IncidentCategory.medical,
-                          onTap: () =>
-                              _onIncidentTypeSelected(IncidentCategory.medical),
-                        ),
-                        IncidentTypeButton(
-                          category: IncidentCategory.fire,
-                          title: 'Fire',
-                          subtitle: 'Smoke or flames sighted',
-                          icon: Icons.local_fire_department,
-                          iconColor: const Color(0xFFEA580C),
-                          backgroundColor: const Color(
-                            0xFFEA580C,
-                          ).withOpacity(0.1),
-                          isSelected:
-                              _selectedCategory == IncidentCategory.fire,
-                          onTap: () =>
-                              _onIncidentTypeSelected(IncidentCategory.fire),
-                        ),
-                        IncidentTypeButton(
-                          category: IncidentCategory.other,
-                          title: 'Other',
-                          subtitle: 'Domestic or unspecified',
-                          icon: Icons.more_horiz,
-                          iconColor: const Color(0xFF64748B),
-                          backgroundColor: const Color(
-                            0xFF64748B,
-                          ).withOpacity(0.05),
-                          isSelected:
-                              _selectedCategory == IncidentCategory.other,
-                          onTap: () =>
-                              _onIncidentTypeSelected(IncidentCategory.other),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          if (_selectedFile == null)
+                            _isPickingFile
+                                ? Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20.0),
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              AppColors.secondary,
+                                            ),
+                                      ),
+                                    ),
+                                  )
+                                : EvidenceTypeSelector(
+                                    selectedType: _selectedEvidenceType,
+                                    onTypeSelected: _onEvidenceTypeSelected,
+                                  )
+                          else
+                            _buildFilePreview(),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    // Description Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Description (Optional)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.getSecondaryTextColor(),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _descriptionController,
+                            maxLines: 4,
+                            decoration: InputDecoration(
+                              hintText: 'Add details about the incident...',
+                              hintStyle: TextStyle(
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                              filled: true,
+                              fillColor:
+                                  AppTheme.currentMode == AppThemeMode.dark
+                                  ? AppColors.primary
+                                  : AppColors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppTheme.getBorderColor(),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppTheme.getBorderColor(),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppColors.secondary,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            style: TextStyle(
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Report Button
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _submitReport,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.danger,
+                            disabledBackgroundColor: AppColors.danger
+                                .withOpacity(0.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 4,
+                          ),
+                          child: _isSubmitting
+                              ? SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'Report Incident',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilePreview() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.currentMode == AppThemeMode.dark
+            ? AppColors.primary
+            : AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.secondary, width: 2),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          if (_selectedFile != null &&
+              _selectedEvidenceType == EvidenceType.photo)
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(_selectedFile!, fit: BoxFit.cover),
+              ),
+            )
+          else if (_selectedEvidenceType == EvidenceType.video)
+            Container(
+              height: 150,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.play_circle_outline,
+                size: 64,
+                color: AppColors.secondary,
+              ),
+            ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                _selectedEvidenceType == EvidenceType.photo
+                    ? Icons.photo_camera
+                    : Icons.videocam,
+                color: AppColors.secondary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _selectedFile!.path.split('/').last,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.getPrimaryTextColor(),
+                      ),
+                    ),
+                    Text(
+                      '${(_selectedFile!.lengthSync() / 1024 / 1024).toStringAsFixed(2)} MB',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _selectedFile = null),
+                child: Text(
+                  'Change',
+                  style: TextStyle(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -48,6 +48,9 @@ dependencies:
   # URL Launcher for navigation
   url_launcher: ^6.2.0
 
+  # Image and Video Picker
+  image_picker: ^1.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
