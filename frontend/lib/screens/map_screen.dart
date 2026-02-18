@@ -15,7 +15,9 @@ import '../models/danger_zone.dart';
 import '../services/mock_map_data_service.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  const MapScreen({Key? key, this.onReportPressed}) : super(key: key);
+
+  final VoidCallback? onReportPressed;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -264,6 +266,22 @@ class _MapScreenState extends State<MapScreen> {
                   },
                 ),
               ],
+            ),
+          ),
+        ),
+
+        // Report button
+        Positioned(
+          right: 16,
+          bottom: 170,
+          child: FloatingActionButton(
+            mini: true,
+            backgroundColor: AppColors.danger,
+            onPressed: widget.onReportPressed,
+            child: const Icon(
+              Icons.announcement,
+              color: Colors.white,
+              size: 20,
             ),
           ),
         ),
