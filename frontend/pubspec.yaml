@@ -45,6 +45,9 @@ dependencies:
   # Google Fonts for typography
   google_fonts: ^6.1.0
 
+  # URL Launcher for navigation
+  url_launcher: ^6.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

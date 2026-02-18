@@ -112,10 +112,7 @@ class _MapScreenState extends State<MapScreen> {
           icon: BitmapDescriptor.defaultMarkerWithHue(
             _getHueFromColor(incident.severityColor),
           ),
-          infoWindow: InfoWindow(
-            title: incident.title,
-            snippet: incident.description,
-          ),
+          consumeTapEvents: true,
           onTap: () => _onIncidentTapped(incident),
         ),
       );
@@ -130,7 +127,7 @@ class _MapScreenState extends State<MapScreen> {
           icon: BitmapDescriptor.defaultMarkerWithHue(
             _getHueFromColor(poi.markerColor),
           ),
-          infoWindow: InfoWindow(title: poi.name, snippet: poi.typeLabel),
+          consumeTapEvents: true,
           onTap: () => _onPOITapped(poi),
         ),
       );
@@ -145,7 +142,6 @@ class _MapScreenState extends State<MapScreen> {
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueAzure,
           ),
-          infoWindow: const InfoWindow(title: 'Your Location'),
         ),
       );
     }
