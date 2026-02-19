@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
 import '../../models/map_incident.dart';
+import '../../screens/incident_detail_screen.dart';
 import '../custom_text.dart';
 
 class IncidentDetailSheet extends StatelessWidget {
@@ -308,12 +309,14 @@ class IncidentDetailSheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: GestureDetector(
               onTap: () {
-                // TODO: Navigate to detailed incident view or open web link
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('View Details coming soon'),
-                    backgroundColor: AppColors.secondary,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IncidentDetailScreen(
+                      incident: incident,
+                      timeAgo: timeAgo,
+                    ),
                   ),
                 );
               },
