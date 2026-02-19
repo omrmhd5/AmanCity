@@ -23,43 +23,79 @@ class IncidentDetailScreen extends StatefulWidget {
 class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.getBackgroundColor(),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(70),
-        child: IncidentDetailHeader(
-          incidentId: widget.incident.id,
-          location: 'Cairo • Maadi Sector',
-          onBackPressed: () => Navigator.pop(context),
-          onSharePressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Share functionality coming soon')),
-            );
-          },
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Reporter & Incident Info
-              ReporterProfileCard(
-                incident: widget.incident,
-                timeAgo: widget.timeAgo,
-              ),
-              const SizedBox(height: 16),
+    final screenHeight = MediaQuery.of(context).size.height;
 
-              // Evidence Feed
-              EvidenceFeedSection(),
-              const SizedBox(height: 16),
-
-              // Location
-              LocationSection(incident: widget.incident),
-              const SizedBox(height: 32),
-            ],
+    return Container(
+      height: screenHeight * 0.92,
+      decoration: BoxDecoration(
+        color: AppTheme.getBackgroundColor(),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBorderColor(),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Header
+          IncidentDetailHeader(
+            incidentId: widget.incident.id,
+            location: 'Cairo • Maadi Sector',
+            onBackPressed: () => Navigator.pop(context),
+            onSharePressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Share functionality coming soon'),
+                ),
+              );
+            },
+          ),
+          // Main content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Reporter & Incident Info
+                    ReporterProfileCard(
+                      incident: widget.incident,
+                      timeAgo: widget.timeAgo,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Evidence Feed
+                    EvidenceFeedSection(),
+                    const SizedBox(height: 16),
+
+                    // Location
+                    LocationSection(incident: widget.incident),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
