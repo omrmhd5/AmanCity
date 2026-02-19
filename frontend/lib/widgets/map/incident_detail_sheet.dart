@@ -310,13 +310,13 @@ class IncidentDetailSheet extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => IncidentDetailScreen(
-                      incident: incident,
-                      timeAgo: timeAgo,
-                    ),
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => IncidentDetailScreen(
+                    incident: incident,
+                    timeAgo: timeAgo,
                   ),
                 );
               },
