@@ -40,16 +40,20 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     setState(() => _isLoadingLocation = true);
     try {
       final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-        _isLoadingLocation = false;
-      });
+      if (mounted) {
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+          _isLoadingLocation = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoadingLocation = false);
-      // Default to Cairo if location fails
-      setState(() {
-        _currentLocation = const LatLng(30.0444, 31.2357);
-      });
+      if (mounted) {
+        setState(() => _isLoadingLocation = false);
+        // Default to Cairo if location fails
+        setState(() {
+          _currentLocation = const LatLng(30.0444, 31.2357);
+        });
+      }
     }
   }
 

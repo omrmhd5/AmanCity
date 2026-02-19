@@ -275,6 +275,7 @@ class _MapScreenState extends State<MapScreen> {
           right: 16,
           bottom: 180,
           child: FloatingActionButton(
+            heroTag: 'report_button',
             backgroundColor: AppColors.danger,
             onPressed: widget.onReportPressed,
             child: const Icon(
@@ -290,6 +291,7 @@ class _MapScreenState extends State<MapScreen> {
           right: 16,
           bottom: 110,
           child: FloatingActionButton(
+            heroTag: 'my_location_button',
             backgroundColor: AppTheme.getCardBackgroundColor().withOpacity(
               0.85,
             ),
