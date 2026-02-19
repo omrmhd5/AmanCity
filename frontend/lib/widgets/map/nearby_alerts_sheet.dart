@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../utils/app_theme.dart';
+import '../../models/map_incident.dart';
 import '../custom_text.dart';
 import '../custom_search_bar.dart';
 import '../custom_filter_chips.dart';
 import 'nearby_alert_card.dart';
+import 'incident_detail_sheet.dart';
 
 class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
@@ -77,6 +80,60 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
 
   Set<String> _getAlertTypes() {
     return widget.alerts.map((alert) => alert['type'] as String).toSet();
+  }
+
+  MapIncident _alertToIncident(Map<String, dynamic> alert) {
+    // Convert alert type string to IncidentType enum
+    final typeString = (alert['type'] as String).toLowerCase();
+    IncidentType incidentType = IncidentType.other;
+
+    if (typeString.contains('harass')) {
+      incidentType = IncidentType.harassment;
+    } else if (typeString.contains('theft')) {
+      incidentType = IncidentType.theft;
+    } else if (typeString.contains('assault')) {
+      incidentType = IncidentType.assault;
+    } else if (typeString.contains('suspicious')) {
+      incidentType = IncidentType.suspicious;
+    }
+
+    // Determine severity based on alert color intensity
+    final color = alert['color'] as Color;
+    SeverityLevel severity = SeverityLevel.low;
+    if (color.value == const Color(0xFFB91C1C).value) {
+      severity = SeverityLevel.critical;
+    } else if (color.value == const Color(0xFFEF4444).value) {
+      severity = SeverityLevel.high;
+    } else if (color.value == Colors.orange.value) {
+      severity = SeverityLevel.medium;
+    } else if (color.value == Colors.amber.value) {
+      severity = SeverityLevel.low;
+    }
+
+    return MapIncident(
+      id: alert['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      type: incidentType,
+      severity: severity,
+      position: const LatLng(30.0444, 31.2357), // Default Cairo coordinates
+      title: alert['type'] as String,
+      description: alert['description'] as String,
+      timestamp: DateTime.now(),
+    );
+  }
+
+  void _showIncidentDetails(Map<String, dynamic> alert) {
+    final incident = _alertToIncident(alert);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return IncidentDetailSheet(
+          incident: incident,
+          timeAgo: alert['timeAgo'] as String,
+        );
+      },
+    );
   }
 
   @override
@@ -250,6 +307,8 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                         distance: alert['distance'],
                                         borderColor: alert['color'],
                                         icon: alert['icon'],
+                                        onTap: () =>
+                                            _showIncidentDetails(alert),
                                       ),
                                     );
                                   },

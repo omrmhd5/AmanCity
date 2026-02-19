@@ -273,15 +273,14 @@ class _MapScreenState extends State<MapScreen> {
         // Report button
         Positioned(
           right: 16,
-          bottom: 170,
+          bottom: 180,
           child: FloatingActionButton(
-            mini: true,
             backgroundColor: AppColors.danger,
             onPressed: widget.onReportPressed,
             child: const Icon(
               Icons.announcement,
               color: Colors.white,
-              size: 20,
+              size: 24,
             ),
           ),
         ),
@@ -289,9 +288,8 @@ class _MapScreenState extends State<MapScreen> {
         // My Location button
         Positioned(
           right: 16,
-          bottom: 100,
+          bottom: 110,
           child: FloatingActionButton(
-            mini: true,
             backgroundColor: AppTheme.getCardBackgroundColor().withOpacity(
               0.85,
             ),
@@ -307,7 +305,7 @@ class _MapScreenState extends State<MapScreen> {
             child: Icon(
               Icons.my_location,
               color: AppColors.secondary,
-              size: 20,
+              size: 24,
             ),
           ),
         ),
