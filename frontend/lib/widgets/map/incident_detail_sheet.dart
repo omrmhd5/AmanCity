@@ -70,236 +70,282 @@ class IncidentDetailSheet extends StatelessWidget {
             ),
           ),
           const Divider(height: 0.5),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title Card with icon
-                Container(
-                  decoration: BoxDecoration(
-                    color: Color.alphaBlend(
-                      incident.severityColor.withOpacity(0.04),
-                      AppTheme.getCardBackgroundColor(),
+          // Content - Scrollable
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title Card with icon
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Color.alphaBlend(
+                        incident.severityColor.withOpacity(0.04),
+                        AppTheme.getCardBackgroundColor(),
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: incident.severityColor.withOpacity(0.15),
+                        width: 1,
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: incident.severityColor.withOpacity(0.15),
-                      width: 1,
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: incident.severityColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            incident.typeIcon,
+                            color: incident.severityColor,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                text: incident.title,
+                                size: 16,
+                                weight: FontWeight.w700,
+                                color: AppTheme.getPrimaryTextColor(),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: incident.severityColor.withOpacity(
+                                        0.15,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: incident.severityColor
+                                            .withOpacity(0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: CustomText(
+                                      text: incident.typeLabel,
+                                      size: 11,
+                                      weight: FontWeight.w600,
+                                      color: incident.severityColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: incident.severityColor.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          incident.typeIcon,
-                          color: incident.severityColor,
-                          size: 32,
-                        ),
+                  const SizedBox(height: 16),
+                  // Description Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCardBackgroundColor(),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppTheme.getBorderColor(),
+                        width: 1,
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            CustomText(
-                              text: incident.title,
+                            Icon(
+                              Icons.description,
                               size: 16,
+                              color: incident.severityColor,
+                            ),
+                            const SizedBox(width: 8),
+                            CustomText(
+                              text: 'Description',
+                              size: 13,
                               weight: FontWeight.w700,
                               color: AppTheme.getPrimaryTextColor(),
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: incident.severityColor.withOpacity(
-                                      0.15,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: incident.severityColor.withOpacity(
-                                        0.3,
-                                      ),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: CustomText(
-                                    text: incident.typeLabel,
-                                    size: 11,
-                                    weight: FontWeight.w600,
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        CustomText(
+                          text: incident.description,
+                          size: 12,
+                          weight: FontWeight.w400,
+                          color: AppTheme.getSecondaryTextColor(),
+                          height: 1.6,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Info Cards (Location + Time)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.getCardBackgroundColor(),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.getBorderColor(),
+                              width: 1,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 14,
                                     color: incident.severityColor,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 6),
+                                  CustomText(
+                                    text: 'Location',
+                                    size: 11,
+                                    weight: FontWeight.w600,
+                                    color: AppTheme.getPrimaryTextColor(),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              CustomText(
+                                text:
+                                    '${incident.position.latitude.toStringAsFixed(4)}',
+                                size: 10,
+                                weight: FontWeight.w400,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                              CustomText(
+                                text:
+                                    '${incident.position.longitude.toStringAsFixed(4)}',
+                                size: 10,
+                                weight: FontWeight.w400,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.getCardBackgroundColor(),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.getBorderColor(),
+                              width: 1,
                             ),
-                          ],
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 14,
+                                    color: incident.severityColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  CustomText(
+                                    text: 'Time',
+                                    size: 11,
+                                    weight: FontWeight.w600,
+                                    color: AppTheme.getPrimaryTextColor(),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              CustomText(
+                                text: timeAgo,
+                                size: 11,
+                                weight: FontWeight.w600,
+                                color: incident.severityColor,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Description Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.getCardBackgroundColor(),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppTheme.getBorderColor(),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 8,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          // View Details Button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: GestureDetector(
+              onTap: () {
+                // TODO: Navigate to detailed incident view or open web link
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('View Details coming soon'),
+                    backgroundColor: AppColors.secondary,
                   ),
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.description,
-                            size: 16,
-                            color: incident.severityColor,
-                          ),
-                          const SizedBox(width: 8),
-                          CustomText(
-                            text: 'Description',
-                            size: 13,
-                            weight: FontWeight.w700,
-                            color: AppTheme.getPrimaryTextColor(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      CustomText(
-                        text: incident.description,
-                        size: 12,
-                        weight: FontWeight.w400,
-                        color: AppTheme.getSecondaryTextColor(),
-                        height: 1.6,
-                      ),
-                    ],
-                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
                 ),
-                const SizedBox(height: 16),
-                // Info Cards (Location + Time)
-                Row(
+                decoration: BoxDecoration(
+                  color: AppTheme.getCardBackgroundColor(),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.secondary, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.getCardBackgroundColor(),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.getBorderColor(),
-                            width: 1,
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 14,
-                                  color: incident.severityColor,
-                                ),
-                                const SizedBox(width: 6),
-                                CustomText(
-                                  text: 'Location',
-                                  size: 11,
-                                  weight: FontWeight.w600,
-                                  color: AppTheme.getPrimaryTextColor(),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            CustomText(
-                              text:
-                                  '${incident.position.latitude.toStringAsFixed(4)}',
-                              size: 10,
-                              weight: FontWeight.w400,
-                              color: AppTheme.getSecondaryTextColor(),
-                            ),
-                            CustomText(
-                              text:
-                                  '${incident.position.longitude.toStringAsFixed(4)}',
-                              size: 10,
-                              weight: FontWeight.w400,
-                              color: AppTheme.getSecondaryTextColor(),
-                            ),
-                          ],
-                        ),
-                      ),
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.secondary,
+                      size: 18,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.getCardBackgroundColor(),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.getBorderColor(),
-                            width: 1,
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time,
-                                  size: 14,
-                                  color: incident.severityColor,
-                                ),
-                                const SizedBox(width: 6),
-                                CustomText(
-                                  text: 'Time',
-                                  size: 11,
-                                  weight: FontWeight.w600,
-                                  color: AppTheme.getPrimaryTextColor(),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            CustomText(
-                              text: timeAgo,
-                              size: 11,
-                              weight: FontWeight.w600,
-                              color: incident.severityColor,
-                            ),
-                          ],
-                        ),
-                      ),
+                    const SizedBox(width: 8),
+                    CustomText(
+                      text: 'View Details',
+                      size: 14,
+                      weight: FontWeight.w600,
+                      color: AppColors.secondary,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
           ),
           // Navigate Button
