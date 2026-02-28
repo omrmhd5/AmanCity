@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/incidents", require("./routes/incidents"));
+app.use("/api/predict", require("./routes/predict"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
