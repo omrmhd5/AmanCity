@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-// app.use('/api', require('./routes'));
+app.use("/api/incidents", require("./routes/incidents"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
