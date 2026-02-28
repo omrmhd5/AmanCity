@@ -35,3 +35,12 @@ build/
 # Temp files
 *.tmp
 temp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+python/venv/
+python/.venv/
