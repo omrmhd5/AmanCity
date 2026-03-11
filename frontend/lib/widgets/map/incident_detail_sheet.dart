@@ -4,7 +4,7 @@ import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
 import '../../models/map_incident.dart';
 import '../../screens/incident_detail_screen.dart';
-import '../custom_text.dart';
+import '../shared/custom_text.dart';
 
 class IncidentDetailSheet extends StatelessWidget {
   final MapIncident incident;

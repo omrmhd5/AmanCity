@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
-import '../custom_text.dart';
+import '../shared/custom_text.dart';
 
 class NearbyAlertCard extends StatelessWidget {
   final String alertType;

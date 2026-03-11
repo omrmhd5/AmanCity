@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../custom_search_bar.dart';
-import '../custom_filter_chips.dart';
+import '../shared/custom_search_bar.dart';
+import '../shared/custom_filter_chips.dart';
 import 'map_filter_button.dart';
 
 class MapFilterSection extends StatefulWidget {

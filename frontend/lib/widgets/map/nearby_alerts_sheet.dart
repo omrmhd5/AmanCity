@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../utils/app_theme.dart';
 import '../../models/map_incident.dart';
-import '../custom_text.dart';
-import '../custom_search_bar.dart';
-import '../custom_filter_chips.dart';
+import '../shared/custom_text.dart';
+import '../shared/custom_search_bar.dart';
+import '../shared/custom_filter_chips.dart';
 import 'nearby_alert_card.dart';
 import 'incident_detail_sheet.dart';
 

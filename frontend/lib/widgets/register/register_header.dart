@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_text.dart';
+import '../shared/custom_text.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
 

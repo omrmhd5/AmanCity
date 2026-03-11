@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
 import '../../models/prediction_result_model.dart';
-import '../custom_text.dart';
+import '../shared/custom_text.dart';
 
 /// Dialog widget that displays YOLO prediction results
 /// Shows the detected incident class, confidence score, and action buttons

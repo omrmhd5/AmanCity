@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../custom_text_field.dart';
-import '../custom_text.dart';
+import '../shared/custom_text_field.dart';
+import '../shared/custom_text.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
 

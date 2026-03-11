@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../custom_text_field.dart';
-import '../custom_button.dart';
-import '../custom_text.dart';
-import '../custom_gesture_detector.dart';
+import '../shared/custom_text_field.dart';
+import '../shared/custom_button.dart';
+import '../shared/custom_text.dart';
+import '../shared/custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
 
 class LoginForm extends StatefulWidget {
