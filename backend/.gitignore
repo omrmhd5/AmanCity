@@ -44,3 +44,5 @@ __pycache__/
 .Python
 python/venv/
 python/.venv/
+
+.cursorrules
