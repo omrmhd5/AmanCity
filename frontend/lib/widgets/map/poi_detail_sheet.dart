@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
 import '../../models/emergency_poi.dart';
-import '../custom_text.dart';
+import '../shared/custom_text.dart';
 
 class POIDetailSheet extends StatelessWidget {
   final EmergencyPOI poi;

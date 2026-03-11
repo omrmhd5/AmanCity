@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../custom_button.dart';
-import '../custom_text.dart';
-import '../custom_gesture_detector.dart';
+import '../shared/custom_button.dart';
+import '../shared/custom_text.dart';
+import '../shared/custom_gesture_detector.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/navigation_service.dart' as navigation;

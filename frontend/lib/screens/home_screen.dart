@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navbar.dart';
+import '../widgets/shared/bottom_navbar.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import 'map_screen.dart';

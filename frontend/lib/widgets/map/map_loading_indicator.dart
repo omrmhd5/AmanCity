@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
-import '../custom_text.dart';
+import '../shared/custom_text.dart';
 
 class MapLoadingIndicator extends StatelessWidget {
   const MapLoadingIndicator({Key? key}) : super(key: key);
