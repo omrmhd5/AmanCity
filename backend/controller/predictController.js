@@ -1,8 +1,8 @@
-const YOLOService = require("../service/yoloService");
+const YOLOService = require("../service/predictService");
 
 class PredictController {
   // Just run inference without creating incident
-  // POST /api/predict/inference-only
+  // POST /api/predict
   static async predictOnly(req, res) {
     try {
       if (!req.file) {
