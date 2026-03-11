@@ -48,4 +48,7 @@ app.*.map.json
 ios/Runner/AppDelegate.swift
 android/app/src/main/AndroidManifest.xml
 
+# Environment variables
+.env
+
 .cursorrules

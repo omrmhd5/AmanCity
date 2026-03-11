@@ -12,7 +12,7 @@ import '../widgets/map/nearby_alerts_sheet.dart';
 import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
-import '../services/mock_map_data_service.dart';
+import '../services/google_api/mock_map_data_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);

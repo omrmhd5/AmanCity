@@ -1,7 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../models/map_incident.dart';
-import '../models/emergency_poi.dart';
-import '../models/danger_zone.dart';
+import '../../models/map_incident.dart';
+import '../../models/emergency_poi.dart';
+import '../../models/danger_zone.dart';
 
 class MockMapDataService {
   // Cairo coordinates: 30.0444° N, 31.2357° E

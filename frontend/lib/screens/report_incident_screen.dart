@@ -5,8 +5,11 @@ import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../models/report_incident_model.dart';
+import '../models/prediction_result_model.dart';
+import '../services/backend_api/prediction_api_service.dart';
 import '../widgets/report/location_context_card.dart';
 import '../widgets/report/evidence_type_selector.dart';
+import '../widgets/report/prediction_result_dialog.dart';
 
 class ReportIncidentScreen extends StatefulWidget {
   const ReportIncidentScreen({Key? key}) : super(key: key);
@@ -100,21 +103,55 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
 
     setState(() => _isSubmitting = true);
 
-    // TODO: Upload file and submit report to backend
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _isSubmitting = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report submitted successfully')),
+    try {
+      // Send file to prediction API
+      final prediction = await PredictionApiService.predictFromFile(
+        _selectedFile!,
       );
-      // Reset form
-      setState(() {
-        _selectedEvidenceType = null;
-        _selectedFile = null;
-        _descriptionController.clear();
-      });
+
+      setState(() => _isSubmitting = false);
+
+      if (mounted) {
+        // Show prediction result dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => PredictionResultDialog(
+            prediction: prediction,
+            onCreateIncident: () {
+              // TODO: Create incident from prediction
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Incident creation coming soon')),
+              );
+              // Reset form after creation
+              setState(() {
+                _selectedEvidenceType = null;
+                _selectedFile = null;
+                _descriptionController.clear();
+              });
+            },
+            onDismiss: () {
+              // Reset form on dismiss
+              setState(() {
+                _selectedEvidenceType = null;
+                _selectedFile = null;
+                _descriptionController.clear();
+              });
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Prediction failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
