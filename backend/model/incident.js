@@ -69,4 +69,5 @@ incidentSchema.index({ timestamp: -1 });
 incidentSchema.index({ type: 1 });
 incidentSchema.index({ status: 1 });
 
-module.exports = mongoose.model("Incident", incidentSchema);
+module.exports =
+  mongoose.models.Incident || mongoose.model("Incident", incidentSchema);

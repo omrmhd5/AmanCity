@@ -28,4 +28,6 @@ const incidentTypeSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("IncidentType", incidentTypeSchema);
+module.exports =
+  mongoose.models.IncidentType ||
+  mongoose.model("IncidentType", incidentTypeSchema);

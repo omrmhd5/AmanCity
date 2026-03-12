@@ -1,46 +1,94 @@
 const IncidentService = require("../service/incidentService");
+const FileService = require("../service/fileService");
+const IncidentType = require("../model/IncidentType");
 
 class IncidentController {
   /**
-   * Create new incident
+   * Create new incident with file upload
    * POST /api/incidents
+   * Accepts multipart/form-data with file
    */
   static async createIncident(req, res) {
     try {
       const {
         title,
         description,
-        type,
+        className,
         location,
         confidence,
-        timestamp,
-        media,
         reportedBy,
       } = req.body;
 
       // Validation
-      if (!title || !description || !type || !location) {
+      if (!title || !className || !location) {
         return res.status(400).json({
-          message:
-            "Missing required fields: title, description, type, location",
+          message: "Missing required fields: title, className, location",
         });
       }
 
-      if (location.latitude === undefined || location.longitude === undefined) {
+      // Parse location if it's a string (from multipart form)
+      let parsedLocation = location;
+      if (typeof location === "string") {
+        try {
+          parsedLocation = JSON.parse(location);
+        } catch (e) {
+          parsedLocation = { text: location };
+        }
+      }
+
+      // Validate location has lat/lng after parsing
+      if (
+        parsedLocation.latitude === undefined ||
+        parsedLocation.longitude === undefined
+      ) {
         return res.status(400).json({
           message: "Location must include latitude and longitude",
         });
       }
 
+      // Look up IncidentType by class name (type field)
+      const incidentType = await IncidentType.findOne({ type: className });
+
+      if (!incidentType) {
+        return res.status(400).json({
+          message: `Invalid incident class: ${className}. Must be one of: Accident, Damaged_Building, Fire, Flood, Normal, Public_Issue, Road_Damage`,
+        });
+      }
+
+      // Handle file upload if present
+      let mediaArray = [];
+      if (req.file) {
+        try {
+          const filePath = FileService.saveFileToClass(
+            req.file.buffer,
+            className,
+            req.file.originalname,
+          );
+
+          mediaArray = [
+            {
+              mediaType: req.file.mimetype.startsWith("video")
+                ? "VIDEO"
+                : "IMAGE",
+              url: filePath,
+            },
+          ];
+        } catch (fileError) {
+          return res.status(400).json({
+            message: `File upload failed: ${fileError.message}`,
+          });
+        }
+      }
+
       const incidentData = {
         title,
-        description,
-        type,
-        location,
-        confidence: confidence || 0.5,
-        timestamp,
-        media,
+        description: description || "",
+        type: incidentType._id,
+        location: parsedLocation,
+        confidence: parseFloat(confidence) || 0.5,
+        media: mediaArray,
         reportedBy,
+        timestamp: new Date(),
       };
 
       const incident = await IncidentService.createIncident(incidentData);
@@ -50,6 +98,7 @@ class IncidentController {
         data: incident,
       });
     } catch (error) {
+      console.error("Create incident error:", error);
       res.status(500).json({
         message: error.message || "Failed to create incident",
       });

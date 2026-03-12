@@ -8,7 +8,8 @@ import '../shared/custom_text.dart';
 /// Shows the detected incident class, confidence score, and action buttons
 class PredictionResultDialog extends StatelessWidget {
   final PredictionResult prediction;
-  final VoidCallback? onCreateIncident;
+  final Function(PredictionResult)?
+  onCreateIncident; // Callback with prediction data
   final VoidCallback? onDismiss;
 
   const PredictionResultDialog({
@@ -150,8 +151,10 @@ class PredictionResultDialog extends StatelessWidget {
                 const SizedBox(height: 8),
                 Stack(
                   children: [
+                    // Background bar
                     Container(
                       height: 8,
+                      width: double.infinity,
                       decoration: BoxDecoration(
                         color: AppTheme.currentMode == AppThemeMode.dark
                             ? AppColors.softGray.withOpacity(0.2)
@@ -159,15 +162,15 @@ class PredictionResultDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                    Container(
-                      height: 8,
-                      width:
-                          MediaQuery.of(context).size.width *
-                          0.5 *
-                          prediction.confidence,
-                      decoration: BoxDecoration(
-                        color: confidenceColor,
-                        borderRadius: BorderRadius.circular(4),
+                    // Fill bar - proportional to confidence
+                    FractionallySizedBox(
+                      widthFactor: prediction.confidence,
+                      child: Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: confidenceColor,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                     ),
                   ],
@@ -218,7 +221,7 @@ class PredictionResultDialog extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        onCreateIncident?.call();
+                        onCreateIncident?.call(prediction);
                         Navigator.of(context).pop();
                       },
                       borderRadius: BorderRadius.circular(12),
