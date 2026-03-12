@@ -12,7 +12,7 @@ import '../widgets/map/nearby_alerts_sheet.dart';
 import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
-import '../services/google_api/mock_map_data_service.dart';
+import '../services/backend_api/incident_api_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);
@@ -45,7 +45,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMockData();
+    _loadIncidents();
     _getUserLocation();
   }
 
@@ -55,13 +55,16 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
-  void _loadMockData() {
-    setState(() {
-      _incidents = MockMapDataService.getMockIncidents();
-      _pois = MockMapDataService.getMockPOIs();
-      _dangerZones = MockMapDataService.getMockDangerZones();
-    });
-    _updateMapElements();
+  Future<void> _loadIncidents() async {
+    try {
+      final incidents = await IncidentApiService.getIncidents();
+      setState(() {
+        _incidents = incidents;
+      });
+      _updateMapElements();
+    } catch (e) {
+      print('❌ Error loading incidents: $e');
+    }
   }
 
   Future<void> _getUserLocation() async {

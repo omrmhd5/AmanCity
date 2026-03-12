@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:convert';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/app_config.dart';
+import '../../models/map_incident.dart';
 
 /// Model for incident creation response
 class IncidentResponse {
@@ -118,5 +120,120 @@ class IncidentApiService {
       print('❌ Error: $e');
       throw Exception('Failed to create incident: $e');
     }
+  }
+
+  /// Get all incidents from backend
+  /// Returns list of MapIncident for map display
+  static Future<List<MapIncident>> getIncidents() async {
+    final incidentsUrl = '${AppConfig.backendUrl}/incidents';
+
+    try {
+      print('📍 Fetching incidents from: $incidentsUrl');
+
+      final response = await http
+          .get(Uri.parse(incidentsUrl))
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw SocketException('Request timeout'),
+          );
+
+      print('📨 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        final incidents = jsonData['data'] as List<dynamic>? ?? [];
+
+        List<MapIncident> mapIncidents = [];
+        for (var incident in incidents) {
+          try {
+            final mapIncident = _parseIncident(incident);
+            mapIncidents.add(mapIncident);
+          } catch (e) {
+            print('⚠️ Skipping invalid incident: $e');
+          }
+        }
+
+        print('✅ Loaded ${mapIncidents.length} incidents');
+        return mapIncidents;
+      } else {
+        throw Exception('Failed to load incidents: ${response.statusCode}');
+      }
+    } on SocketException catch (e) {
+      print('❌ Network Error: $e');
+      throw Exception('Network error: Unable to connect to backend\nError: $e');
+    } catch (e) {
+      print('❌ Error loading incidents: $e');
+      throw Exception('Failed to load incidents: $e');
+    }
+  }
+
+  /// Parse backend incident to MapIncident
+  static MapIncident _parseIncident(Map<String, dynamic> data) {
+    final id = data['_id'] ?? '';
+    final title = data['title'] ?? '';
+    final description = data['description'] ?? '';
+    final confidence = (data['confidence'] ?? 0).toDouble();
+    final timestamp =
+        DateTime.tryParse(data['timestamp'] ?? '') ?? DateTime.now();
+
+    // Parse location
+    final lat = (data['location']?['latitude'] ?? 0).toDouble();
+    final lng = (data['location']?['longitude'] ?? 0).toDouble();
+    final position = LatLng(lat, lng);
+
+    // Map incident type to IncidentType enum
+    final typeString = _getTypeString(data['type']);
+    final type = _mapStringToIncidentType(typeString);
+
+    // Map confidence to severity level
+    final severity = _mapConfidenceToSeverity(confidence);
+
+    return MapIncident(
+      id: id,
+      type: type,
+      severity: severity,
+      position: position,
+      title: title,
+      description: description,
+      timestamp: timestamp,
+    );
+  }
+
+  /// Extract type string from backend incident type (can be string or object)
+  static String _getTypeString(dynamic typeData) {
+    if (typeData is String) {
+      return typeData;
+    } else if (typeData is Map) {
+      return typeData['type'] ?? 'other';
+    }
+    return 'other';
+  }
+
+  /// Map backend incident type to IncidentType enum
+  static IncidentType _mapStringToIncidentType(String typeString) {
+    final normalized = typeString.toLowerCase();
+    if (normalized.contains('accident') || normalized.contains('crash')) {
+      return IncidentType.assault; // Map to assault for now
+    } else if (normalized.contains('fire')) {
+      return IncidentType.suspicious;
+    } else if (normalized.contains('flood')) {
+      return IncidentType.suspicious;
+    } else if (normalized.contains('theft') || normalized.contains('stolen')) {
+      return IncidentType.theft;
+    } else if (normalized.contains('assault') ||
+        normalized.contains('violence')) {
+      return IncidentType.assault;
+    } else if (normalized.contains('harassment')) {
+      return IncidentType.harassment;
+    }
+    return IncidentType.other;
+  }
+
+  /// Map YOLO confidence score to severity level
+  static SeverityLevel _mapConfidenceToSeverity(double confidence) {
+    if (confidence >= 0.9) return SeverityLevel.critical;
+    if (confidence >= 0.75) return SeverityLevel.high;
+    if (confidence >= 0.5) return SeverityLevel.medium;
+    return SeverityLevel.low;
   }
 }
