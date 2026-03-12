@@ -7,6 +7,7 @@ import '../utils/app_theme.dart';
 import '../models/report_incident_model.dart';
 import '../models/prediction_result_model.dart';
 import '../services/backend_api/prediction_api_service.dart';
+import '../services/backend_api/incident_api_service.dart';
 import '../widgets/report/location_context_card.dart';
 import '../widgets/report/evidence_type_selector.dart';
 import '../widgets/report/prediction_result_dialog.dart';
@@ -93,11 +94,72 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     }
   }
 
+  Future<void> _createIncidentFromPrediction(
+    PredictionResult prediction,
+  ) async {
+    if (_selectedFile == null || _currentLocation == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Missing file or location')));
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final incident = await IncidentApiService.createIncident(
+        photo: _selectedFile!,
+        title: prediction.className,
+        className: prediction.className,
+        description: _descriptionController.text,
+        latitude: _currentLocation!.latitude,
+        longitude: _currentLocation!.longitude,
+        confidence: prediction.confidence,
+      );
+
+      setState(() => _isSubmitting = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Incident created: ${incident.title}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Reset form
+        setState(() {
+          _selectedEvidenceType = null;
+          _selectedFile = null;
+          _descriptionController.clear();
+        });
+      }
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create incident: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _submitReport() async {
     if (_selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a photo or video')),
       );
+      return;
+    }
+
+    if (_descriptionController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please add a description')));
       return;
     }
 
@@ -118,18 +180,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           barrierDismissible: false,
           builder: (context) => PredictionResultDialog(
             prediction: prediction,
-            onCreateIncident: () {
-              // TODO: Create incident from prediction
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Incident creation coming soon')),
-              );
-              // Reset form after creation
-              setState(() {
-                _selectedEvidenceType = null;
-                _selectedFile = null;
-                _descriptionController.clear();
-              });
-            },
+            onCreateIncident: (pred) => _createIncidentFromPrediction(pred),
             onDismiss: () {
               // Reset form on dismiss
               setState(() {
@@ -263,7 +314,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Description (Optional)',
+                            'Description',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -276,7 +327,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                             controller: _descriptionController,
                             maxLines: 4,
                             decoration: InputDecoration(
-                              hintText: 'Add details about the incident...',
+                              hintText: 'Describe the incident in detail...',
                               hintStyle: TextStyle(
                                 color: AppTheme.getSecondaryTextColor(),
                               ),

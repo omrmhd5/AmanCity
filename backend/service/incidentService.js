@@ -1,5 +1,5 @@
-const Incident = require("../model/incident");
-const IncidentType = require("../model/incidentType");
+const Incident = require("../model/Incident");
+const IncidentType = require("../model/IncidentType");
 
 class IncidentService {
   /**
@@ -41,7 +41,9 @@ class IncidentService {
       });
 
       await incident.save();
-      return incident.populate("type").populate("reportedBy");
+      return await Incident.findById(incident._id)
+        .populate("type")
+        .populate("reportedBy");
     } catch (error) {
       throw new Error(`Failed to create incident: ${error.message}`);
     }
