@@ -181,11 +181,28 @@ class IncidentApiService {
     final lng = (data['location']?['longitude'] ?? 0).toDouble();
     final position = LatLng(lat, lng);
 
-    // Map incident type to IncidentType enum
-    final typeString = _getTypeString(data['type']);
-    final type = _mapStringToIncidentType(typeString);
+    // Get type name from populated backend type object
+    String type = '';
+    if (data['type'] is Map) {
+      final typeObj = data['type'] as Map<String, dynamic>;
+      type = typeObj['nameEn'] ?? typeObj['type'] ?? '';
+    }
 
-    // Map confidence to severity level
+    // Parse media
+    List<MediaItem> mediaList = [];
+    if (data['media'] is List) {
+      final mediaArray = data['media'] as List<dynamic>;
+      for (var mediaItem in mediaArray) {
+        if (mediaItem is Map<String, dynamic>) {
+          final mediaType = mediaItem['mediaType'] as String? ?? 'IMAGE';
+          final url = mediaItem['url'] as String? ?? '';
+          if (url.isNotEmpty) {
+            mediaList.add(MediaItem(mediaType: mediaType, url: url));
+          }
+        }
+      }
+    }
+
     final severity = _mapConfidenceToSeverity(confidence);
 
     return MapIncident(
@@ -196,37 +213,8 @@ class IncidentApiService {
       title: title,
       description: description,
       timestamp: timestamp,
+      media: mediaList,
     );
-  }
-
-  /// Extract type string from backend incident type (can be string or object)
-  static String _getTypeString(dynamic typeData) {
-    if (typeData is String) {
-      return typeData;
-    } else if (typeData is Map) {
-      return typeData['type'] ?? 'other';
-    }
-    return 'other';
-  }
-
-  /// Map backend incident type to IncidentType enum
-  static IncidentType _mapStringToIncidentType(String typeString) {
-    final normalized = typeString.toLowerCase();
-    if (normalized.contains('accident') || normalized.contains('crash')) {
-      return IncidentType.assault; // Map to assault for now
-    } else if (normalized.contains('fire')) {
-      return IncidentType.suspicious;
-    } else if (normalized.contains('flood')) {
-      return IncidentType.suspicious;
-    } else if (normalized.contains('theft') || normalized.contains('stolen')) {
-      return IncidentType.theft;
-    } else if (normalized.contains('assault') ||
-        normalized.contains('violence')) {
-      return IncidentType.assault;
-    } else if (normalized.contains('harassment')) {
-      return IncidentType.harassment;
-    }
-    return IncidentType.other;
   }
 
   /// Map YOLO confidence score to severity level

@@ -23,6 +23,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   EvidenceType? _selectedEvidenceType;
   LatLng? _currentLocation;
   bool _isLoadingLocation = false;
+  TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   bool _isSubmitting = false;
   File? _selectedFile;
@@ -36,6 +37,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -109,9 +111,9 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     try {
       final incident = await IncidentApiService.createIncident(
         photo: _selectedFile!,
-        title: prediction.className,
+        title: _titleController.text.trim(),
         className: prediction.className,
-        description: _descriptionController.text,
+        description: _descriptionController.text.trim(),
         latitude: _currentLocation!.latitude,
         longitude: _currentLocation!.longitude,
         confidence: prediction.confidence,
@@ -131,6 +133,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
         setState(() {
           _selectedEvidenceType = null;
           _selectedFile = null;
+          _titleController.clear();
           _descriptionController.clear();
         });
       }
@@ -156,10 +159,10 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       return;
     }
 
-    if (_descriptionController.text.trim().isEmpty) {
+    if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please add a description')));
+      ).showSnackBar(const SnackBar(content: Text('Please add a title')));
       return;
     }
 
@@ -186,6 +189,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
               setState(() {
                 _selectedEvidenceType = null;
                 _selectedFile = null;
+                _titleController.clear();
                 _descriptionController.clear();
               });
             },
@@ -268,6 +272,64 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: _buildLocationLoadingShimmer(),
                       ),
+                    // Title Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 16.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Title',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.getSecondaryTextColor(),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _titleController,
+                            decoration: InputDecoration(
+                              hintText: 'e.g., Car Accident, Fire Incident...',
+                              hintStyle: TextStyle(
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                              filled: true,
+                              fillColor:
+                                  AppTheme.currentMode == AppThemeMode.dark
+                                  ? AppColors.primary
+                                  : AppColors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppTheme.getBorderColor(),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppTheme.getBorderColor(),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppColors.secondary,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            style: TextStyle(
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     // Evidence Section
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -314,7 +376,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Description',
+                            'Description (Optional)',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -327,7 +389,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                             controller: _descriptionController,
                             maxLines: 4,
                             decoration: InputDecoration(
-                              hintText: 'Describe the incident in detail...',
+                              hintText: 'Add additional details...',
                               hintStyle: TextStyle(
                                 color: AppTheme.getSecondaryTextColor(),
                               ),

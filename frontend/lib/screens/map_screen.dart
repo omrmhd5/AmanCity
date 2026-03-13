@@ -97,6 +97,11 @@ class _MapScreenState extends State<MapScreen> {
         _isLoadingLocation = false;
       });
 
+      // Animate camera to user location
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
+      );
+
       _updateMapElements();
     } catch (e) {
       setState(() => _isLoadingLocation = false);
@@ -220,7 +225,8 @@ class _MapScreenState extends State<MapScreen> {
   List<Map<String, dynamic>> get nearbyAlerts {
     return _incidents.take(3).map((incident) {
       return {
-        'type': incident.title,
+        'type': incident.type,
+        'title': incident.title,
         'description': incident.description,
         'timeAgo': _getTimeAgo(incident.timestamp),
         'distance':

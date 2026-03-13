@@ -149,14 +149,15 @@ class LocationSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            text: 'Maadi Sector, Cairo',
+                            text:
+                                '${incident.position.latitude.toStringAsFixed(4)}, ${incident.position.longitude.toStringAsFixed(4)}',
                             size: 13,
                             weight: FontWeight.w600,
                             color: AppTheme.getPrimaryTextColor(),
                           ),
                           const SizedBox(height: 4),
                           CustomText(
-                            text: incident.type.name.toUpperCase(),
+                            text: incident.type.toUpperCase(),
                             size: 11,
                             weight: FontWeight.w400,
                             color: AppTheme.getSecondaryTextColor(),

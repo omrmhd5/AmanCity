@@ -3,8 +3,9 @@ import '../../utils/app_theme.dart';
 import '../shared/custom_text.dart';
 
 class NearbyAlertCard extends StatelessWidget {
-  final String alertType;
-  final String description;
+  final String incidentType; // e.g., "Damaged Building"
+  final String title; // e.g., "HELLO"
+  final String description; // e.g., "AHMED"
   final String timeAgo;
   final String distance;
   final Color borderColor;
@@ -13,7 +14,8 @@ class NearbyAlertCard extends StatelessWidget {
 
   const NearbyAlertCard({
     Key? key,
-    required this.alertType,
+    required this.incidentType,
+    required this.title,
     required this.description,
     required this.timeAgo,
     required this.distance,
@@ -50,28 +52,56 @@ class NearbyAlertCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Top row: Icon + Title + Time (on right)
+              // Top row: Icon + Title/Type column + Time
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Icon with background
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(12),
                       color: borderColor.withOpacity(0.2),
                     ),
-                    child: Icon(icon, color: borderColor, size: 20),
+                    child: Icon(icon, color: borderColor, size: 24),
                   ),
-                  const SizedBox(width: 10),
-                  // Title column
+                  const SizedBox(width: 12),
+                  // Title and Type column
                   Expanded(
-                    child: CustomText(
-                      text: alertType,
-                      size: 13,
-                      weight: FontWeight.w700,
-                      color: borderColor,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          text: title,
+                          size: 13,
+                          weight: FontWeight.w700,
+                          color: AppTheme.getPrimaryTextColor(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: borderColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: borderColor.withOpacity(0.3),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: CustomText(
+                            text: incidentType,
+                            size: 10,
+                            weight: FontWeight.w600,
+                            color: borderColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   // Time on top right
@@ -90,7 +120,7 @@ class NearbyAlertCard extends StatelessWidget {
                 size: 11,
                 weight: FontWeight.w400,
                 color: AppTheme.getSecondaryTextColor(),
-                maxLines: 3,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 height: 1.4,
               ),

@@ -8,7 +8,7 @@ const incidentSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
+      required: false,
     },
     type: {
       type: mongoose.Schema.Types.ObjectId,

@@ -59,7 +59,8 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
           // Header
           IncidentDetailHeader(
             incidentId: widget.incident.id,
-            location: 'Cairo • Maadi Sector',
+            location:
+                '${widget.incident.position.latitude.toStringAsFixed(4)}, ${widget.incident.position.longitude.toStringAsFixed(4)}',
             onBackPressed: () => Navigator.pop(context),
             onSharePressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -84,7 +85,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                     const SizedBox(height: 16),
 
                     // Evidence Feed
-                    EvidenceFeedSection(),
+                    EvidenceFeedSection(incident: widget.incident),
                     const SizedBox(height: 16),
 
                     // Location
