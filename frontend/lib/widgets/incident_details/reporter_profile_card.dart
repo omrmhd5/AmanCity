@@ -41,7 +41,7 @@ class ReporterProfileCard extends StatelessWidget {
               ),
             ),
             child: CustomText(
-              text: incident.type.name.toUpperCase(),
+              text: incident.type.toUpperCase(),
               size: 10,
               weight: FontWeight.w600,
               color: incident.severityColor,
@@ -58,8 +58,7 @@ class ReporterProfileCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           CustomText(
-            text:
-                'An incident was reported in the Maadi sector. Emergency services have been notified and are responding to the situation.',
+            text: incident.description,
             size: 12,
             weight: FontWeight.w400,
             color: AppTheme.getSecondaryTextColor(),

@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-enum IncidentType { harassment, theft, assault, suspicious, other }
-
 enum SeverityLevel { low, medium, high, critical }
+
+class MediaItem {
+  final String mediaType; // "IMAGE", "VIDEO", etc.
+  final String url;
+
+  MediaItem({required this.mediaType, required this.url});
+}
 
 class MapIncident {
   final String id;
-  final IncidentType type;
+  final String type;
   final SeverityLevel severity;
   final LatLng position;
   final String title;
   final String description;
   final DateTime timestamp;
+  final List<MediaItem> media;
 
   MapIncident({
     required this.id,
@@ -22,6 +28,7 @@ class MapIncident {
     required this.title,
     required this.description,
     required this.timestamp,
+    this.media = const [],
   });
 
   // Get color based on severity
@@ -41,31 +48,26 @@ class MapIncident {
   // Get icon based on type
   IconData get typeIcon {
     switch (type) {
-      case IncidentType.harassment:
-        return Icons.record_voice_over;
-      case IncidentType.theft:
-        return Icons.warning;
-      case IncidentType.assault:
-        return Icons.dangerous;
-      case IncidentType.suspicious:
-        return Icons.remove_red_eye;
-      case IncidentType.other:
+      case 'Accident':
+        return Icons.car_crash;
+      case 'Damaged_Building':
+        return Icons.apartment;
+      case 'Fire':
+        return Icons.local_fire_department;
+      case 'Flood':
+        return Icons.water_damage;
+      case 'Normal':
         return Icons.info_outline;
+      case 'Public_Issue':
+        return Icons.people;
+      case 'Road_Damage':
+        return Icons.warning_amber;
+      default:
+        return Icons.location_on;
     }
   }
 
   String get typeLabel {
-    switch (type) {
-      case IncidentType.harassment:
-        return 'Harassment';
-      case IncidentType.theft:
-        return 'Theft';
-      case IncidentType.assault:
-        return 'Assault';
-      case IncidentType.suspicious:
-        return 'Suspicious Activity';
-      case IncidentType.other:
-        return 'Other';
-    }
+    return type;
   }
 }

@@ -83,19 +83,8 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   }
 
   MapIncident _alertToIncident(Map<String, dynamic> alert) {
-    // Convert alert type string to IncidentType enum
-    final typeString = (alert['type'] as String).toLowerCase();
-    IncidentType incidentType = IncidentType.other;
-
-    if (typeString.contains('harass')) {
-      incidentType = IncidentType.harassment;
-    } else if (typeString.contains('theft')) {
-      incidentType = IncidentType.theft;
-    } else if (typeString.contains('assault')) {
-      incidentType = IncidentType.assault;
-    } else if (typeString.contains('suspicious')) {
-      incidentType = IncidentType.suspicious;
-    }
+    // Use the type string directly from alert
+    final typeString = alert['type'] as String;
 
     // Determine severity based on alert color intensity
     final color = alert['color'] as Color;
@@ -112,10 +101,10 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
 
     return MapIncident(
       id: alert['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      type: incidentType,
+      type: typeString,
       severity: severity,
       position: const LatLng(30.0444, 31.2357), // Default Cairo coordinates
-      title: alert['type'] as String,
+      title: alert['title'] as String? ?? '',
       description: alert['description'] as String,
       timestamp: DateTime.now(),
     );
@@ -301,7 +290,8 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                         bottom: 12,
                                       ),
                                       child: NearbyAlertCard(
-                                        alertType: alert['type'],
+                                        incidentType: alert['type'],
+                                        title: alert['title'],
                                         description: alert['description'],
                                         timeAgo: alert['timeAgo'],
                                         distance: alert['distance'],
