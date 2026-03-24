@@ -1,16 +1,18 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
-import '../models/report_incident_model.dart';
+import '../models/report_incident_model.dart' hide LatLng;
 import '../models/prediction_result_model.dart';
 import '../services/backend_api/prediction_api_service.dart';
 import '../services/backend_api/incident_api_service.dart';
 import '../widgets/report/location_context_card.dart';
 import '../widgets/report/evidence_type_selector.dart';
 import '../widgets/report/prediction_result_dialog.dart';
+import '../widgets/report/location_selector.dart';
 
 class ReportIncidentScreen extends StatefulWidget {
   const ReportIncidentScreen({Key? key}) : super(key: key);
@@ -22,6 +24,7 @@ class ReportIncidentScreen extends StatefulWidget {
 class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   EvidenceType? _selectedEvidenceType;
   LatLng? _currentLocation;
+  LatLng? _selectedLocation;
   bool _isLoadingLocation = false;
   TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
@@ -49,6 +52,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       if (mounted) {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
+          _selectedLocation = _currentLocation;
           _isLoadingLocation = false;
         });
       }
@@ -58,6 +62,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
         // Default to Cairo if location fails
         setState(() {
           _currentLocation = const LatLng(30.0444, 31.2357);
+          _selectedLocation = _currentLocation;
         });
       }
     }
@@ -99,10 +104,17 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   Future<void> _createIncidentFromPrediction(
     PredictionResult prediction,
   ) async {
-    if (_selectedFile == null || _currentLocation == null) {
+    if (_selectedFile == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Missing file or location')));
+      ).showSnackBar(const SnackBar(content: Text('Missing file')));
+      return;
+    }
+
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Missing location')));
       return;
     }
 
@@ -114,8 +126,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
         title: _titleController.text.trim(),
         className: prediction.className,
         description: _descriptionController.text.trim(),
-        latitude: _currentLocation!.latitude,
-        longitude: _currentLocation!.longitude,
+        latitude: _selectedLocation!.latitude,
+        longitude: _selectedLocation!.longitude,
         confidence: prediction.confidence,
       );
 
@@ -135,6 +147,13 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           _selectedFile = null;
           _titleController.clear();
           _descriptionController.clear();
+        });
+
+        // Navigate back to map to see new incident
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.pop(context, true);
+          }
         });
       }
     } catch (e) {
@@ -272,6 +291,15 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: _buildLocationLoadingShimmer(),
                       ),
+                    // Location Selector
+                    LocationSelector(
+                      useCurrentLocation: _selectedLocation == _currentLocation,
+                      currentLocation: _currentLocation,
+                      onLocationSelected: (location) {
+                        setState(() => _selectedLocation = location);
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     // Title Section
                     Padding(
                       padding: const EdgeInsets.symmetric(

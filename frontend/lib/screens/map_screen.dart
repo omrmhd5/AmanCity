@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../widgets/map/map_filter_section.dart';
-import '../widgets/map/incident_detail_sheet.dart';
+
 import '../widgets/map/poi_detail_sheet.dart';
 import '../widgets/map/map_loading_indicator.dart';
 import '../widgets/map/nearby_alerts_sheet.dart';
@@ -13,6 +14,7 @@ import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
 import '../services/backend_api/incident_api_service.dart';
+import 'incident_detail_screen.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);
@@ -23,7 +25,7 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   GoogleMapController? _mapController;
   String? selectedFilter;
 
@@ -42,15 +44,28 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? _userLocation;
   bool _isLoadingLocation = false;
 
+  // Cache for custom marker icons
+  final Map<String, BitmapDescriptor> _markerIconCache = {};
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadIncidents();
     _getUserLocation();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh incidents when app comes back to foreground
+      _loadIncidents();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _mapController?.dispose();
     super.dispose();
   }
@@ -113,15 +128,13 @@ class _MapScreenState extends State<MapScreen> {
     _markers.clear();
     _circles.clear();
 
-    // Add incident markers
+    // Add incident markers with custom icons
     for (var incident in _incidents) {
       _markers.add(
         Marker(
           markerId: MarkerId(incident.id),
           position: incident.position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            _getHueFromColor(incident.severityColor),
-          ),
+          icon: _getCustomIncidentMarker(incident),
           consumeTapEvents: true,
           onTap: () => _onIncidentTapped(incident),
         ),
@@ -173,6 +186,112 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {});
   }
 
+  /// Creates a custom map marker icon with incident type icon
+  BitmapDescriptor _getCustomIncidentMarker(MapIncident incident) {
+    // Check cache first
+    final cacheKey = '${incident.type}_${incident.typeColor.value}';
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+
+    // Create new icon (will be cached after rendering)
+    final iconData = incident.typeIcon;
+    final iconColor = Colors.white;
+    final backgroundColor = incident.typeColor;
+
+    // We'll create the icon asynchronously and store in cache
+    // For now, return a default and let it update
+    _createAndCacheMarkerIcon(cacheKey, iconData, iconColor, backgroundColor);
+
+    return BitmapDescriptor.defaultMarkerWithHue(
+      _getHueFromColor(backgroundColor),
+    );
+  }
+
+  /// Renders an icon to a bitmap and caches it
+  Future<void> _createAndCacheMarkerIcon(
+    String cacheKey,
+    IconData iconData,
+    Color iconColor,
+    Color backgroundColor,
+  ) async {
+    try {
+      final pictureRecorder = ui.PictureRecorder();
+      final canvas = Canvas(pictureRecorder);
+      const size = 120.0;
+
+      // Draw circular background with shadow
+      final paint = Paint()
+        ..color = backgroundColor
+        ..style = PaintingStyle.fill;
+
+      final shadowPaint = Paint()
+        ..color = Colors.black.withOpacity(0.3)
+        ..style = PaintingStyle.fill;
+
+      // Draw shadow
+      canvas.drawCircle(
+        const Offset(size / 2, size / 2 + 2),
+        size / 2,
+        shadowPaint,
+      );
+
+      // Draw background circle
+      canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, paint);
+
+      // Draw border
+      final borderPaint = Paint()
+        ..color = Colors.white
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawCircle(
+        const Offset(size / 2, size / 2),
+        size / 2,
+        borderPaint,
+      );
+
+      // Draw icon
+      final textPainter = TextPainter(textDirection: TextDirection.ltr);
+
+      textPainter.text = TextSpan(
+        text: String.fromCharCode(iconData.codePoint),
+        style: TextStyle(
+          color: iconColor,
+          fontSize: 55,
+          fontFamily: iconData.fontFamily,
+        ),
+      );
+
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          (size / 2) - (textPainter.width / 2),
+          (size / 2) - (textPainter.height / 2),
+        ),
+      );
+
+      final picture = pictureRecorder.endRecording();
+      final image = await picture.toImage(size.toInt(), size.toInt());
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+
+      final bitmapDescriptor = BitmapDescriptor.fromBytes(
+        bytes!.buffer.asUint8List(),
+      );
+
+      // Cache the result
+      _markerIconCache[cacheKey] = bitmapDescriptor;
+
+      // Rebuild markers with cached icon
+      if (mounted) {
+        _updateMapElements();
+      }
+    } catch (e) {
+      debugPrint('Error creating marker icon: $e');
+    }
+  }
+
   double _getHueFromColor(Color color) {
     if (color == AppColors.danger || color.value == Colors.red.value) {
       return BitmapDescriptor.hueRed;
@@ -192,8 +311,9 @@ class _MapScreenState extends State<MapScreen> {
   void _onIncidentTapped(MapIncident incident) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => IncidentDetailSheet(
+      builder: (context) => IncidentDetailScreen(
         incident: incident,
         timeAgo: _getTimeAgo(incident.timestamp),
       ),
@@ -225,13 +345,14 @@ class _MapScreenState extends State<MapScreen> {
   List<Map<String, dynamic>> get nearbyAlerts {
     return _incidents.take(3).map((incident) {
       return {
+        'incident': incident,
         'type': incident.type,
         'title': incident.title,
         'description': incident.description,
         'timeAgo': _getTimeAgo(incident.timestamp),
         'distance':
             '${((incident.position.latitude - _cairoCenter.latitude).abs() * 111).toStringAsFixed(1)}km away',
-        'color': incident.severityColor,
+        'color': incident.typeColor,
         'icon': incident.typeIcon,
       };
     }).toList();

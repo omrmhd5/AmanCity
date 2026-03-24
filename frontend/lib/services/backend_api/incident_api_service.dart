@@ -172,7 +172,6 @@ class IncidentApiService {
     final id = data['_id'] ?? '';
     final title = data['title'] ?? '';
     final description = data['description'] ?? '';
-    final confidence = (data['confidence'] ?? 0).toDouble();
     final timestamp =
         DateTime.tryParse(data['timestamp'] ?? '') ?? DateTime.now();
 
@@ -203,25 +202,14 @@ class IncidentApiService {
       }
     }
 
-    final severity = _mapConfidenceToSeverity(confidence);
-
     return MapIncident(
       id: id,
       type: type,
-      severity: severity,
       position: position,
       title: title,
       description: description,
       timestamp: timestamp,
       media: mediaList,
     );
-  }
-
-  /// Map YOLO confidence score to severity level
-  static SeverityLevel _mapConfidenceToSeverity(double confidence) {
-    if (confidence >= 0.9) return SeverityLevel.critical;
-    if (confidence >= 0.75) return SeverityLevel.high;
-    if (confidence >= 0.5) return SeverityLevel.medium;
-    return SeverityLevel.low;
   }
 }

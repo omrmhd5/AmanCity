@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/incident_types_config.dart';
 import '../shared/custom_text.dart';
 
 class FilterOptionsSheet extends StatefulWidget {
@@ -11,41 +12,6 @@ class FilterOptionsSheet extends StatefulWidget {
 }
 
 class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
-  final List<Map<String, dynamic>> incidentTypes = [
-    {
-      'title': 'Fire / Smoke',
-      'icon': Icons.local_fire_department,
-      'color': Colors.red,
-    },
-    {
-      'title': 'Road Accident',
-      'icon': Icons.directions_car,
-      'color': Colors.orange,
-    },
-    {'title': 'Flood / Water', 'icon': Icons.water, 'color': Colors.blue},
-    {'title': 'Debris / Blockage', 'icon': Icons.block, 'color': Colors.amber},
-    {
-      'title': 'Road / Infrastructure Damage',
-      'icon': Icons.construction,
-      'color': Colors.brown,
-    },
-    {
-      'title': 'Building Collapse',
-      'icon': Icons.domain_disabled,
-      'color': Colors.grey,
-    },
-    {
-      'title': 'Weapon Visible / Threat Object',
-      'icon': Icons.warning,
-      'color': Colors.deepPurple,
-    },
-    {
-      'title': 'Theft / Assault / Suspicious Movement',
-      'icon': Icons.security,
-      'color': Colors.red.shade700,
-    },
-  ];
-
   Set<String> selectedIncidentTypes = {};
 
   @override
@@ -108,10 +74,12 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 child: Column(
-                  children: List.generate(incidentTypes.length, (index) {
-                    final incident = incidentTypes[index];
+                  children: List.generate(IncidentTypesConfig.allTypes.length, (
+                    index,
+                  ) {
+                    final incident = IncidentTypesConfig.allTypes[index];
                     final isSelected = selectedIncidentTypes.contains(
-                      incident['title'],
+                      incident.key,
                     );
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -119,9 +87,9 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                         onTap: () {
                           setState(() {
                             if (isSelected) {
-                              selectedIncidentTypes.remove(incident['title']);
+                              selectedIncidentTypes.remove(incident.key);
                             } else {
-                              selectedIncidentTypes.add(incident['title']);
+                              selectedIncidentTypes.add(incident.key);
                             }
                           });
                         },
@@ -132,7 +100,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isSelected
-                                  ? incident['color']
+                                  ? incident.color
                                   : AppTheme.getBorderColor(),
                               width: isSelected ? 2 : 1,
                             ),
@@ -144,18 +112,18 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                                 height: 40,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: incident['color'].withOpacity(0.15),
+                                  color: incident.color.withOpacity(0.15),
                                 ),
                                 child: Icon(
-                                  incident['icon'],
-                                  color: incident['color'],
+                                  incident.icon,
+                                  color: incident.color,
                                   size: 20,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: CustomText(
-                                  text: incident['title'],
+                                  text: incident.displayName,
                                   size: 14,
                                   weight: FontWeight.w600,
                                   color: AppTheme.getPrimaryTextColor(),
@@ -164,7 +132,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                               if (isSelected)
                                 Icon(
                                   Icons.check_circle,
-                                  color: incident['color'],
+                                  color: incident.color,
                                   size: 20,
                                 ),
                             ],
