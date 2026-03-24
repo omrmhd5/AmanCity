@@ -406,7 +406,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           bottom: 180,
           child: FloatingActionButton(
             heroTag: 'report_button',
-            backgroundColor: AppColors.danger,
+            backgroundColor: Colors.red.shade500,
             onPressed: widget.onReportPressed,
             child: const Icon(
               Icons.announcement,
@@ -422,9 +422,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           bottom: 110,
           child: FloatingActionButton(
             heroTag: 'my_location_button',
-            backgroundColor: AppTheme.getCardBackgroundColor().withOpacity(
-              0.85,
-            ),
+            backgroundColor: Colors.blue.shade400,
             onPressed: () {
               if (_userLocation != null) {
                 _mapController?.animateCamera(
@@ -434,9 +432,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 _getUserLocation();
               }
             },
-            child: Icon(
+            child: const Icon(
               Icons.my_location,
-              color: AppColors.secondary,
+              color: Colors.white,
               size: 24,
             ),
           ),
@@ -503,12 +501,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         {
           "featureType": "road",
           "elementType": "geometry.fill",
-          "stylers": [{"color": "#2c2c2c"}]
+          "stylers": [{"color": "#5a5a5a"}]
         },
         {
           "featureType": "road",
           "elementType": "labels.text.fill",
-          "stylers": [{"color": "#8a8a8a"}]
+          "stylers": [{"color": "#b0b0b0"}]
         },
         {
           "featureType": "water",
