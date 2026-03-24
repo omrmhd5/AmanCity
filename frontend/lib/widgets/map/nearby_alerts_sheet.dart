@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/incident_types_config.dart';
 import '../../models/map_incident.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_search_bar.dart';
 import '../shared/custom_filter_chips.dart';
 import 'nearby_alert_card.dart';
-import 'incident_detail_sheet.dart';
+import '../../screens/incident_detail_screen.dart';
 
 class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
@@ -83,26 +84,27 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   }
 
   MapIncident _alertToIncident(Map<String, dynamic> alert) {
-    // Use the type string directly from alert
-    final typeString = alert['type'] as String;
+    // If the full incident object is passed, use it directly
+    if (alert['incident'] != null) {
+      return alert['incident'] as MapIncident;
+    }
 
-    // Determine severity based on alert color intensity
+    // Fallback for backward compatibility - map color to incident type
+    var typeString = alert['type'] as String;
     final color = alert['color'] as Color;
-    SeverityLevel severity = SeverityLevel.low;
-    if (color.value == const Color(0xFFB91C1C).value) {
-      severity = SeverityLevel.critical;
-    } else if (color.value == const Color(0xFFEF4444).value) {
-      severity = SeverityLevel.high;
+
+    if (color.value == const Color(0xFFB91C1C).value ||
+        color.value == const Color(0xFFEF4444).value) {
+      typeString = 'Fire';
     } else if (color.value == Colors.orange.value) {
-      severity = SeverityLevel.medium;
+      typeString = 'Accident';
     } else if (color.value == Colors.amber.value) {
-      severity = SeverityLevel.low;
+      typeString = 'Public_Issue';
     }
 
     return MapIncident(
       id: alert['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
       type: typeString,
-      severity: severity,
       position: const LatLng(30.0444, 31.2357), // Default Cairo coordinates
       title: alert['title'] as String? ?? '',
       description: alert['description'] as String,
@@ -117,7 +119,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return IncidentDetailSheet(
+        return IncidentDetailScreen(
           incident: incident,
           timeAgo: alert['timeAgo'] as String,
         );

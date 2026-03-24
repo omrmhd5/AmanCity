@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_theme.dart';
 import '../models/map_incident.dart';
 import '../widgets/incident_details/incident_detail_header.dart';
@@ -91,6 +92,54 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                     // Location
                     LocationSection(incident: widget.incident),
                     const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Navigate Button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: GestureDetector(
+              onTap: () async {
+                final lat = widget.incident.position.latitude;
+                final lng = widget.incident.position.longitude;
+                final String googleMapsUrl =
+                    'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+                if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+                  await launchUrl(
+                    Uri.parse(googleMapsUrl),
+                    mode: LaunchMode.externalApplication,
+                  );
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: widget.incident.typeColor,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.incident.typeColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.navigation, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Navigate To Location',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
                 ),
               ),

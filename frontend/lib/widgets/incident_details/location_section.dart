@@ -55,11 +55,11 @@ class LocationSection extends StatelessWidget {
                       height: 16,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: incident.severityColor,
+                        color: incident.typeColor,
                         border: Border.all(color: Colors.white, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            color: incident.severityColor.withOpacity(0.6),
+                            color: incident.typeColor.withOpacity(0.6),
                             blurRadius: 12,
                             spreadRadius: 6,
                           ),
@@ -134,13 +134,13 @@ class LocationSection extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: incident.severityColor.withOpacity(0.1),
+                        color: incident.typeColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.location_on,
                         size: 20,
-                        color: incident.severityColor,
+                        color: incident.typeColor,
                       ),
                     ),
                     const SizedBox(width: 12),

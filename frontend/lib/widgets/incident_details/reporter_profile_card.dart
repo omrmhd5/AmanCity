@@ -33,10 +33,10 @@ class ReporterProfileCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: incident.severityColor.withOpacity(0.2),
+              color: incident.typeColor.withOpacity(0.2),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: incident.severityColor.withOpacity(0.4),
+                color: incident.typeColor.withOpacity(0.4),
                 width: 1,
               ),
             ),
@@ -44,7 +44,7 @@ class ReporterProfileCard extends StatelessWidget {
               text: incident.type.toUpperCase(),
               size: 10,
               weight: FontWeight.w600,
-              color: incident.severityColor,
+              color: incident.typeColor,
             ),
           ),
           const SizedBox(height: 12),
