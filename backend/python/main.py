@@ -4,7 +4,8 @@ from pydantic import BaseModel
 import os
 import shutil
 from pathlib import Path
-from inference import YOLOInference
+from typing import Optional, Dict, Any
+from inference import DualModelInference
 
 # Initialize FastAPI app
 app = FastAPI(title="AmanCity YOLO Inference Server", version="1.0.0")
@@ -18,14 +19,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize model
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/7Classes/AmanCity_7Classes_Model.pt")
+# Initialize dual-model inference
+YOLO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/7Classes/AmanCity_7Classes_Model.pt")
+WEAPONS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/AmanCity_Weapons_Model.onnx")
+
+dual_model = None
 try:
-    yolo_model = YOLOInference(MODEL_PATH)
-    print(f"✓ Model loaded from: {MODEL_PATH}")
+    dual_model = DualModelInference(YOLO_MODEL_PATH, WEAPONS_MODEL_PATH)
+    print(f"✓ Dual-model system initialized")
 except Exception as e:
-    print(f"✗ Failed to load model: {str(e)}")
-    yolo_model = None
+    print(f"✗ Failed to initialize dual-model system: {str(e)}")
+    dual_model = None
 
 # Temp directory for uploads
 TEMP_DIR = Path(__file__).parent / "temp"
@@ -33,29 +37,37 @@ TEMP_DIR.mkdir(exist_ok=True)
 
 
 class PredictionResponse(BaseModel):
-    class_id: int
-    class_name: str
-    confidence: float
+    class_id: Optional[int] = None
+    class_name: Optional[str] = None
+    confidence: Optional[float] = None
+    dual_prediction: Optional[bool] = False
+    primary: Optional[Dict[str, Any]] = None
+    alternative: Optional[Dict[str, Any]] = None
+    decision: Optional[str] = None
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    if yolo_model is None:
+    if dual_model is None:
         return {"status": "error", "message": "Model not loaded"}
-    return {"status": "ok", "message": "YOLO inference server is running"}
+    return {"status": "ok", "message": "Dual-model inference server is running"}
 
 
-@app.post("/predict", response_model=PredictionResponse)
+@app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     """
-    Predict incident type from image or video
+    Predict incident type from image or video with dual-model support
+    
+    Returns:
+    - Single prediction (7Classes) if no weapon detected
+    - Dual predictions if weapon detected (user chooses)
     
     Accepts:
     - Images: .jpg, .jpeg, .png
     - Videos: .mp4, .avi, .mov
     """
-    if yolo_model is None:
+    if dual_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     # Validate file type
@@ -77,8 +89,8 @@ async def predict(file: UploadFile = File(...)):
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Run inference
-        result = yolo_model.predict_from_media(str(temp_path), media_type)
+        # Run dual-model inference
+        result = dual_model.predict_from_media(str(temp_path), media_type)
         return result
 
     except Exception as e:
@@ -94,7 +106,7 @@ async def predict_batch(files: list[UploadFile] = File(...)):
     """
     Batch predict multiple files
     """
-    if yolo_model is None:
+    if dual_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     results = []
@@ -117,7 +129,7 @@ async def predict_batch(files: list[UploadFile] = File(...)):
             with open(temp_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
 
-            result = yolo_model.predict_from_media(str(temp_path), media_type)
+            result = dual_model.predict_from_media(str(temp_path), media_type)
             results.append({
                 "filename": file.filename,
                 **result

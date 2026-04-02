@@ -83,12 +83,12 @@ class IncidentDetailSheet extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       color: Color.alphaBlend(
-                        incident.severityColor.withOpacity(0.04),
+                        incident.typeColor.withOpacity(0.04),
                         AppTheme.getCardBackgroundColor(),
                       ),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: incident.severityColor.withOpacity(0.15),
+                        color: incident.typeColor.withOpacity(0.15),
                         width: 1,
                       ),
                     ),
@@ -99,12 +99,12 @@ class IncidentDetailSheet extends StatelessWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: incident.severityColor.withOpacity(0.2),
+                            color: incident.typeColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Icon(
                             incident.typeIcon,
-                            color: incident.severityColor,
+                            color: incident.typeColor,
                             size: 32,
                           ),
                         ),
@@ -128,13 +128,14 @@ class IncidentDetailSheet extends StatelessWidget {
                                       vertical: 5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: incident.severityColor.withOpacity(
+                                      color: incident.typeColor.withOpacity(
                                         0.15,
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: incident.severityColor
-                                            .withOpacity(0.3),
+                                        color: incident.typeColor.withOpacity(
+                                          0.3,
+                                        ),
                                         width: 1,
                                       ),
                                     ),
@@ -142,7 +143,7 @@ class IncidentDetailSheet extends StatelessWidget {
                                       text: incident.typeLabel,
                                       size: 11,
                                       weight: FontWeight.w600,
-                                      color: incident.severityColor,
+                                      color: incident.typeColor,
                                     ),
                                   ),
                                 ],
@@ -180,7 +181,7 @@ class IncidentDetailSheet extends StatelessWidget {
                             Icon(
                               Icons.description,
                               size: 16,
-                              color: incident.severityColor,
+                              color: incident.typeColor,
                             ),
                             const SizedBox(width: 8),
                             CustomText(
@@ -225,7 +226,7 @@ class IncidentDetailSheet extends StatelessWidget {
                                   Icon(
                                     Icons.location_on,
                                     size: 14,
-                                    color: incident.severityColor,
+                                    color: incident.typeColor,
                                   ),
                                   const SizedBox(width: 6),
                                   CustomText(
@@ -275,7 +276,7 @@ class IncidentDetailSheet extends StatelessWidget {
                                   Icon(
                                     Icons.access_time,
                                     size: 14,
-                                    color: incident.severityColor,
+                                    color: incident.typeColor,
                                   ),
                                   const SizedBox(width: 6),
                                   CustomText(
@@ -291,7 +292,7 @@ class IncidentDetailSheet extends StatelessWidget {
                                 text: timeAgo,
                                 size: 11,
                                 weight: FontWeight.w600,
-                                color: incident.severityColor,
+                                color: incident.typeColor,
                               ),
                             ],
                           ),
@@ -371,11 +372,11 @@ class IncidentDetailSheet extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: incident.severityColor,
+                  color: incident.typeColor,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: incident.severityColor.withOpacity(0.3),
+                      color: incident.typeColor.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
