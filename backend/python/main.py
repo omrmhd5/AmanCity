@@ -21,7 +21,7 @@ app.add_middleware(
 
 # Initialize dual-model inference
 YOLO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/7Classes/AmanCity_7Classes_Model.pt")
-WEAPONS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/AmanCity_Weapons_Model.onnx")
+WEAPONS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/Weapon/AmanCity_Weapons_Model.onnx")
 
 dual_model = None
 try:
