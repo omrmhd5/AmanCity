@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # Initialize model
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/7Classes/AmanCity_Final_Model.pt")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/7Classes/AmanCity_7Classes_Model.pt")
 try:
     yolo_model = YOLOInference(MODEL_PATH)
     print(f"✓ Model loaded from: {MODEL_PATH}")

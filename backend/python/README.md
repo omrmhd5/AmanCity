@@ -39,7 +39,7 @@ python main.py
 Expected output:
 
 ```
-✓ Model loaded from: ../utils/7Classes/AmanCity_Final_Model.pt
+✓ Model loaded from: ../utils/7Classes/AmanCity_7Classes_Model.pt
 INFO:     Started server process [PID]
 INFO:     Uvicorn running on http://0.0.0.0:5001
 ```
