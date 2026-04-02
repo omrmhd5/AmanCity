@@ -6,7 +6,8 @@ import '../shared/custom_text.dart';
 
 /// Dialog widget that displays YOLO prediction results
 /// Shows the detected incident class, confidence score, and action buttons
-class PredictionResultDialog extends StatelessWidget {
+/// Supports dual predictions (weapon + alternative) where user chooses
+class PredictionResultDialog extends StatefulWidget {
   final PredictionResult prediction;
   final Function(PredictionResult)?
   onCreateIncident; // Callback with prediction data
@@ -19,31 +20,171 @@ class PredictionResultDialog extends StatelessWidget {
     this.onDismiss,
   }) : super(key: key);
 
+  @override
+  State<PredictionResultDialog> createState() => _PredictionResultDialogState();
+}
+
+class _PredictionResultDialogState extends State<PredictionResultDialog> {
+  late PredictionResult _selectedPrediction;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPrediction = widget.prediction;
+  }
+
   /// Get color based on prediction confidence
-  Color _getConfidenceColor() {
-    if (prediction.confidence >= 0.8) {
-      return Colors.green;
-    } else if (prediction.confidence >= 0.6) {
-      return Colors.orange;
+  Color _getConfidenceColor({
+    required double confidence,
+    bool isAlternative = false,
+  }) {
+    if (isAlternative) {
+      // Use muted colors for alternative
+      if (confidence >= 0.8) {
+        return Colors.green.withOpacity(0.6);
+      } else if (confidence >= 0.6) {
+        return Colors.orange.withOpacity(0.6);
+      } else {
+        return Colors.red.withOpacity(0.6);
+      }
     } else {
-      return Colors.red;
+      // Bright colors for main prediction
+      if (confidence >= 0.8) {
+        return Colors.green;
+      } else if (confidence >= 0.6) {
+        return Colors.orange;
+      } else {
+        return Colors.red;
+      }
     }
   }
 
   /// Get confidence level text
-  String _getConfidenceLevelText() {
-    if (prediction.confidence >= 0.8) {
+  String _getConfidenceLevelText(double confidence) {
+    if (confidence >= 0.8) {
       return 'High Confidence';
-    } else if (prediction.confidence >= 0.6) {
+    } else if (confidence >= 0.6) {
       return 'Medium Confidence';
     } else {
       return 'Low Confidence';
     }
   }
 
+  Widget _buildPredictionCard({
+    required String title,
+    required String className,
+    required double confidence,
+    required bool isSelected,
+    required bool isAlternative,
+    VoidCallback? onTap,
+  }) {
+    final confidenceColor = _getConfidenceColor(
+      confidence: confidence,
+      isAlternative: isAlternative,
+    );
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? confidenceColor.withOpacity(0.15)
+                : AppTheme.currentMode == AppThemeMode.dark
+                ? AppColors.secondary.withOpacity(0.08)
+                : AppColors.secondary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? confidenceColor : AppTheme.getBorderColor(),
+              width: isSelected ? 2.0 : 1.0,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          text: title,
+                          size: 12,
+                          weight: FontWeight.w500,
+                          color: AppTheme.getSecondaryTextColor(),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomText(
+                          text: className,
+                          size: 16,
+                          weight: FontWeight.w700,
+                          color: AppTheme.getPrimaryTextColor(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      CustomText(
+                        text: _getConfidenceLevelText(confidence),
+                        size: 11,
+                        weight: FontWeight.w500,
+                        color: confidenceColor,
+                      ),
+                      const SizedBox(height: 4),
+                      CustomText(
+                        text: '${(confidence * 100).toStringAsFixed(1)}%',
+                        size: 16,
+                        weight: FontWeight.w700,
+                        color: confidenceColor,
+                      ),
+                    ],
+                  ),
+                  if (isSelected)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: confidenceColor,
+                        size: 24,
+                      ),
+                    ),
+                ],
+              ),
+              if (isSelected)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: confidence,
+                      minHeight: 6,
+                      backgroundColor: confidenceColor.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        confidenceColor,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final confidenceColor = _getConfidenceColor();
+    final confidenceColor = _getConfidenceColor(
+      confidence: widget.prediction.confidence,
+    );
+    final isDual =
+        widget.prediction.isDualPrediction &&
+        widget.prediction.alternativeResult != null;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -55,197 +196,156 @@ class PredictionResultDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Check Icon
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: confidenceColor.withOpacity(0.2),
-                shape: BoxShape.circle,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Check Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: isDual
+                      ? Colors.amber.withOpacity(0.2)
+                      : confidenceColor.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isDual ? Icons.info_outline : Icons.check_circle,
+                  size: 48,
+                  color: isDual ? Colors.amber : confidenceColor,
+                ),
               ),
-              child: Icon(Icons.check_circle, size: 48, color: confidenceColor),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Title
-            CustomText(
-              text: 'Prediction Result',
-              size: 20,
-              weight: FontWeight.w700,
-              color: AppTheme.getPrimaryTextColor(),
-            ),
-            const SizedBox(height: 16),
+              // Title
+              CustomText(
+                text: isDual ? 'Multiple Predictions' : 'Prediction Result',
+                size: 20,
+                weight: FontWeight.w700,
+                color: AppTheme.getPrimaryTextColor(),
+              ),
 
-            // Detected Class
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.currentMode == AppThemeMode.dark
-                    ? AppColors.secondary.withOpacity(0.15)
-                    : AppColors.secondary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.secondary, width: 1.5),
-              ),
-              child: Column(
-                children: [
-                  CustomText(
-                    text: 'Detected Type',
-                    size: 12,
-                    weight: FontWeight.w500,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
-                  const SizedBox(height: 8),
-                  CustomText(
-                    text: prediction.className,
-                    size: 18,
-                    weight: FontWeight.w700,
-                    color: AppTheme.getPrimaryTextColor(),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Confidence Score
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: confidenceColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: confidenceColor, width: 1.5),
-              ),
-              child: Column(
-                children: [
-                  CustomText(
-                    text: _getConfidenceLevelText(),
-                    size: 12,
-                    weight: FontWeight.w500,
-                    color: confidenceColor,
-                  ),
-                  const SizedBox(height: 8),
-                  CustomText(
+              if (isDual)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: CustomText(
                     text:
-                        '${(prediction.confidence * 100).toStringAsFixed(1)}%',
-                    size: 22,
-                    weight: FontWeight.w700,
-                    color: confidenceColor,
+                        'Both weapon and incident detected.\nPlease choose the correct classification:',
+                    size: 13,
+                    weight: FontWeight.w400,
+                    color: AppTheme.getSecondaryTextColor(),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                const SizedBox(height: 16),
+
+              const SizedBox(height: 24),
+
+              // Primary Prediction Card
+              _buildPredictionCard(
+                title: isDual ? '⚠️ Primary Detection' : 'Detected Type',
+                className: widget.prediction.className,
+                confidence: widget.prediction.confidence,
+                isSelected:
+                    _selectedPrediction.className ==
+                    widget.prediction.className,
+                isAlternative: false,
+                onTap: isDual
+                    ? () => setState(() {
+                        _selectedPrediction = widget.prediction;
+                      })
+                    : null,
+              ),
+
+              // Alternative Prediction Card (if dual)
+              if (isDual) ...[
+                const SizedBox(height: 16),
+                _buildPredictionCard(
+                  title: '📋 Alternative Detection',
+                  className: widget.prediction.alternativeResult!.className,
+                  confidence: widget.prediction.alternativeResult!.confidence,
+                  isSelected:
+                      _selectedPrediction.className ==
+                      widget.prediction.alternativeResult!.className,
+                  isAlternative: true,
+                  onTap: () => setState(() {
+                    _selectedPrediction = widget.prediction.alternativeResult!;
+                  }),
+                ),
+              ],
+
+              const SizedBox(height: 32),
+
+              // Action Buttons
+              Row(
+                children: [
+                  // Dismiss Button
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          widget.onDismiss?.call();
+                          Navigator.of(context).pop();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppTheme.getBorderColor(),
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: CustomText(
+                              text: 'Cancel',
+                              size: 14,
+                              weight: FontWeight.w600,
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Create Incident Button
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          widget.onCreateIncident?.call(_selectedPrediction);
+                          Navigator.of(context).pop();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: CustomText(
+                              text: 'Create',
+                              size: 14,
+                              weight: FontWeight.w600,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Confidence Progress Bar
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  text: 'Confidence Score',
-                  size: 12,
-                  weight: FontWeight.w500,
-                  color: AppTheme.getSecondaryTextColor(),
-                ),
-                const SizedBox(height: 8),
-                Stack(
-                  children: [
-                    // Background bar
-                    Container(
-                      height: 8,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppTheme.currentMode == AppThemeMode.dark
-                            ? AppColors.softGray.withOpacity(0.2)
-                            : AppColors.lightGray.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    // Fill bar - proportional to confidence
-                    FractionallySizedBox(
-                      widthFactor: prediction.confidence,
-                      child: Container(
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: confidenceColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            // Action Buttons
-            Row(
-              children: [
-                // Dismiss Button
-                Expanded(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        onDismiss?.call();
-                        Navigator.of(context).pop();
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppTheme.getBorderColor(),
-                            width: 1.5,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: CustomText(
-                            text: 'Cancel',
-                            size: 14,
-                            weight: FontWeight.w600,
-                            color: AppTheme.getPrimaryTextColor(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-
-                // Create Incident Button
-                Expanded(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        onCreateIncident?.call(prediction);
-                        Navigator.of(context).pop();
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: CustomText(
-                            text: 'Create',
-                            size: 14,
-                            weight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
