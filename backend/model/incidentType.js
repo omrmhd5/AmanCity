@@ -14,6 +14,7 @@ const incidentTypeSchema = new mongoose.Schema(
         "Normal",
         "Public_Issue",
         "Road_Damage",
+        "Weapon",
       ],
     },
     nameEn: {

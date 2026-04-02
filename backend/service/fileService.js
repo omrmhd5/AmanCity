@@ -32,6 +32,7 @@ class FileService {
         "Normal",
         "Public_Issue",
         "Road_Damage",
+        "Weapon",
       ];
 
       if (!validClasses.includes(className)) {
