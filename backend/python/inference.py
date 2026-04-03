@@ -119,57 +119,35 @@ class DualModelInference:
     def _run_weapons_detection(self, image_path):
         """Run weapons detection with YOLO ONNX model"""
         if self.weapons_model is None:
-            print("⚠️ Weapons model is None")
             return None
         
         try:
-            print(f"🔍 Running weapons detection on: {image_path}")
             # Run YOLO inference on weapons model
             results = self.weapons_model.predict(image_path, conf=0.0, verbose=False)
             
-            print(f"📊 Results count: {len(results)}")
-            
             if len(results) == 0:
-                print("❌ No results from weapons model")
                 return None
             
             result = results[0]
-            print(f"📦 Result boxes count: {len(result.boxes)}")
             
             # Check if any weapon detected with confidence >= 50%
             if len(result.boxes) > 0:
-                # Get all detection info
+                # Get the highest confidence detection
                 confidences = result.boxes.conf.cpu().numpy()
-                class_ids = result.boxes.cls.cpu().numpy().astype(int) if len(result.boxes.cls) > 0 else []
-                
-                print(f"🎯 Detections found: {len(confidences)}")
-                for i, (conf, cls_id) in enumerate(zip(confidences, class_ids)):
-                    class_name = self.weapons_model.names.get(int(cls_id), "Unknown")
-                    print(f"   [{i}] {class_name}: {float(conf):.4f} ({float(conf)*100:.2f}%)")
-                
                 max_confidence = float(np.max(confidences))
-                print(f"⚠️ Max confidence: {max_confidence:.4f} ({max_confidence*100:.2f}%)")
-                print(f"📍 Threshold: {WEAPON_CONFIDENCE_THRESHOLD}")
                 
                 # If any detection >= 50%, report as weapon
                 if max_confidence >= WEAPON_CONFIDENCE_THRESHOLD:
-                    print(f"✅ WEAPON DETECTED! Confidence: {max_confidence:.2%}")
                     return {
                         "class_id": 7,
                         "class_name": "Weapon",
                         "confidence": max(0.0, min(1.0, max_confidence)),
                         "model": "weapons"
                     }
-                else:
-                    print(f"❌ Detection below threshold ({max_confidence:.2%} < {WEAPON_CONFIDENCE_THRESHOLD})")
-            else:
-                print("❌ No boxes detected")
             
             return None
         except Exception as e:
             print(f"⚠ Weapons detection error: {str(e)}")
-            import traceback
-            traceback.print_exc()
             return None
     
     def _run_7classes_detection(self, image_path):
@@ -209,14 +187,11 @@ class DualModelInference:
     def predict_from_media(self, media_path, media_type):
         """
         Run both models and return conditional response:
+        - If Normal detected: return no_incident flag
         - If weapon detected: return both outputs (user chooses)
-        - If no weapon: return only 7Classes output
+        - Otherwise: return only 7Classes output
         """
         try:
-            print(f"\n{'='*60}")
-            print(f"📸 Starting dual-model prediction for: {media_path}")
-            print(f"{'='*60}")
-            
             # Extract frame if video
             if media_type == "VIDEO":
                 frame_path = self._extract_frame_from_video(media_path)
@@ -224,21 +199,22 @@ class DualModelInference:
                 frame_path = media_path
             
             # Always run both models
-            print("\n[1/2] Running 7Classes detection...")
             yolo_result = self._run_7classes_detection(frame_path)
-            print(f"✓ 7Classes result: {yolo_result['class_name']} ({yolo_result['confidence']:.2%})")
-            
-            print("\n[2/2] Running Weapons detection...")
             weapons_result = self._run_weapons_detection(frame_path)
             
             # Clean up temp frame if video
             if media_type == "VIDEO":
                 Path(frame_path).unlink(missing_ok=True)
             
+            # Check if primary result is Normal - block it
+            if yolo_result['class_name'] == 'Normal':
+                return {
+                    "no_incident": True,
+                    "reason": "Image classified as Normal - no incident detected"
+                }
+            
             # Determine response: if weapon detected, return both
             if weapons_result:
-                print(f"\n🚨 DUAL PREDICTION TRIGGERED!")
-                print(f"🔍 Weapon detected (confidence: {weapons_result['confidence']:.2%})")
                 return {
                     "dual_prediction": True,
                     "primary": weapons_result,
@@ -247,13 +223,9 @@ class DualModelInference:
                 }
             else:
                 # No weapon detected, return only 7Classes
-                print(f"\n✓ Single prediction: {yolo_result['class_name']}")
                 return yolo_result
         
         except Exception as e:
-            print(f"\n❌ Prediction failed: {str(e)}")
-            import traceback
-            traceback.print_exc()
             raise Exception(f"Prediction failed: {str(e)}")
     
     def _extract_frame_from_video(self, video_path):
