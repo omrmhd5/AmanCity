@@ -177,8 +177,98 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
     );
   }
 
+  /// Build dialog for no incident (Normal classification)
+  Widget _buildNoIncidentDialog(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.currentMode == AppThemeMode.dark
+              ? AppColors.primary
+              : AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Info Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.info_outline, size: 48, color: Colors.blue),
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              CustomText(
+                text: 'Nothing Found',
+                size: 20,
+                weight: FontWeight.w700,
+                color: AppTheme.getPrimaryTextColor(),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Message
+              CustomText(
+                text:
+                    widget.prediction.noIncidentReason ??
+                    'This image is classified as Normal - no incident detected.\n\nPlease upload another photo.',
+                size: 14,
+                weight: FontWeight.w400,
+                color: AppTheme.getSecondaryTextColor(),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Dismiss Button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    widget.onDismiss?.call();
+                    Navigator.of(context).pop();
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: CustomText(
+                        text: 'OK',
+                        size: 14,
+                        weight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Handle no incident response
+    if (widget.prediction.noIncident) {
+      return _buildNoIncidentDialog(context);
+    }
+
     final confidenceColor = _getConfidenceColor(
       confidence: widget.prediction.confidence,
     );

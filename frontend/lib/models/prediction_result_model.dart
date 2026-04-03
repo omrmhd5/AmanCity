@@ -9,6 +9,10 @@ class PredictionResult {
   final PredictionResult? alternativeResult;
   final String? decision;
 
+  // No incident fields
+  final bool noIncident;
+  final String? noIncidentReason;
+
   PredictionResult({
     required this.classId,
     required this.className,
@@ -16,10 +20,24 @@ class PredictionResult {
     this.isDualPrediction = false,
     this.alternativeResult,
     this.decision,
+    this.noIncident = false,
+    this.noIncidentReason,
   });
 
   /// Factory constructor to create instance from JSON
   factory PredictionResult.fromJson(Map<String, dynamic> json) {
+    // Handle no incident response (Normal classification)
+    if (json['no_incident'] == true) {
+      return PredictionResult(
+        classId: 0,
+        className: 'Normal',
+        confidence: 0.0,
+        isDualPrediction: false,
+        noIncident: true,
+        noIncidentReason: json['reason'],
+      );
+    }
+
     // Handle dual prediction response
     if (json['dual_prediction'] == true && json['primary'] != null) {
       return PredictionResult(
@@ -55,6 +73,10 @@ class PredictionResult {
 
   /// Convert to JSON
   Map<String, dynamic> toJson() {
+    if (noIncident) {
+      return {'no_incident': true, 'reason': noIncidentReason};
+    }
+
     if (isDualPrediction && alternativeResult != null) {
       return {
         'dual_prediction': true,
