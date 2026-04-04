@@ -6,12 +6,14 @@ class MapFilterButton extends StatelessWidget {
   final VoidCallback? onFilterPressed;
   final Function(FilterSettings settings)? onSettingsChanged;
   final double currentRadius;
+  final Set<String> selectedIncidentTypes;
 
   const MapFilterButton({
     Key? key,
     this.onFilterPressed,
     this.onSettingsChanged,
     this.currentRadius = 5.0,
+    this.selectedIncidentTypes = const {},
   }) : super(key: key);
 
   @override
@@ -32,8 +34,10 @@ class MapFilterButton extends StatelessWidget {
             showModalBottomSheet(
               context: context,
               backgroundColor: Colors.transparent,
-              builder: (context) =>
-                  FilterOptionsSheet(initialRadius: currentRadius),
+              builder: (context) => FilterOptionsSheet(
+                initialRadius: currentRadius,
+                initialSelectedTypes: selectedIncidentTypes,
+              ),
             ).then((result) {
               if (result is FilterSettings) {
                 onSettingsChanged?.call(result);

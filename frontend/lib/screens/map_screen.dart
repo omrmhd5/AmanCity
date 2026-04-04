@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
+import '../utils/incident_types_config.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
@@ -47,6 +48,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   DateTime? _poisCachedTime;
   static const int _poiCacheDurationMinutes = 5;
 
+  // Incident filtering
+  Set<String> _selectedIncidentTypes = {}; // Track which incident types to show
+
   // POI settings
   double _radiusKm = 5.0;
 
@@ -73,6 +77,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Initialize with all POI types selected by default
     _selectedPoiFilters = {'hospital', 'police', 'fire'};
     _updatePoiFilter();
+
+    // Initialize with all incident types selected by default
+    _selectedIncidentTypes = IncidentTypesConfig.allTypes
+        .map((t) => t.key)
+        .toSet();
 
     _loadIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
@@ -289,8 +298,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _markers.clear();
     _circles.clear();
 
+    // Filter incidents by selected types (if filters are applied)
+    List<MapIncident> visibleIncidents = _incidents.where((incident) {
+      if (_selectedIncidentTypes.isEmpty) {
+        return true; // Show all if no filters selected
+      }
+      return _selectedIncidentTypes.contains(incident.type);
+    }).toList();
+
     // Add incident markers with custom icons
-    for (var incident in _incidents) {
+    for (var incident in visibleIncidents) {
       _markers.add(
         Marker(
           markerId: MarkerId(incident.id),
@@ -538,7 +555,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<Map<String, dynamic>> get nearbyAlerts {
     if (_userLocation == null) return []; // No alerts without user location
 
-    return _incidents.take(3).map((incident) {
+    // Filter incidents by selected types
+    final filteredIncidents = _incidents.where((incident) {
+      if (_selectedIncidentTypes.isEmpty) {
+        return true; // Show all if no filters selected
+      }
+      return _selectedIncidentTypes.contains(incident.type);
+    }).toList();
+
+    return filteredIncidents.take(3).map((incident) {
       return {
         'incident': incident,
         'type': incident.type,
@@ -609,6 +634,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               children: [
                 MapFilterSection(
                   currentRadius: _radiusKm,
+                  selectedIncidentTypes: _selectedIncidentTypes,
                   onFilterChanged: (filter) {
                     setState(() => selectedFilter = filter);
                     _applyFilter(filter);
@@ -788,8 +814,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void _handleSettingsChanged(FilterSettings settings) {
     setState(() {
       _radiusKm = settings.radiusKm;
+      _selectedIncidentTypes = settings.selectedIncidentTypes;
     });
-    // Invalidate cache and reload with new settings
+    // Update map with filtered incidents
+    _updateMapElements();
+    // Invalidate cache and reload POIs with new settings
     _poisCachedTime = null;
     _loadPOIs();
   }

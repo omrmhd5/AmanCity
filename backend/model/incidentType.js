@@ -8,13 +8,13 @@ const incidentTypeSchema = new mongoose.Schema(
       unique: true,
       enum: [
         "Accident",
-        "Damaged_Building",
+        "Damaged Building",
         "Fire",
         "Flood",
-        "Normal",
-        "Public_Issue",
-        "Road_Damage",
-        "Weapon",
+        "Public Issue",
+        "Road Damage",
+        "Firearm",
+        "Cold Weapon",
       ],
     },
     nameEn: {
