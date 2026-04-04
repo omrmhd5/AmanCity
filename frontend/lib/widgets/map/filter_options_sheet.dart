@@ -13,9 +13,13 @@ class FilterSettings {
 
 class FilterOptionsSheet extends StatefulWidget {
   final double initialRadius;
+  final Set<String> initialSelectedTypes;
 
-  const FilterOptionsSheet({Key? key, this.initialRadius = 5.0})
-    : super(key: key);
+  const FilterOptionsSheet({
+    Key? key,
+    this.initialRadius = 5.0,
+    this.initialSelectedTypes = const {},
+  }) : super(key: key);
 
   @override
   State<FilterOptionsSheet> createState() => _FilterOptionsSheetState();
@@ -31,6 +35,9 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
   void initState() {
     super.initState();
     radiusKm = widget.initialRadius;
+    // Use exactly what's passed in - map_screen always initializes with all types
+    // so first open will have all, and subsequent opens will have the user's selection
+    selectedIncidentTypes = {...widget.initialSelectedTypes};
   }
 
   @override
@@ -168,8 +175,10 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Filter options list
-                    Column(
+                    // Filter options list - using FilterChip like map_filter_section
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
                       children: List.generate(
                         IncidentTypesConfig.allTypes.length,
                         (index) {
@@ -177,67 +186,58 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                           final isSelected = selectedIncidentTypes.contains(
                             incident.key,
                           );
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (isSelected) {
-                                    selectedIncidentTypes.remove(incident.key);
-                                  } else {
-                                    selectedIncidentTypes.add(incident.key);
-                                  }
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.getCardBackgroundColor(),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
+                          return FilterChip(
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  incident.icon,
+                                  size: 16,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : incident.color,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  incident.displayName,
+                                  style: TextStyle(
                                     color: isSelected
-                                        ? incident.color
-                                        : AppTheme.getBorderColor(),
-                                    width: isSelected ? 2 : 1,
+                                        ? Colors.white
+                                        : AppTheme.getPrimaryTextColor(),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: incident.color.withOpacity(0.15),
-                                      ),
-                                      child: Icon(
-                                        incident.icon,
-                                        color: incident.color,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: CustomText(
-                                        text: incident.displayName,
-                                        size: 14,
-                                        weight: FontWeight.w600,
-                                        color: AppTheme.getPrimaryTextColor(),
-                                      ),
-                                    ),
-                                    if (isSelected)
-                                      Icon(
-                                        Icons.check_circle,
-                                        color: incident.color,
-                                        size: 20,
-                                      ),
-                                  ],
-                                ),
-                              ),
+                              ],
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  selectedIncidentTypes.add(incident.key);
+                                } else {
+                                  selectedIncidentTypes.remove(incident.key);
+                                }
+                              });
+                            },
+                            selectedColor: incident.color,
+                            backgroundColor: AppTheme.getCardBackgroundColor(),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? incident.color
+                                  : AppTheme.getBorderColor(),
+                              width: isSelected ? 2 : 1,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
                             ),
                           );
                         },
-                      ),
+                      ).toList(),
                     ),
                   ],
                 ),

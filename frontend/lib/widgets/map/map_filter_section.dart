@@ -9,12 +9,14 @@ class MapFilterSection extends StatefulWidget {
   final ValueChanged<String?>? onFilterChanged;
   final Function(FilterSettings settings)? onSettingsChanged;
   final double currentRadius;
+  final Set<String> selectedIncidentTypes;
 
   const MapFilterSection({
     Key? key,
     this.onFilterChanged,
     this.onSettingsChanged,
     this.currentRadius = 5.0,
+    this.selectedIncidentTypes = const {},
   }) : super(key: key);
 
   @override
@@ -63,6 +65,7 @@ class _MapFilterSectionState extends State<MapFilterSection> {
               const SizedBox(width: 12),
               MapFilterButton(
                 currentRadius: widget.currentRadius,
+                selectedIncidentTypes: widget.selectedIncidentTypes,
                 onSettingsChanged: widget.onSettingsChanged,
               ),
             ],

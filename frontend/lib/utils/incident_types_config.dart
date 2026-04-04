@@ -14,7 +14,7 @@ class IncidentTypesConfig {
       key: 'Accident',
       displayName: 'Accident',
       icon: Icons.directions_car,
-      color: Colors.orange,
+      color: Colors.indigo,
     ),
     IncidentTypeConfig(
       key: 'Flood',
@@ -23,28 +23,34 @@ class IncidentTypesConfig {
       color: Colors.blue,
     ),
     IncidentTypeConfig(
-      key: 'Public_Issue',
+      key: 'Public Issue',
       displayName: 'Public Issue',
       icon: Icons.block,
       color: Colors.amber,
     ),
     IncidentTypeConfig(
-      key: 'Road_Damage',
+      key: 'Road Damage',
       displayName: 'Road Damage',
       icon: Icons.construction,
-      color: Colors.brown,
+      color: Colors.blueGrey,
     ),
     IncidentTypeConfig(
-      key: 'Damaged_Building',
+      key: 'Damaged Building',
       displayName: 'Damaged Building',
       icon: Icons.domain_disabled,
-      color: Colors.grey,
+      color: Colors.orange,
     ),
     IncidentTypeConfig(
-      key: 'Normal',
-      displayName: 'Normal',
-      icon: Icons.warning,
-      color: Colors.deepPurple,
+      key: 'Firearm',
+      displayName: 'Firearm',
+      icon: Icons.track_changes,
+      color: Colors.pink,
+    ),
+    IncidentTypeConfig(
+      key: 'Cold Weapon',
+      displayName: 'Cold Weapon',
+      icon: Icons.content_cut,
+      color: Colors.cyan,
     ),
   ];
 

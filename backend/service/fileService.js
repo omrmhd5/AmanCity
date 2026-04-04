@@ -27,12 +27,14 @@ class FileService {
       // Note: Normal images are blocked and never uploaded
       const validClasses = [
         "Accident",
-        "Damaged_Building",
+        "Damaged Building",
         "Fire",
         "Flood",
-        "Public_Issue",
-        "Road_Damage",
-        "Weapon",
+        "Normal",
+        "Public Issue",
+        "Road Damage",
+        "Firearm",
+        "Cold Weapon",
       ];
 
       if (!validClasses.includes(className)) {

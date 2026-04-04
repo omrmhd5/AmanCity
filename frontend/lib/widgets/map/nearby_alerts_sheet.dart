@@ -99,7 +99,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
     } else if (color.value == Colors.orange.value) {
       typeString = 'Accident';
     } else if (color.value == Colors.amber.value) {
-      typeString = 'Public_Issue';
+      typeString = 'Public Issue';
     }
 
     return MapIncident(

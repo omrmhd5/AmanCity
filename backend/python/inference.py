@@ -7,13 +7,14 @@ from ultralytics import YOLO
 # Class mapping from your YOLO model
 CLASS_NAMES = {
     0: "Accident",
-    1: "Damaged_Building",
+    1: "Damaged Building",
     2: "Fire",
     3: "Flood",
     4: "Normal",
-    5: "Public_Issue",
-    6: "Road_Damage",
-    7: "Weapon",  # New weapon class
+    5: "Public Issue",
+    6: "Road Damage",
+    7: "Firearm",  # ONNX weapon detector class 0
+    8: "Cold Weapon",  # ONNX weapon detector class 1
 }
 
 # Weapon confidence threshold
@@ -117,7 +118,11 @@ class DualModelInference:
             self.weapons_model = None
     
     def _run_weapons_detection(self, image_path):
-        """Run weapons detection with YOLO ONNX model"""
+        """Run weapons detection with YOLO ONNX model
+        ONNX model outputs 2 classes:
+        - 0: Firearm (maps to CLASS_NAMES[7])
+        - 1: Cold Weapon (maps to CLASS_NAMES[8])
+        """
         if self.weapons_model is None:
             return None
         
@@ -134,13 +139,20 @@ class DualModelInference:
             if len(result.boxes) > 0:
                 # Get the highest confidence detection
                 confidences = result.boxes.conf.cpu().numpy()
-                max_confidence = float(np.max(confidences))
+                class_ids = result.boxes.cls.cpu().numpy().astype(int)
+                max_idx = np.argmax(confidences)
+                max_confidence = float(confidences[max_idx])
+                onnx_class_id = int(class_ids[max_idx])
                 
                 # If any detection >= 50%, report as weapon
                 if max_confidence >= WEAPON_CONFIDENCE_THRESHOLD:
+                    # Map ONNX output (0 or 1) to CLASS_NAMES indices (7 or 8)
+                    class_id = 7 + onnx_class_id  # 0 -> 7 (Firearm), 1 -> 8 (Cold Weapon)
+                    class_name = CLASS_NAMES.get(class_id, "Unknown")
+                    
                     return {
-                        "class_id": 7,
-                        "class_name": "Weapon",
+                        "class_id": class_id,
+                        "class_name": class_name,
                         "confidence": max(0.0, min(1.0, max_confidence)),
                         "model": "weapons"
                     }
