@@ -309,9 +309,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           Marker(
             markerId: MarkerId('poi_${poi.id}'),
             position: poi.position,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              _getHueFromColor(poi.markerColor),
-            ),
+            icon: _getCustomPOIMarker(poi),
             consumeTapEvents: true,
             onTap: () => _onPOITapped(poi),
           ),
@@ -325,9 +323,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         Marker(
           markerId: const MarkerId('user_location'),
           position: _userLocation!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
-          ),
+          icon: _getUserLocationMarker(),
         ),
       );
     }
@@ -362,9 +358,41 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final iconColor = Colors.white;
     final backgroundColor = incident.typeColor;
 
-    // We'll create the icon asynchronously and store in cache
-    // For now, return a default and let it update
-    _createAndCacheMarkerIcon(cacheKey, iconData, iconColor, backgroundColor);
+    // We'll create the icon asynchronously and store in cache (medium size for incidents)
+    _createAndCacheMarkerIcon(
+      cacheKey,
+      iconData,
+      iconColor,
+      backgroundColor,
+      markerSize: 110.0,
+    );
+
+    return BitmapDescriptor.defaultMarkerWithHue(
+      _getHueFromColor(backgroundColor),
+    );
+  }
+
+  /// Creates a custom map marker icon with POI type icon
+  BitmapDescriptor _getCustomPOIMarker(EmergencyPOI poi) {
+    // Check cache first
+    final cacheKey = 'poi_${poi.type}_${poi.markerColor.value}';
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+
+    // Create new icon (will be cached after rendering)
+    final iconData = poi.icon;
+    final iconColor = Colors.white;
+    final backgroundColor = poi.markerColor;
+
+    // We'll create the icon asynchronously and store in cache (smaller size for POI)
+    _createAndCacheMarkerIcon(
+      cacheKey,
+      iconData,
+      iconColor,
+      backgroundColor,
+      markerSize: 80.0,
+    );
 
     return BitmapDescriptor.defaultMarkerWithHue(
       _getHueFromColor(backgroundColor),
@@ -376,12 +404,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     String cacheKey,
     IconData iconData,
     Color iconColor,
-    Color backgroundColor,
-  ) async {
+    Color backgroundColor, {
+    double markerSize = 120.0,
+  }) async {
     try {
       final pictureRecorder = ui.PictureRecorder();
       final canvas = Canvas(pictureRecorder);
-      const size = 120.0;
+      final size = markerSize;
 
       // Draw circular background with shadow
       final paint = Paint()
@@ -393,26 +422,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         ..style = PaintingStyle.fill;
 
       // Draw shadow
-      canvas.drawCircle(
-        const Offset(size / 2, size / 2 + 2),
-        size / 2,
-        shadowPaint,
-      );
+      canvas.drawCircle(Offset(size / 2, size / 2 + 2), size / 2, shadowPaint);
 
       // Draw background circle
-      canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, paint);
-
-      // Draw border
-      final borderPaint = Paint()
-        ..color = Colors.white
-        ..strokeWidth = 2
-        ..style = PaintingStyle.stroke;
-
-      canvas.drawCircle(
-        const Offset(size / 2, size / 2),
-        size / 2,
-        borderPaint,
-      );
+      canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint);
 
       // Draw icon
       final textPainter = TextPainter(textDirection: TextDirection.ltr);
@@ -421,7 +434,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         text: String.fromCharCode(iconData.codePoint),
         style: TextStyle(
           color: iconColor,
-          fontSize: 55,
+          fontSize: markerSize * 0.45,
           fontFamily: iconData.fontFamily,
         ),
       );
@@ -453,6 +466,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('Error creating marker icon: $e');
     }
+  }
+
+  /// Creates a custom marker for user's current location
+  BitmapDescriptor _getUserLocationMarker() {
+    const cacheKey = 'user_location';
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+
+    // Create user location marker with my_location icon in cyan/teal
+    const userColor = Color(0xFF06B6D4); // Cyan
+    const iconData = Icons.my_location;
+    const iconColor = Colors.white;
+
+    _createAndCacheMarkerIcon(cacheKey, iconData, iconColor, userColor);
+
+    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
   }
 
   double _getHueFromColor(Color color) {
