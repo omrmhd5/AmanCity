@@ -153,7 +153,7 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": GOOGLE_API_KEY,
       "X-Goog-FieldMask":
-        "places.displayName,places.formattedAddress,places.location,places.rating,places.internationalPhoneNumber,places.nationalPhoneNumber,places.websiteUri,places.name",
+        "places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.name",
     },
     body: JSON.stringify(requestBody),
   });
@@ -178,11 +178,8 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
     lat: place.location?.latitude || 0,
     lng: place.location?.longitude || 0,
     address: place.formattedAddress || "",
-    rating: place.rating || null,
-    phoneNumber:
-      place.internationalPhoneNumber || place.nationalPhoneNumber || null,
+    phoneNumber: place.nationalPhoneNumber || null,
     type: type, // Our internal type (hospital, police, fire)
-    websiteUrl: place.websiteUri || null,
   }));
 }
 
