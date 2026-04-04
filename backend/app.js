@@ -15,6 +15,7 @@ app.use(express.static("uploads")); // Serve uploaded files
 // Routes
 app.use("/api/incidents", require("./routes/incidents"));
 app.use("/api/predict", require("./routes/predict"));
+app.use("/api/places", require("./routes/places"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
