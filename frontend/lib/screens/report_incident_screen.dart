@@ -94,9 +94,11 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
         setState(() => _isPickingFile = false);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to pick file: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to select file. Please try again.'),
+        ),
+      );
       setState(() => _isPickingFile = false);
     }
   }
@@ -162,7 +164,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create incident: $e'),
+            content: Text('Unable to save your report. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -219,11 +221,14 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       setState(() => _isSubmitting = false);
 
       if (mounted) {
+        // Extract just the error message without the exception wrapper
+        String errorMsg = e.toString();
+        if (errorMsg.startsWith('Exception: ')) {
+          errorMsg = errorMsg.substring('Exception: '.length);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Prediction failed: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
         );
       }
     }

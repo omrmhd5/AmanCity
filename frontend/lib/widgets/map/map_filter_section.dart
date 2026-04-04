@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../shared/custom_search_bar.dart';
-import '../shared/custom_filter_chips.dart';
 import 'map_filter_button.dart';
 import 'filter_options_sheet.dart';
 
@@ -22,7 +22,7 @@ class MapFilterSection extends StatefulWidget {
 }
 
 class _MapFilterSectionState extends State<MapFilterSection> {
-  String? selectedFilter;
+  late Set<String> selectedFilters; // Track multiple selected filters
   final searchController = TextEditingController();
 
   final List<Map<String, dynamic>> filters = [
@@ -30,6 +30,13 @@ class _MapFilterSectionState extends State<MapFilterSection> {
     {'label': 'Police Stations', 'icon': Icons.local_police},
     {'label': 'Fire Stations', 'icon': Icons.fire_truck},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // All filters selected by default
+    selectedFilters = {'Hospitals', 'Police Stations', 'Fire Stations'};
+  }
 
   @override
   void dispose() {
@@ -40,8 +47,9 @@ class _MapFilterSectionState extends State<MapFilterSection> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Search bar and filter button
           Row(
@@ -59,19 +67,73 @@ class _MapFilterSectionState extends State<MapFilterSection> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Filter chips
-          CustomFilterChips(
-            filters: filters,
-            selectedFilter: selectedFilter,
-            onFilterChanged: (selected) {
-              setState(() {
-                selectedFilter = selected;
-                widget.onFilterChanged?.call(selectedFilter);
-              });
-            },
-            showIcon: true,
-            selectedColor: AppColors.secondary,
+          const SizedBox(height: 8),
+          // Filter chips - horizontal scrolling
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: filters.map((filterItem) {
+                final label = filterItem['label'] as String;
+                final icon = filterItem['icon'] as IconData;
+                final isSelected = selectedFilters.contains(label);
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icon,
+                          size: 16,
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.getPrimaryTextColor(),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : AppTheme.getPrimaryTextColor(),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          selectedFilters.add(label);
+                        } else {
+                          selectedFilters.remove(label);
+                        }
+                      });
+                      // Notify parent about the selected filter
+                      widget.onFilterChanged?.call(label);
+                    },
+                    selectedColor: AppColors.secondary,
+                    backgroundColor: AppTheme.getCardBackgroundColor(),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.secondary
+                          : AppTheme.getBorderColor(),
+                      width: isSelected ? 2 : 1,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),

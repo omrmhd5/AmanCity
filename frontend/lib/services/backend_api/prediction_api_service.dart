@@ -74,20 +74,25 @@ class PredictionApiService {
           throw Exception('Invalid response format: missing data field');
         }
       } else {
-        throw Exception(
-          'Prediction failed: ${response.statusCode} - ${response.body}',
-        );
+        // Try to extract error message from JSON response
+        try {
+          final errorJson = jsonDecode(response.body);
+          final errorMessage =
+              errorJson['message'] ?? 'Unable to analyze image';
+          throw Exception(errorMessage);
+        } catch (e) {
+          // If JSON parsing fails, show generic message
+          throw Exception('Unable to analyze the image. Please try again.');
+        }
       }
     } on SocketException catch (e) {
       debugPrint('❌ Network Error: $e');
       throw Exception(
-        'Network error: Unable to connect to prediction server.\n'
-        'Backend URL: ${AppConfig.backendUrl}\n'
-        'Error: $e',
+        'Unable to connect to image analysis service. Please check your connection and try again.',
       );
     } catch (e) {
       debugPrint('❌ Prediction Error: $e');
-      throw Exception('Prediction error: $e');
+      throw Exception('Unable to analyze the image. Please try again.');
     }
   }
 

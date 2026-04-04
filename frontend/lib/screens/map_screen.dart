@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../widgets/map/map_filter_section.dart';
@@ -39,32 +40,42 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<DangerZone> _dangerZones = [];
 
   // POI filtering
-  String _poiFilter = 'all'; // 'all', 'hospital', 'police', 'fire'
+  String _poiFilter =
+      'all'; // 'all', 'hospital', 'police', 'fire', or pipe-separated like 'hospital|police'
+  Set<String> _selectedPoiFilters = {}; // Track which filters are selected
   bool _showPOIs = true;
-  bool _isLoadingPOIs = false;
   DateTime? _poisCachedTime;
   static const int _poiCacheDurationMinutes = 5;
 
   // POI settings
   double _radiusKm = 5.0;
 
-  // Cairo initial position
-  static const LatLng _cairoCenter = LatLng(30.0444, 31.2357);
-  static const double _initialZoom = 14.0;
-
   // User location
   LatLng? _userLocation;
   bool _isLoadingLocation = false;
 
+  // Initial camera position (will be set from user location)
+  late CameraPosition _initialCameraPosition;
+  bool _locationLoaded = false;
+
   // Cache for custom marker icons
   final Map<String, BitmapDescriptor> _markerIconCache = {};
+
+  // Location cache
+  DateTime? _locationCachedTime;
+  static const int _locationCacheDurationMinutes =
+      60; // Cache location for 60 minutes
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Initialize with all POI types selected by default
+    _selectedPoiFilters = {'hospital', 'police', 'fire'};
+    _updatePoiFilter();
+
     _loadIncidents();
-    _getUserLocation();
+    _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
     _loadPOIs();
   }
 
@@ -73,6 +84,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Refresh incidents when app comes back to foreground
       _loadIncidents();
+      // Only fetch new location if cache is old
+      _refreshLocationIfNeeded();
     }
   }
 
@@ -93,6 +106,65 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     } catch (e) {
       print('❌ Error loading incidents: $e');
     }
+  }
+
+  /// Load location from cache if available and fresh
+  Future<void> _loadUserLocationFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedLat = prefs.getDouble('user_location_lat');
+      final cachedLng = prefs.getDouble('user_location_lng');
+      final cachedTimeStr = prefs.getString('user_location_time');
+
+      if (cachedLat != null && cachedLng != null && cachedTimeStr != null) {
+        final cachedTime = DateTime.parse(cachedTimeStr);
+        final age = DateTime.now().difference(cachedTime);
+
+        if (age.inMinutes < _locationCacheDurationMinutes) {
+          // Cache is fresh, use it
+          setState(() {
+            _userLocation = LatLng(cachedLat, cachedLng);
+            _locationCachedTime = cachedTime;
+            // Update initial camera position to user location
+            _initialCameraPosition = CameraPosition(
+              target: _userLocation!,
+              zoom: 15.0,
+            );
+            _locationLoaded = true;
+          });
+          print('📍 Using cached location (${age.inSeconds}s old)');
+
+          // Animate camera to cached location
+          await Future.delayed(const Duration(milliseconds: 500));
+          _mapController?.animateCamera(
+            CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
+          );
+
+          _loadPOIs(); // Load POIs with cached location
+          return;
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error loading cached location: $e');
+    }
+
+    // No valid cache, fetch fresh location
+    await _getUserLocation();
+  }
+
+  /// Refresh location only if cache is old
+  Future<void> _refreshLocationIfNeeded() async {
+    if (_locationCachedTime != null) {
+      final age = DateTime.now().difference(_locationCachedTime!);
+      if (age.inMinutes < _locationCacheDurationMinutes) {
+        print('📍 Location cache still fresh, skipping refresh');
+        return; // Cache still fresh
+      }
+    }
+
+    // Cache is old or empty, fetch fresh location
+    print('📍 Location cache expired, fetching fresh location...');
+    await _getUserLocation();
   }
 
   Future<void> _getUserLocation() async {
@@ -120,17 +192,40 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
 
       Position position = await Geolocator.getCurrentPosition();
+      final newLocation = LatLng(position.latitude, position.longitude);
+
       setState(() {
-        _userLocation = LatLng(position.latitude, position.longitude);
+        _userLocation = newLocation;
         _isLoadingLocation = false;
+        _locationCachedTime = DateTime.now();
+        // Update initial camera position to user location
+        _initialCameraPosition = CameraPosition(
+          target: _userLocation!,
+          zoom: 15.0,
+        );
+        _locationLoaded = true;
       });
+
+      // Cache the location
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setDouble('user_location_lat', position.latitude);
+        await prefs.setDouble('user_location_lng', position.longitude);
+        await prefs.setString(
+          'user_location_time',
+          DateTime.now().toIso8601String(),
+        );
+        print('✅ Location cached');
+      } catch (e) {
+        print('⚠️ Failed to cache location: $e');
+      }
 
       // Animate camera to user location
       _mapController?.animateCamera(
         CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
       );
 
-      // Reload POIs for user's actual location (not Cairo center)
+      // Reload POIs for user's location
       _poisCachedTime = null; // Invalidate cache
       await _loadPOIs();
 
@@ -151,9 +246,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
 
-    final initialLocation = _userLocation ?? _cairoCenter;
+    // Don't load if no location
+    if (_userLocation == null) {
+      print('⚠️ User location not available, cannot load POIs');
+      return;
+    }
 
-    setState(() => _isLoadingPOIs = true);
+    // Don't load if no filters selected
+    if (_selectedPoiFilters.isEmpty) {
+      setState(() {
+        _pois = [];
+      });
+      _updateMapElements();
+      return;
+    }
+
+    final initialLocation = _userLocation!;
 
     try {
       print(
@@ -168,14 +276,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       setState(() {
         _pois = pois;
-        _isLoadingPOIs = false;
         _poisCachedTime = DateTime.now();
       });
 
       _updateMapElements();
     } catch (e) {
       print('❌ Error loading POIs: $e');
-      setState(() => _isLoadingPOIs = false);
     }
   }
 
@@ -400,6 +506,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   // Mock data for nearby alerts carousel
   List<Map<String, dynamic>> get nearbyAlerts {
+    if (_userLocation == null) return []; // No alerts without user location
+
     return _incidents.take(3).map((incident) {
       return {
         'incident': incident,
@@ -410,8 +518,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         'distance':
             LocationService.formatDistance(
               LocationService.calculateDistance(
-                lat1: _userLocation?.latitude ?? _cairoCenter.latitude,
-                lng1: _userLocation?.longitude ?? _cairoCenter.longitude,
+                lat1: _userLocation!.latitude,
+                lng1: _userLocation!.longitude,
                 lat2: incident.position.latitude,
                 lng2: incident.position.longitude,
               ),
@@ -423,50 +531,46 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }).toList();
   }
 
-  /// Change POI filter and reload
-  Future<void> _changePOIFilter(String newFilter) async {
-    setState(() => _poiFilter = newFilter);
-    _poisCachedTime = null; // Invalidate cache to force reload
-    await _loadPOIs();
-  }
-
-  /// Toggle POI visibility on map
-  void _togglePOIVisibility() {
-    setState(() => _showPOIs = !_showPOIs);
-    _updateMapElements();
-  }
-
-  /// Manually refresh POIs
-  Future<void> _refreshPOIs() async {
-    _poisCachedTime = null; // Invalidate cache
-    await _loadPOIs();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Google Map
-        GoogleMap(
-          initialCameraPosition: const CameraPosition(
-            target: _cairoCenter,
-            zoom: _initialZoom,
+        // Google Map - only show when location is loaded
+        if (_locationLoaded)
+          GoogleMap(
+            initialCameraPosition: _initialCameraPosition,
+            onMapCreated: (GoogleMapController controller) {
+              _mapController = controller;
+              // Apply dark/light theme to map
+              _setMapStyle();
+            },
+            markers: _markers,
+            circles: _circles,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
+            compassEnabled: true,
+            trafficEnabled: false,
+            buildingsEnabled: true,
+          )
+        else
+          Container(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.red.shade700),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading your location...',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
           ),
-          onMapCreated: (GoogleMapController controller) {
-            _mapController = controller;
-            // Apply dark/light theme to map
-            _setMapStyle();
-          },
-          markers: _markers,
-          circles: _circles,
-          myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-          mapToolbarEnabled: false,
-          compassEnabled: true,
-          trafficEnabled: false,
-          buildingsEnabled: true,
-        ),
 
         // Filter section
         SafeArea(
@@ -621,10 +725,32 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Check if filter is a POI filter
     if (poiFilterMap.containsKey(filter)) {
       final poiType = poiFilterMap[filter]!;
-      _changePOIFilter(poiType);
+
+      // Toggle the filter on/off
+      setState(() {
+        if (_selectedPoiFilters.contains(poiType)) {
+          _selectedPoiFilters.remove(poiType);
+        } else {
+          _selectedPoiFilters.add(poiType);
+        }
+        _updatePoiFilter();
+      });
+
+      // Reload POIs with new filter
+      _poisCachedTime = null;
+      _loadPOIs();
+    }
+  }
+
+  /// Update the _poiFilter string based on selected filters
+  void _updatePoiFilter() {
+    if (_selectedPoiFilters.isEmpty) {
+      _poiFilter = 'none'; // No type selected
+    } else if (_selectedPoiFilters.length == 1) {
+      _poiFilter = _selectedPoiFilters.first;
     } else {
-      // Default: show all types
-      _changePOIFilter('all');
+      // Multiple filters selected - join with pipe
+      _poiFilter = _selectedPoiFilters.toList().join('|');
     }
   }
 

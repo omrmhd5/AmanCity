@@ -28,7 +28,8 @@ router.get("/nearby", async (req, res) => {
     // Validate input
     if (!lat || !lng) {
       return res.status(400).json({
-        message: "Missing required parameters: lat, lng",
+        message:
+          "Unable to determine location. Please enable location services and try again.",
       });
     }
 
@@ -39,13 +40,14 @@ router.get("/nearby", async (req, res) => {
 
     if (isNaN(latitude) || isNaN(longitude)) {
       return res.status(400).json({
-        message: "Invalid latitude/longitude values",
+        message: "The location coordinates are invalid. Please try again.",
       });
     }
 
     if (isNaN(searchRadius) || searchRadius < 100 || searchRadius > 50000) {
       return res.status(400).json({
-        message: "Invalid radius. Must be between 100 and 50000 meters",
+        message:
+          "The search radius is invalid. Please select a radius between 1 and 25 km.",
       });
     }
 
@@ -57,9 +59,10 @@ router.get("/nearby", async (req, res) => {
       searchTypes = type.split("|").filter((t) => PLACE_TYPES_MAP[t]);
     } else if (PLACE_TYPES_MAP[type]) {
       searchTypes = [type];
-    } else {
+    } else if (searchTypes.length === 0 || !PLACE_TYPES_MAP[type]) {
       return res.status(400).json({
-        message: "Invalid type. Must be: hospital, police, fire, or all",
+        message:
+          "The selected location type is not recognized. Please select a valid type.",
       });
     }
 
@@ -102,8 +105,7 @@ router.get("/nearby", async (req, res) => {
   } catch (error) {
     console.error("❌ Places API error:", error.message);
     res.status(500).json({
-      message: "Failed to fetch nearby places",
-      error: error.message,
+      message: "Unable to find nearby locations. Please try again later.",
     });
   }
 });
@@ -113,7 +115,7 @@ router.get("/nearby", async (req, res) => {
 async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
   if (!GOOGLE_API_KEY) {
     throw new Error(
-      "Google API key not configured. Set GOOGLE_API_KEY environment variable.",
+      "Location services are not configured. Please contact support.",
     );
   }
 
@@ -121,7 +123,7 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
 
   const googlePlaceType = PLACE_TYPES_MAP[type];
   if (!googlePlaceType) {
-    throw new Error(`Unknown place type: ${type}`);
+    throw new Error("The selected location type is not recognized.");
   }
 
   const url = "https://places.googleapis.com/v1/places:searchNearby";
@@ -162,9 +164,7 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
       `❌ Google Places API error response:`,
       JSON.stringify(errorData, null, 2),
     );
-    throw new Error(
-      `Google Places API error: ${response.status} - ${errorData.error?.message || "Unknown error"}`,
-    );
+    throw new Error("Unable to retrieve nearby locations. Please try again.");
   }
 
   const data = await response.json();

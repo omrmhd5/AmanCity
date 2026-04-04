@@ -21,7 +21,7 @@ class IncidentService {
       // Verify incident type exists
       const incidentType = await IncidentType.findById(incidentData.type);
       if (!incidentType) {
-        throw new Error("Invalid incident type");
+        throw new Error("The selected incident type is not valid.");
       }
 
       const incident = new Incident({
@@ -45,7 +45,7 @@ class IncidentService {
         .populate("type")
         .populate("reportedBy");
     } catch (error) {
-      throw new Error(`Failed to create incident: ${error.message}`);
+      throw new Error("Unable to save your report. Please try again.");
     }
   }
 
@@ -103,7 +103,9 @@ class IncidentService {
 
       return incidents;
     } catch (error) {
-      throw new Error(`Failed to fetch incidents: ${error.message}`);
+      throw new Error(
+        "Unable to retrieve reports. Please check your connection and try again.",
+      );
     }
   }
 
@@ -117,12 +119,12 @@ class IncidentService {
         .populate("reportedBy", "name email");
 
       if (!incident) {
-        throw new Error("Incident not found");
+        throw new Error("The report could not be found.");
       }
 
       return incident;
     } catch (error) {
-      throw new Error(`Failed to fetch incident: ${error.message}`);
+      throw new Error("Unable to retrieve the report. Please try again.");
     }
   }
 
@@ -139,12 +141,12 @@ class IncidentService {
         .populate("reportedBy", "name email");
 
       if (!incident) {
-        throw new Error("Incident not found");
+        throw new Error("The report could not be found.");
       }
 
       return incident;
     } catch (error) {
-      throw new Error(`Failed to update incident: ${error.message}`);
+      throw new Error("Unable to update the report. Please try again.");
     }
   }
 
@@ -171,7 +173,7 @@ class IncidentService {
 
       return incidents;
     } catch (error) {
-      throw new Error(`Failed to fetch nearby incidents: ${error.message}`);
+      throw new Error("Unable to retrieve nearby reports. Please try again.");
     }
   }
 
@@ -188,7 +190,9 @@ class IncidentService {
 
       return incidents;
     } catch (error) {
-      throw new Error(`Failed to fetch incidents by type: ${error.message}`);
+      throw new Error(
+        "Unable to retrieve reports of this type. Please try again.",
+      );
     }
   }
 
@@ -200,12 +204,12 @@ class IncidentService {
       const incident = await Incident.findByIdAndDelete(id);
 
       if (!incident) {
-        throw new Error("Incident not found");
+        throw new Error("The report could not be found.");
       }
 
-      return { message: "Incident deleted successfully", incident };
+      return { message: "Report deleted successfully", incident };
     } catch (error) {
-      throw new Error(`Failed to delete incident: ${error.message}`);
+      throw new Error("Unable to delete the report. Please try again.");
     }
   }
 }
