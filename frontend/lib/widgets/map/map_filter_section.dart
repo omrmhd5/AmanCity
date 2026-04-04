@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/poi_types_config.dart';
 import '../shared/custom_search_bar.dart';
 import 'map_filter_button.dart';
 import 'filter_options_sheet.dart';
@@ -28,9 +29,21 @@ class _MapFilterSectionState extends State<MapFilterSection> {
   final searchController = TextEditingController();
 
   final List<Map<String, dynamic>> filters = [
-    {'label': 'Hospitals', 'icon': Icons.local_hospital},
-    {'label': 'Police Stations', 'icon': Icons.local_police},
-    {'label': 'Fire Stations', 'icon': Icons.fire_truck},
+    {
+      'label': 'Hospitals',
+      'icon': Icons.local_hospital,
+      'color': const Color(0xFFEF4444), // Red
+    },
+    {
+      'label': 'Police Stations',
+      'icon': Icons.local_police,
+      'color': const Color(0xFF3B82F6), // Blue
+    },
+    {
+      'label': 'Fire Stations',
+      'icon': Icons.fire_truck,
+      'color': const Color(0xFFF59E0B), // Orange
+    },
   ];
 
   @override
@@ -78,6 +91,7 @@ class _MapFilterSectionState extends State<MapFilterSection> {
               children: filters.map((filterItem) {
                 final label = filterItem['label'] as String;
                 final icon = filterItem['icon'] as IconData;
+                final color = filterItem['color'] as Color;
                 final isSelected = selectedFilters.contains(label);
 
                 return Padding(
@@ -89,9 +103,7 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                         Icon(
                           icon,
                           size: 16,
-                          color: isSelected
-                              ? Colors.white
-                              : AppTheme.getPrimaryTextColor(),
+                          color: isSelected ? Colors.white : color,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -118,12 +130,10 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                       // Notify parent about the selected filter
                       widget.onFilterChanged?.call(label);
                     },
-                    selectedColor: AppColors.secondary,
+                    selectedColor: color,
                     backgroundColor: AppTheme.getCardBackgroundColor(),
                     side: BorderSide(
-                      color: isSelected
-                          ? AppColors.secondary
-                          : AppTheme.getBorderColor(),
+                      color: isSelected ? color : AppTheme.getBorderColor(),
                       width: isSelected ? 2 : 1,
                     ),
                     padding: const EdgeInsets.symmetric(
