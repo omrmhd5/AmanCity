@@ -23,7 +23,8 @@ class PredictController {
     } catch (error) {
       console.error("Inference error:", error);
       res.status(500).json({
-        message: error.message || "Inference failed",
+        message:
+          error.message || "Unable to analyze the image. Please try again.",
       });
     }
   }
@@ -39,8 +40,8 @@ class PredictController {
       });
     } catch (error) {
       res.status(503).json({
-        message: "YOLO server unavailable",
-        error: error.message,
+        message:
+          "The image analysis service is currently unavailable. Please try again later.",
       });
     }
   }

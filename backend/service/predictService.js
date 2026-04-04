@@ -12,7 +12,9 @@ class YOLOService {
       });
       return response.data;
     } catch (error) {
-      throw new Error(`YOLO Server unavailable: ${error.message}`);
+      throw new Error(
+        "The image analysis service is temporarily unavailable. Please try again in a few moments.",
+      );
     }
   }
 
@@ -39,8 +41,24 @@ class YOLOService {
 
       return response.data;
     } catch (error) {
+      // Handle specific error cases
+      if (error.code === "ECONNREFUSED") {
+        throw new Error(
+          "The image analysis service is not running. Please contact support.",
+        );
+      }
+      if (error.response?.status === 413) {
+        throw new Error(
+          "The image file is too large. Please use a smaller file.",
+        );
+      }
+      if (error.code === "EAXIOS" || error.message?.includes("timeout")) {
+        throw new Error(
+          "The analysis took too long. Please try again with a different image.",
+        );
+      }
       throw new Error(
-        `YOLO Prediction failed: ${error.response?.data?.detail || error.message}`,
+        "Unable to analyze the image. Please ensure it is a valid photo or video file.",
       );
     }
   }
@@ -72,8 +90,13 @@ class YOLOService {
 
       return response.data;
     } catch (error) {
+      if (error.code === "ECONNREFUSED") {
+        throw new Error(
+          "The image analysis service is not running. Please contact support.",
+        );
+      }
       throw new Error(
-        `YOLO Batch Prediction failed: ${error.response?.data?.detail || error.message}`,
+        "Unable to analyze the images. Please ensure all files are valid photos or videos.",
       );
     }
   }

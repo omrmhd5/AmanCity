@@ -54,6 +54,9 @@ dependencies:
   # HTTP client for API requests
   http: ^1.1.0
 
+  # Local storage for caching
+  shared_preferences: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

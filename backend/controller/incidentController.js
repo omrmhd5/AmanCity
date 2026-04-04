@@ -22,7 +22,7 @@ class IncidentController {
       // Validation
       if (!title || !className || !location) {
         return res.status(400).json({
-          message: "Missing required fields: title, className, location",
+          message: "Please provide a title, incident type, and location.",
         });
       }
 
@@ -42,7 +42,8 @@ class IncidentController {
         parsedLocation.longitude === undefined
       ) {
         return res.status(400).json({
-          message: "Location must include latitude and longitude",
+          message:
+            "Unable to determine your location. Please check that location services are enabled.",
         });
       }
 
@@ -51,7 +52,8 @@ class IncidentController {
 
       if (!incidentType) {
         return res.status(400).json({
-          message: `Invalid incident class: ${className}. Must be one of: Accident, Damaged_Building, Fire, Flood, Normal, Public_Issue, Road_Damage`,
+          message:
+            "The selected incident type is not recognized. Please select a valid incident type.",
         });
       }
 
@@ -75,7 +77,8 @@ class IncidentController {
           ];
         } catch (fileError) {
           return res.status(400).json({
-            message: `File upload failed: ${fileError.message}`,
+            message:
+              "Unable to upload the file. Please ensure the file is not corrupted or too large.",
           });
         }
       }
@@ -100,7 +103,8 @@ class IncidentController {
     } catch (error) {
       console.error("Create incident error:", error);
       res.status(500).json({
-        message: error.message || "Failed to create incident",
+        message:
+          error.message || "Unable to save your report. Please try again.",
       });
     }
   }
@@ -146,7 +150,9 @@ class IncidentController {
       });
     } catch (error) {
       res.status(500).json({
-        message: error.message || "Failed to fetch incidents",
+        message:
+          error.message ||
+          "Unable to retrieve reports. Please check your connection and try again.",
       });
     }
   }
@@ -166,7 +172,7 @@ class IncidentController {
       });
     } catch (error) {
       res.status(404).json({
-        message: error.message || "Incident not found",
+        message: error.message || "The report could not be found.",
       });
     }
   }
@@ -193,7 +199,9 @@ class IncidentController {
       });
     } catch (error) {
       res.status(500).json({
-        message: error.message || "Failed to fetch nearby incidents",
+        message:
+          error.message ||
+          "Unable to retrieve nearby reports. Please try again.",
       });
     }
   }
@@ -219,7 +227,9 @@ class IncidentController {
       });
     } catch (error) {
       res.status(500).json({
-        message: error.message || "Failed to fetch incidents by type",
+        message:
+          error.message ||
+          "Unable to retrieve reports of this type. Please try again.",
       });
     }
   }
@@ -246,7 +256,8 @@ class IncidentController {
       });
     } catch (error) {
       res.status(500).json({
-        message: error.message || "Failed to update incident",
+        message:
+          error.message || "Unable to update the report. Please try again.",
       });
     }
   }
@@ -266,7 +277,8 @@ class IncidentController {
       });
     } catch (error) {
       res.status(404).json({
-        message: error.message || "Failed to delete incident",
+        message:
+          error.message || "Unable to delete the report. Please try again.",
       });
     }
   }

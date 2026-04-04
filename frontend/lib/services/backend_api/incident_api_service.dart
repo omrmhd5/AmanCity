@@ -105,20 +105,25 @@ class IncidentApiService {
           throw Exception('Invalid response format');
         }
       } else {
-        throw Exception(
-          'Failed to create incident: ${response.statusCode} - ${response.body}',
-        );
+        // Try to extract error message from JSON response
+        try {
+          final errorJson = jsonDecode(response.body);
+          final errorMessage =
+              errorJson['message'] ?? 'Unable to create report';
+          throw Exception(errorMessage);
+        } catch (e) {
+          // If JSON parsing fails, show generic message
+          throw Exception('Unable to save your report. Please try again.');
+        }
       }
     } on SocketException catch (e) {
       print('❌ Network Error: $e');
       throw Exception(
-        'Network error: Unable to connect to backend\n'
-        'URL: $incidentsUrl\n'
-        'Error: $e',
+        'Unable to connect to the server. Please check your connection and try again.',
       );
     } catch (e) {
       print('❌ Error: $e');
-      throw Exception('Failed to create incident: $e');
+      throw Exception('Unable to save your report. Please try again.');
     }
   }
 
@@ -156,14 +161,16 @@ class IncidentApiService {
         print('✅ Loaded ${mapIncidents.length} incidents');
         return mapIncidents;
       } else {
-        throw Exception('Failed to load incidents: ${response.statusCode}');
+        throw Exception('Unable to retrieve reports. Please try again.');
       }
     } on SocketException catch (e) {
       print('❌ Network Error: $e');
-      throw Exception('Network error: Unable to connect to backend\nError: $e');
+      throw Exception(
+        'Unable to connect to the server. Please check your connection and try again.',
+      );
     } catch (e) {
       print('❌ Error loading incidents: $e');
-      throw Exception('Failed to load incidents: $e');
+      throw Exception('Unable to retrieve reports. Please try again.');
     }
   }
 

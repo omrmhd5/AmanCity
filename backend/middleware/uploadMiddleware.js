@@ -40,7 +40,7 @@ const upload = multer({
     } else {
       cb(
         new Error(
-          `File type ${file.mimetype} not allowed. Allowed extensions: .jpg, .jpeg, .png, .mp4, .mov`,
+          `Please upload a valid image (JPG or PNG) or video (MP4 or MOV) file.`,
         ),
       );
     }

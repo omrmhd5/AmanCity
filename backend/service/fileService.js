@@ -37,7 +37,7 @@ class FileService {
 
       if (!validClasses.includes(className)) {
         throw new Error(
-          `Invalid class name: ${className}. Normal classifications are not saved.`,
+          "The selected incident type cannot be saved. Please contact support.",
         );
       }
 
@@ -60,7 +60,9 @@ class FileService {
       const relativePath = path.join("uploads", className, filename);
       return relativePath.replace(/\\/g, "/"); // Convert to forward slashes for URLs
     } catch (error) {
-      throw new Error(`Failed to save file: ${error.message}`);
+      throw new Error(
+        "Unable to save the file. Please ensure it is a valid image or video.",
+      );
     }
   }
 

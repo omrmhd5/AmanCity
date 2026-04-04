@@ -59,9 +59,17 @@ class PlacesApiService {
         }).toList();
       } else if (response.statusCode == 400) {
         final errorData = jsonDecode(response.body);
-        throw Exception('Invalid parameters: ${errorData['message']}');
+        throw Exception(errorData['message'] ?? 'Invalid search parameters');
       } else {
-        throw Exception('Failed to fetch places: ${response.statusCode}');
+        // Try to extract error message from JSON response
+        try {
+          final errorData = jsonDecode(response.body);
+          final errorMessage =
+              errorData['message'] ?? 'Unable to find locations';
+          throw Exception(errorMessage);
+        } catch (e) {
+          throw Exception('Unable to find nearby locations. Please try again.');
+        }
       }
     } on SocketException catch (e) {
       print('❌ Network error: $e');
