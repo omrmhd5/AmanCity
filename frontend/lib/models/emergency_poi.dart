@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../utils/poi_types_config.dart';
 
 enum POIType { hospital, policeStation, fireStation, safeCafe, safeZone }
 
@@ -22,48 +23,34 @@ class EmergencyPOI {
 
   // Get color based on POI type
   Color get markerColor {
-    switch (type) {
-      case POIType.hospital:
-        return const Color(0xFFEF4444); // Red
-      case POIType.policeStation:
-        return const Color(0xFF3B82F6); // Blue
-      case POIType.fireStation:
-        return const Color(0xFFF59E0B); // Orange
-      case POIType.safeCafe:
-        return const Color(0xFF10B981); // Green
-      case POIType.safeZone:
-        return const Color(0xFF00B3A4); // Teal
-    }
+    final typeKey = _getTypeKey();
+    return POITypesConfig.getByKey(typeKey).color;
   }
 
   // Get icon based on POI type
   IconData get icon {
-    switch (type) {
-      case POIType.hospital:
-        return Icons.local_hospital;
-      case POIType.policeStation:
-        return Icons.local_police;
-      case POIType.fireStation:
-        return Icons.fire_truck;
-      case POIType.safeCafe:
-        return Icons.local_cafe;
-      case POIType.safeZone:
-        return Icons.verified_user;
-    }
+    final typeKey = _getTypeKey();
+    return POITypesConfig.getByKey(typeKey).icon;
   }
 
   String get typeLabel {
+    final typeKey = _getTypeKey();
+    return POITypesConfig.getByKey(typeKey).displayName;
+  }
+
+  /// Helper to convert POIType enum to config key
+  String _getTypeKey() {
     switch (type) {
       case POIType.hospital:
-        return 'Hospital';
+        return 'hospital';
       case POIType.policeStation:
-        return 'Police Station';
+        return 'policeStation';
       case POIType.fireStation:
-        return 'Fire Station';
+        return 'fireStation';
       case POIType.safeCafe:
-        return 'Safe Café';
+        return 'safeCafe';
       case POIType.safeZone:
-        return 'Safe Zone';
+        return 'safeZone';
     }
   }
 }
