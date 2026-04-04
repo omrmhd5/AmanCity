@@ -24,19 +24,21 @@ class FileService {
   static saveFileToClass(fileBuffer, className, originalFilename) {
     try {
       // Validate class name (prevent directory traversal)
+      // Note: Normal images are blocked and never uploaded
       const validClasses = [
         "Accident",
         "Damaged_Building",
         "Fire",
         "Flood",
-        "Normal",
         "Public_Issue",
         "Road_Damage",
         "Weapon",
       ];
 
       if (!validClasses.includes(className)) {
-        throw new Error(`Invalid class name: ${className}`);
+        throw new Error(
+          `Invalid class name: ${className}. Normal classifications are not saved.`,
+        );
       }
 
       // Get class folder

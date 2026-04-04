@@ -14,6 +14,8 @@ import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
 import '../services/backend_api/incident_api_service.dart';
+import '../services/backend_api/places_api_service.dart';
+import '../services/location_service.dart';
 import 'incident_detail_screen.dart';
 
 class MapScreen extends StatefulWidget {
@@ -36,6 +38,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<EmergencyPOI> _pois = [];
   List<DangerZone> _dangerZones = [];
 
+  // POI filtering
+  String _poiFilter = 'all'; // 'all', 'hospital', 'police', 'fire'
+  bool _showPOIs = true;
+  bool _isLoadingPOIs = false;
+  DateTime? _poisCachedTime;
+  static const int _poiCacheDurationMinutes = 5;
+
   // Cairo initial position
   static const LatLng _cairoCenter = LatLng(30.0444, 31.2357);
   static const double _initialZoom = 14.0;
@@ -53,6 +62,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _loadIncidents();
     _getUserLocation();
+    _loadPOIs();
   }
 
   @override
@@ -117,10 +127,51 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
       );
 
+      // Reload POIs for user's actual location (not Cairo center)
+      _poisCachedTime = null; // Invalidate cache
+      await _loadPOIs();
+
       _updateMapElements();
     } catch (e) {
       setState(() => _isLoadingLocation = false);
       debugPrint('Error getting location: $e');
+    }
+  }
+
+  Future<void> _loadPOIs() async {
+    // Check cache validity
+    if (_poisCachedTime != null) {
+      final age = DateTime.now().difference(_poisCachedTime!);
+      if (age.inMinutes < _poiCacheDurationMinutes) {
+        print('📍 Using cached POIs (${age.inSeconds}s old)');
+        return;
+      }
+    }
+
+    final initialLocation = _userLocation ?? _cairoCenter;
+
+    setState(() => _isLoadingPOIs = true);
+
+    try {
+      print(
+        '📍 Loading POIs around lat=${initialLocation.latitude}, lng=${initialLocation.longitude}',
+      );
+
+      final pois = await PlacesApiService.getNearbyPlaces(
+        initialLocation,
+        type: _poiFilter,
+      );
+
+      setState(() {
+        _pois = pois;
+        _isLoadingPOIs = false;
+        _poisCachedTime = DateTime.now();
+      });
+
+      _updateMapElements();
+    } catch (e) {
+      print('❌ Error loading POIs: $e');
+      setState(() => _isLoadingPOIs = false);
     }
   }
 
@@ -141,19 +192,21 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       );
     }
 
-    // Add POI markers
-    for (var poi in _pois) {
-      _markers.add(
-        Marker(
-          markerId: MarkerId(poi.id),
-          position: poi.position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            _getHueFromColor(poi.markerColor),
+    // Add POI markers (if POI display is enabled)
+    if (_showPOIs) {
+      for (var poi in _pois) {
+        _markers.add(
+          Marker(
+            markerId: MarkerId('poi_${poi.id}'),
+            position: poi.position,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              _getHueFromColor(poi.markerColor),
+            ),
+            consumeTapEvents: true,
+            onTap: () => _onPOITapped(poi),
           ),
-          consumeTapEvents: true,
-          onTap: () => _onPOITapped(poi),
-        ),
-      );
+        );
+      }
     }
 
     // Add user location marker if available
@@ -351,11 +404,38 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         'description': incident.description,
         'timeAgo': _getTimeAgo(incident.timestamp),
         'distance':
-            '${((incident.position.latitude - _cairoCenter.latitude).abs() * 111).toStringAsFixed(1)}km away',
+            LocationService.formatDistance(
+              LocationService.calculateDistance(
+                lat1: _userLocation?.latitude ?? _cairoCenter.latitude,
+                lng1: _userLocation?.longitude ?? _cairoCenter.longitude,
+                lat2: incident.position.latitude,
+                lng2: incident.position.longitude,
+              ),
+            ) +
+            ' away',
         'color': incident.typeColor,
         'icon': incident.typeIcon,
       };
     }).toList();
+  }
+
+  /// Change POI filter and reload
+  Future<void> _changePOIFilter(String newFilter) async {
+    setState(() => _poiFilter = newFilter);
+    _poisCachedTime = null; // Invalidate cache to force reload
+    await _loadPOIs();
+  }
+
+  /// Toggle POI visibility on map
+  void _togglePOIVisibility() {
+    setState(() => _showPOIs = !_showPOIs);
+    _updateMapElements();
+  }
+
+  /// Manually refresh POIs
+  Future<void> _refreshPOIs() async {
+    _poisCachedTime = null; // Invalidate cache
+    await _loadPOIs();
   }
 
   @override
@@ -432,11 +512,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 _getUserLocation();
               }
             },
-            child: const Icon(
-              Icons.my_location,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: const Icon(Icons.my_location, color: Colors.white, size: 24),
           ),
         ),
 
@@ -527,16 +603,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   void _applyFilter(String? filter) {
-    // Filter logic - could filter markers/circles based on selection
-    // For now, just reload all data
-    // In production, this would filter _incidents, _pois based on type
-    if (filter != null) {
-      // Example: filter by type
-      setState(() {
-        // Could filter _incidents, _pois here
-      });
+    if (filter == null) return;
+
+    // Map filter labels to POI types
+    final poiFilterMap = {
+      'Hospitals': 'hospital',
+      'Police Stations': 'police',
+      'Fire Stations': 'fire',
+    };
+
+    // Check if filter is a POI filter
+    if (poiFilterMap.containsKey(filter)) {
+      final poiType = poiFilterMap[filter]!;
+      _changePOIFilter(poiType);
+    } else {
+      // Default: show all types
+      _changePOIFilter('all');
     }
-    _updateMapElements();
   }
 
   Widget _buildNearbyAlertsSection() {
