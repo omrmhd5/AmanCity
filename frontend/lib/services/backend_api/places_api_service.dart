@@ -12,18 +12,23 @@ class PlacesApiService {
 
   /// Fetch nearby places around a location
   /// type: 'hospital', 'police', 'fire', or 'all'
+  /// radiusKm: search radius in kilometers (default 5 km)
   /// returns: List<EmergencyPOI>
   static Future<List<EmergencyPOI>> getNearbyPlaces(
     LatLng location, {
     String type = 'all',
+    double radiusKm = 5.0,
   }) async {
     try {
+      // Convert radius to meters
+      final radiusMeters = (radiusKm * 1000).toInt();
+
       print(
-        '📍 Fetching nearby places: lat=${location.latitude}, lng=${location.longitude}, type=$type',
+        '📍 Fetching nearby places: lat=${location.latitude}, lng=${location.longitude}, type=$type, radius=${radiusKm}km',
       );
 
       final url = Uri.parse(
-        '$_baseUrl/nearby?lat=${location.latitude}&lng=${location.longitude}&type=$type',
+        '$_baseUrl/nearby?lat=${location.latitude}&lng=${location.longitude}&type=$type&radius=$radiusMeters',
       );
 
       final response = await http

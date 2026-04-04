@@ -19,11 +19,11 @@ if (!GOOGLE_API_KEY) {
 }
 
 /// GET /api/places/nearby
-/// Query: lat, lng, type (hospital|police|fire|all)
+/// Query: lat, lng, type (hospital|police|fire|all), radius (meters, default 5000)
 /// Returns: Array of nearby places with {id, name, lat, lng, address, rating, type}
 router.get("/nearby", async (req, res) => {
   try {
-    const { lat, lng, type = "all" } = req.query;
+    const { lat, lng, type = "all", radius = "5000" } = req.query;
 
     // Validate input
     if (!lat || !lng) {
@@ -34,10 +34,18 @@ router.get("/nearby", async (req, res) => {
 
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lng);
+    const searchRadius = parseInt(radius);
+    const maxResults = 20; // Fixed at 20
 
     if (isNaN(latitude) || isNaN(longitude)) {
       return res.status(400).json({
         message: "Invalid latitude/longitude values",
+      });
+    }
+
+    if (isNaN(searchRadius) || searchRadius < 100 || searchRadius > 50000) {
+      return res.status(400).json({
+        message: "Invalid radius. Must be between 100 and 50000 meters",
       });
     }
 
@@ -64,6 +72,7 @@ router.get("/nearby", async (req, res) => {
           latitude,
           longitude,
           searchType,
+          searchRadius,
         );
         allPlaces.push(...places);
       } catch (error) {
@@ -87,6 +96,7 @@ router.get("/nearby", async (req, res) => {
       success: true,
       count: allPlaces.length,
       userLocation: { lat: latitude, lng: longitude },
+      searchRadius: searchRadius,
       places: allPlaces,
     });
   } catch (error) {
@@ -100,12 +110,14 @@ router.get("/nearby", async (req, res) => {
 
 /// Helper function to search nearby places
 /// Uses Google Places API searchNearby endpoint
-async function searchNearbyPlaces(latitude, longitude, type) {
+async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
   if (!GOOGLE_API_KEY) {
     throw new Error(
       "Google API key not configured. Set GOOGLE_API_KEY environment variable.",
     );
   }
+
+  const maxResults = 20; // Fixed at 20 results per type
 
   const googlePlaceType = PLACE_TYPES_MAP[type];
   if (!googlePlaceType) {
@@ -116,20 +128,20 @@ async function searchNearbyPlaces(latitude, longitude, type) {
 
   const requestBody = {
     includedTypes: [googlePlaceType],
-    maxResultCount: 20,
+    maxResultCount: maxResults,
     locationRestriction: {
       circle: {
         center: {
           latitude: latitude,
           longitude: longitude,
         },
-        radius: 5000,
+        radius: radius,
       },
     },
   };
 
   console.log(
-    `📍 Searching for ${type} places around (${latitude}, ${longitude})`,
+    `📍 Searching for ${type} places around (${latitude}, ${longitude}) - radius: ${radius}m`,
   );
   console.log("Request body:", JSON.stringify(requestBody, null, 2));
 
