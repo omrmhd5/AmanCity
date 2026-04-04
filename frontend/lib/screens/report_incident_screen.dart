@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../models/report_incident_model.dart' hide LatLng;
@@ -35,7 +36,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   @override
   void initState() {
     super.initState();
-    _getUserLocation();
+    _loadUserLocationFromCache();
   }
 
   @override
@@ -43,6 +44,39 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  /// Load location from cache if available and fresh
+  Future<void> _loadUserLocationFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedLat = prefs.getDouble('user_location_lat');
+      final cachedLng = prefs.getDouble('user_location_lng');
+      final cachedTimeStr = prefs.getString('user_location_time');
+
+      if (cachedLat != null && cachedLng != null && cachedTimeStr != null) {
+        final cachedTime = DateTime.parse(cachedTimeStr);
+        final age = DateTime.now().difference(cachedTime);
+
+        if (age.inMinutes < 60) {
+          // Cache is fresh, use it
+          if (mounted) {
+            setState(() {
+              _currentLocation = LatLng(cachedLat, cachedLng);
+              _selectedLocation = _currentLocation;
+              _isLoadingLocation = false;
+            });
+          }
+          print('📍 Using cached location (${age.inSeconds}s old)');
+          return;
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error loading cached location: $e');
+    }
+
+    // No valid cache, fetch fresh location
+    await _getUserLocation();
   }
 
   Future<void> _getUserLocation() async {
@@ -55,6 +89,20 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           _selectedLocation = _currentLocation;
           _isLoadingLocation = false;
         });
+      }
+
+      // Cache the location
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setDouble('user_location_lat', position.latitude);
+        await prefs.setDouble('user_location_lng', position.longitude);
+        await prefs.setString(
+          'user_location_time',
+          DateTime.now().toIso8601String(),
+        );
+        print('✅ Location cached');
+      } catch (e) {
+        print('⚠️ Failed to cache location: $e');
       }
     } catch (e) {
       if (mounted) {
