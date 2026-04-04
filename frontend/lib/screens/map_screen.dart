@@ -95,6 +95,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _loadIncidents();
       // Only fetch new location if cache is old
       _refreshLocationIfNeeded();
+      // Don't reload POIs - let cache handle it
     }
   }
 
@@ -809,9 +810,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _updatePoiFilter();
       });
 
-      // Reload POIs with new filter
-      _poisCachedTime = null;
-      _loadPOIs();
+      // Don't reload POIs - let cache handle it
+      // Markers will still update because _pois list remains valid
+      _updateMapElements();
     }
   }
 
@@ -829,15 +830,21 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   /// Handle settings changes from filter sheet
   void _handleSettingsChanged(FilterSettings settings) {
+    final radiusChanged = settings.radiusKm != _radiusKm;
+
     setState(() {
       _radiusKm = settings.radiusKm;
       _selectedIncidentTypes = settings.selectedIncidentTypes;
     });
+
     // Update map with filtered incidents
     _updateMapElements();
-    // Invalidate cache and reload POIs with new settings
-    _poisCachedTime = null;
-    _loadPOIs();
+
+    // Only reload POIs if radius changed
+    if (radiusChanged) {
+      _poisCachedTime = null;
+      _loadPOIs();
+    }
   }
 
   Widget _buildNearbyAlertsSection() {
