@@ -563,26 +563,43 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       return _selectedIncidentTypes.contains(incident.type);
     }).toList();
 
-    return filteredIncidents.take(3).map((incident) {
-      return {
-        'incident': incident,
-        'type': incident.type,
-        'title': incident.title,
-        'description': incident.description,
-        'timeAgo': _getTimeAgo(incident.timestamp),
-        'distance':
-            LocationService.formatDistance(
-              LocationService.calculateDistance(
-                lat1: _userLocation!.latitude,
-                lng1: _userLocation!.longitude,
-                lat2: incident.position.latitude,
-                lng2: incident.position.longitude,
-              ),
-            ) +
-            ' away',
-        'color': incident.typeColor,
-        'icon': incident.typeIcon,
-      };
+    // Calculate distance for each incident and filter by 10km range
+    final alertsWithDistance = filteredIncidents
+        .map((incident) {
+          final distanceKm = LocationService.calculateDistance(
+            lat1: _userLocation!.latitude,
+            lng1: _userLocation!.longitude,
+            lat2: incident.position.latitude,
+            lng2: incident.position.longitude,
+          );
+          return {
+            'incident': incident,
+            'distanceKm': distanceKm,
+            'type': incident.type,
+            'title': incident.title,
+            'description': incident.description,
+            'timeAgo': _getTimeAgo(incident.timestamp),
+            'distance': LocationService.formatDistance(distanceKm) + ' away',
+            'color': incident.typeColor,
+            'icon': incident.typeIcon,
+          };
+        })
+        .where(
+          (alert) =>
+              (alert['distanceKm'] as num?) != null &&
+              (alert['distanceKm'] as num) <= 10.0,
+        ) // Filter: 10km range
+        .toList();
+
+    // Sort by distance (closest first)
+    alertsWithDistance.sort(
+      (a, b) => (a['distanceKm'] as num).compareTo(b['distanceKm'] as num),
+    );
+
+    // Remove the distanceKm key before returning
+    return alertsWithDistance.map((alert) {
+      alert.remove('distanceKm');
+      return alert;
     }).toList();
   }
 

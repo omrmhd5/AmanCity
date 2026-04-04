@@ -113,7 +113,10 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
 
                     // Radius Slider
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.getCardBackgroundColor(),
                         borderRadius: BorderRadius.circular(12),
@@ -149,17 +152,20 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Slider(
-                            value: radiusKm,
-                            min: 1.0,
-                            max: 25.0,
-                            divisions: 24,
-                            label: '${radiusKm.toStringAsFixed(1)} km',
-                            activeColor: AppColors.secondary,
-                            onChanged: (value) {
-                              setState(() => radiusKm = value);
-                            },
+                          const SizedBox(height: 4),
+                          SliderTheme(
+                            data: SliderThemeData(trackHeight: 4),
+                            child: Slider(
+                              value: radiusKm,
+                              min: 1.0,
+                              max: 25.0,
+                              divisions: 24,
+                              label: '${radiusKm.toStringAsFixed(1)} km',
+                              activeColor: AppColors.secondary,
+                              onChanged: (value) {
+                                setState(() => radiusKm = value);
+                              },
+                            ),
                           ),
                         ],
                       ),

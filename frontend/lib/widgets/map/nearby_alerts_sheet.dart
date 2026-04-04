@@ -5,7 +5,6 @@ import '../../utils/incident_types_config.dart';
 import '../../models/map_incident.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_search_bar.dart';
-import '../shared/custom_filter_chips.dart';
 import 'nearby_alert_card.dart';
 import '../../screens/incident_detail_screen.dart';
 
@@ -66,10 +65,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
     return widget.alerts.where((alert) {
       final matchesSearch =
           _searchQuery.isEmpty ||
-          alert['type'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          alert['description'].toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          );
+          alert['title'].toLowerCase().contains(_searchQuery.toLowerCase());
 
       final matchesFilter =
           _selectedFilter == null ||
@@ -77,10 +73,6 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
 
       return matchesSearch && matchesFilter;
     }).toList();
-  }
-
-  Set<String> _getAlertTypes() {
-    return widget.alerts.map((alert) => alert['type'] as String).toSet();
   }
 
   MapIncident _alertToIncident(Map<String, dynamic> alert) {
@@ -239,27 +231,103 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                           // Filter Chips
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                            child: SizedBox(
-                              height: 40,
-                              child: CustomFilterChips(
-                                filters: [
-                                  {'label': 'All', 'icon': null},
-                                  ..._getAlertTypes()
-                                      .map(
-                                        (type) => {'label': type, 'icon': null},
-                                      )
-                                      .toList(),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  // "All" button
+                                  FilterChip(
+                                    label: const Text(
+                                      'All',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    selected: _selectedFilter == null,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        _selectedFilter = null;
+                                      });
+                                    },
+                                    selectedColor: const Color(0xFF00A86B),
+                                    backgroundColor:
+                                        AppTheme.getCardBackgroundColor(),
+                                    side: BorderSide(
+                                      color: _selectedFilter == null
+                                          ? const Color(0xFF00A86B)
+                                          : AppTheme.getBorderColor(),
+                                      width: _selectedFilter == null ? 2 : 1,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  // All incident types
+                                  ...IncidentTypesConfig.allTypes.map((config) {
+                                    final isSelected =
+                                        _selectedFilter == config.key;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 6),
+                                      child: FilterChip(
+                                        label: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              config.icon,
+                                              size: 14,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : config.color,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              config.displayName,
+                                              style: TextStyle(
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : AppTheme.getPrimaryTextColor(),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        selected: isSelected,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            _selectedFilter = selected
+                                                ? config.key
+                                                : null;
+                                          });
+                                        },
+                                        selectedColor: config.color,
+                                        backgroundColor:
+                                            AppTheme.getCardBackgroundColor(),
+                                        side: BorderSide(
+                                          color: isSelected
+                                              ? config.color
+                                              : AppTheme.getBorderColor(),
+                                          width: isSelected ? 2 : 1,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 6,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ],
-                                selectedFilter: _selectedFilter ?? 'All',
-                                onFilterChanged: (selected) {
-                                  setState(() {
-                                    _selectedFilter = selected == 'All'
-                                        ? null
-                                        : selected;
-                                  });
-                                },
-                                showIcon: false,
-                                selectedColor: const Color(0xFF00A86B),
                               ),
                             ),
                           ),
