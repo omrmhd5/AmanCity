@@ -6,7 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../widgets/map/map_filter_section.dart';
-
+import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
 import '../widgets/map/map_loading_indicator.dart';
 import '../widgets/map/nearby_alerts_sheet.dart';
@@ -44,6 +44,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _isLoadingPOIs = false;
   DateTime? _poisCachedTime;
   static const int _poiCacheDurationMinutes = 5;
+
+  // POI settings
+  double _radiusKm = 5.0;
 
   // Cairo initial position
   static const LatLng _cairoCenter = LatLng(30.0444, 31.2357);
@@ -154,12 +157,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     try {
       print(
-        '📍 Loading POIs around lat=${initialLocation.latitude}, lng=${initialLocation.longitude}',
+        '📍 Loading POIs around lat=${initialLocation.latitude}, lng=${initialLocation.longitude}, radius=${_radiusKm}km',
       );
 
       final pois = await PlacesApiService.getNearbyPlaces(
         initialLocation,
         type: _poiFilter,
+        radiusKm: _radiusKm,
       );
 
       setState(() {
@@ -470,10 +474,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             child: Column(
               children: [
                 MapFilterSection(
+                  currentRadius: _radiusKm,
                   onFilterChanged: (filter) {
                     setState(() => selectedFilter = filter);
                     _applyFilter(filter);
                   },
+                  onSettingsChanged: _handleSettingsChanged,
                 ),
               ],
             ),
@@ -620,6 +626,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       // Default: show all types
       _changePOIFilter('all');
     }
+  }
+
+  /// Handle settings changes from filter sheet
+  void _handleSettingsChanged(FilterSettings settings) {
+    setState(() {
+      _radiusKm = settings.radiusKm;
+    });
+    // Invalidate cache and reload with new settings
+    _poisCachedTime = null;
+    _loadPOIs();
   }
 
   Widget _buildNearbyAlertsSection() {

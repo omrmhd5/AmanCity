@@ -3,11 +3,19 @@ import '../../utils/app_colors.dart';
 import '../shared/custom_search_bar.dart';
 import '../shared/custom_filter_chips.dart';
 import 'map_filter_button.dart';
+import 'filter_options_sheet.dart';
 
 class MapFilterSection extends StatefulWidget {
   final ValueChanged<String?>? onFilterChanged;
+  final Function(FilterSettings settings)? onSettingsChanged;
+  final double currentRadius;
 
-  const MapFilterSection({Key? key, this.onFilterChanged}) : super(key: key);
+  const MapFilterSection({
+    Key? key,
+    this.onFilterChanged,
+    this.onSettingsChanged,
+    this.currentRadius = 5.0,
+  }) : super(key: key);
 
   @override
   State<MapFilterSection> createState() => _MapFilterSectionState();
@@ -45,7 +53,10 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                 ),
               ),
               const SizedBox(width: 12),
-              MapFilterButton(),
+              MapFilterButton(
+                currentRadius: widget.currentRadius,
+                onSettingsChanged: widget.onSettingsChanged,
+              ),
             ],
           ),
           const SizedBox(height: 12),
