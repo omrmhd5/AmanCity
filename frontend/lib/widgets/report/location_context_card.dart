@@ -6,24 +6,27 @@ class LocationContextCard extends StatelessWidget {
   final double latitude;
   final double longitude;
   final bool isLoading;
+  final String? addressText;
+  final String? city;
 
   const LocationContextCard({
     Key? key,
     required this.latitude,
     required this.longitude,
     this.isLoading = false,
+    this.addressText,
+    this.city,
   }) : super(key: key);
 
   String _getLocationName() {
-    // Simple mock location name based on coordinates
-    // In a real app, this would use reverse geocoding
-    if (latitude > 29.9 &&
-        latitude < 30.1 &&
-        longitude > 31.1 &&
-        longitude < 31.4) {
-      return 'Near Street 9, Maadi, Cairo';
+    // Display geocoded address if available, otherwise show city or fallback
+    if (addressText != null && addressText!.isNotEmpty) {
+      return addressText!;
     }
-    return 'Current Location, Cairo';
+    if (city != null && city!.isNotEmpty) {
+      return city!;
+    }
+    return 'Current Location';
   }
 
   @override
@@ -84,7 +87,7 @@ class LocationContextCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: AppTheme.getPrimaryTextColor(),
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),

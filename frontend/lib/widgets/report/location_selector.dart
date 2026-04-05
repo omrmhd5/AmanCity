@@ -23,6 +23,8 @@ class LocationSelector extends StatefulWidget {
 class _LocationSelectorState extends State<LocationSelector> {
   late bool _useCurrentLocation;
   LatLng? _selectedLocation;
+  String? _selectedAddressText;
+  String? _selectedCity;
 
   @override
   void initState() {
@@ -55,6 +57,12 @@ class _LocationSelectorState extends State<LocationSelector> {
               _selectedLocation = selectedLocation;
             });
             widget.onLocationSelected(selectedLocation);
+          },
+          onAddressUpdated: (address, city) {
+            setState(() {
+              _selectedAddressText = address;
+              _selectedCity = city;
+            });
           },
         ),
       ),
@@ -221,14 +229,31 @@ class _LocationSelectorState extends State<LocationSelector> {
                               color: AppTheme.getSecondaryTextColor(),
                             ),
                           ),
-                          if (_selectedLocation != null)
-                            Text(
-                              '${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.getPrimaryTextColor(),
-                              ),
+                          if (_selectedAddressText != null)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 4),
+                                Text(
+                                  _selectedAddressText!,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppTheme.getPrimaryTextColor(),
+                                  ),
+                                ),
+                                if (_selectedCity != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'City: ${_selectedCity!}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppTheme.getSecondaryTextColor(),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                         ],
                       ),

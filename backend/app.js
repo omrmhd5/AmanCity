@@ -16,6 +16,7 @@ app.use(express.static("uploads")); // Serve uploaded files
 app.use("/api/incidents", require("./routes/incidents"));
 app.use("/api/predict", require("./routes/predict"));
 app.use("/api/places", require("./routes/places"));
+app.use("/api/geocode", require("./routes/geocode"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -23,12 +24,9 @@ app.use((err, req, res, next) => {
 
   // Check for multer file size error
   if (err.code === "LIMIT_FILE_SIZE") {
-    return res
-      .status(413)
-      .json({
-        message:
-          "The file is too large. Please use a smaller file (max 100MB).",
-      });
+    return res.status(413).json({
+      message: "The file is too large. Please use a smaller file (max 100MB).",
+    });
   }
 
   // Check for multer file type error from uploadMiddleware

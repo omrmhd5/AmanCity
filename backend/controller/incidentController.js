@@ -1,5 +1,6 @@
 const IncidentService = require("../service/incidentService");
 const FileService = require("../service/fileService");
+const GeocodingService = require("../service/geocodingService");
 const IncidentType = require("../model/IncidentType");
 
 class IncidentController {
@@ -82,6 +83,14 @@ class IncidentController {
           });
         }
       }
+
+      // Reverse geocode the location
+      const { text, city } = await GeocodingService.reverseGeocode(
+        parsedLocation.latitude,
+        parsedLocation.longitude,
+      );
+      parsedLocation.text = text;
+      parsedLocation.city = city;
 
       const incidentData = {
         title,

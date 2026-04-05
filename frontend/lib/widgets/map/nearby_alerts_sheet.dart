@@ -6,7 +6,7 @@ import '../../models/map_incident.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_search_bar.dart';
 import 'nearby_alert_card.dart';
-import '../../screens/incident_detail_screen.dart';
+import '../../screens/incident_detail_sheet.dart';
 
 class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
@@ -101,6 +101,8 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
       title: alert['title'] as String? ?? '',
       description: alert['description'] as String,
       timestamp: DateTime.now(),
+      addressText: alert['location']?['text'] as String?,
+      city: alert['location']?['city'] as String?,
     );
   }
 

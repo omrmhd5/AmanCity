@@ -17,6 +17,8 @@ class MapIncident {
   final String description;
   final DateTime timestamp;
   final List<MediaItem> media;
+  final String? addressText;
+  final String? city;
 
   MapIncident({
     required this.id,
@@ -26,6 +28,8 @@ class MapIncident {
     required this.description,
     required this.timestamp,
     this.media = const [],
+    this.addressText,
+    this.city,
   });
 
   // Get color based on incident type
