@@ -18,7 +18,7 @@ import '../models/danger_zone.dart';
 import '../services/backend_api/incident_api_service.dart';
 import '../services/backend_api/places_api_service.dart';
 import '../services/location_service.dart';
-import 'incident_detail_screen.dart';
+import 'incident_detail_sheet.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);

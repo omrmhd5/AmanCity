@@ -13,9 +13,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 /// Validate API key is configured
 if (!GOOGLE_API_KEY) {
-  console.warn(
-    "⚠️ WARNING: GOOGLE_API_KEY not found in environment variables. Places API will not work.",
-  );
+  // API key missing - will be handled at request time
 }
 
 /// GET /api/places/nearby
@@ -79,7 +77,6 @@ router.get("/nearby", async (req, res) => {
         );
         allPlaces.push(...places);
       } catch (error) {
-        console.warn(`⚠️ Error fetching ${searchType} places:`, error.message);
         // Continue with other types even if one fails
       }
     }
@@ -103,7 +100,6 @@ router.get("/nearby", async (req, res) => {
       places: allPlaces,
     });
   } catch (error) {
-    console.error("❌ Places API error:", error.message);
     res.status(500).json({
       message: "Unable to find nearby locations. Please try again later.",
     });
@@ -142,11 +138,6 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
     },
   };
 
-  console.log(
-    `📍 Searching for ${type} places around (${latitude}, ${longitude}) - radius: ${radius}m`,
-  );
-  console.log("Request body:", JSON.stringify(requestBody, null, 2));
-
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -160,16 +151,10 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
 
   if (!response.ok) {
     const errorData = await response.json();
-    console.error(
-      `❌ Google Places API error response:`,
-      JSON.stringify(errorData, null, 2),
-    );
     throw new Error("Unable to retrieve nearby locations. Please try again.");
   }
 
   const data = await response.json();
-
-  console.log(`✅ Got ${data.places?.length || 0} places`);
 
   // Map Google Places API response to our format
   return (data.places || []).map((place) => ({

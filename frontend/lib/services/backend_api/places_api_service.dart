@@ -23,10 +23,6 @@ class PlacesApiService {
       // Convert radius to meters
       final radiusMeters = (radiusKm * 1000).toInt();
 
-      print(
-        '📍 Fetching nearby places: lat=${location.latitude}, lng=${location.longitude}, type=$type, radius=${radiusKm}km',
-      );
-
       final url = Uri.parse(
         '$_baseUrl/nearby?lat=${location.latitude}&lng=${location.longitude}&type=$type&radius=$radiusMeters',
       );
@@ -43,8 +39,6 @@ class PlacesApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final places = data['places'] as List<dynamic>? ?? [];
-
-        print('✅ Fetched ${places.length} places');
 
         // Convert to EmergencyPOI objects
         return places.map((place) {
@@ -72,10 +66,8 @@ class PlacesApiService {
         }
       }
     } on SocketException catch (e) {
-      print('❌ Network error: $e');
       rethrow;
     } catch (e) {
-      print('❌ Error fetching places: $e');
       rethrow;
     }
   }

@@ -5,14 +5,16 @@ import '../shared/custom_text.dart';
 
 class IncidentDetailHeader extends StatelessWidget {
   final String incidentId;
-  final String location;
+  final String? addressText;
+  final String? city;
   final VoidCallback onBackPressed;
   final VoidCallback onSharePressed;
 
   const IncidentDetailHeader({
     Key? key,
     required this.incidentId,
-    required this.location,
+    this.addressText,
+    this.city,
     required this.onBackPressed,
     required this.onSharePressed,
   }) : super(key: key);
@@ -55,12 +57,22 @@ class IncidentDetailHeader extends StatelessWidget {
                     color: AppTheme.getPrimaryTextColor(),
                   ),
                   const SizedBox(height: 2),
-                  CustomText(
-                    text: location.toUpperCase(),
-                    size: 10,
-                    weight: FontWeight.w400,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
+                  if (addressText != null)
+                    Flexible(
+                      child: CustomText(
+                        text: addressText!.toUpperCase(),
+                        size: 10,
+                        weight: FontWeight.w400,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    )
+                  else if (city != null)
+                    CustomText(
+                      text: city!.toUpperCase(),
+                      size: 10,
+                      weight: FontWeight.w400,
+                      color: AppTheme.getSecondaryTextColor(),
+                    ),
                 ],
               ),
               GestureDetector(

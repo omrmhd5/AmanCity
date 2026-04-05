@@ -217,6 +217,8 @@ class IncidentApiService {
       description: description,
       timestamp: timestamp,
       media: mediaList,
+      addressText: data['location']?['text'] as String?,
+      city: data['location']?['city'] as String?,
     );
   }
 }

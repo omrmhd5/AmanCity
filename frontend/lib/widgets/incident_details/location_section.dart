@@ -68,7 +68,7 @@ class LocationSection extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Coordinates badge
+                // Location info badge
                 Positioned(
                   bottom: 12,
                   right: 12,
@@ -96,7 +96,7 @@ class LocationSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         CustomText(
-                          text: 'Coordinates',
+                          text: incident.city ?? 'Location',
                           size: 9,
                           weight: FontWeight.w500,
                           color: AppTheme.getSecondaryTextColor(),
@@ -104,10 +104,18 @@ class LocationSection extends StatelessWidget {
                         const SizedBox(height: 2),
                         CustomText(
                           text:
-                              '${incident.position.latitude.toStringAsFixed(4)}°, ${incident.position.longitude.toStringAsFixed(4)}°',
-                          size: 11,
+                              incident.addressText?.substring(
+                                0,
+                                incident.addressText!.length > 20
+                                    ? 20
+                                    : incident.addressText!.length,
+                              ) ??
+                              'Unknown',
+                          size: 10,
                           weight: FontWeight.w700,
                           color: AppTheme.getPrimaryTextColor(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -148,20 +156,31 @@ class LocationSection extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CustomText(
-                            text:
-                                '${incident.position.latitude.toStringAsFixed(4)}, ${incident.position.longitude.toStringAsFixed(4)}',
-                            size: 13,
-                            weight: FontWeight.w600,
-                            color: AppTheme.getPrimaryTextColor(),
-                          ),
+                          if (incident.addressText != null)
+                            CustomText(
+                              text: incident.addressText!,
+                              size: 13,
+                              weight: FontWeight.w600,
+                              color: AppTheme.getPrimaryTextColor(),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          else
+                            CustomText(
+                              text:
+                                  '${incident.position.latitude.toStringAsFixed(4)}, ${incident.position.longitude.toStringAsFixed(4)}',
+                              size: 13,
+                              weight: FontWeight.w600,
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
                           const SizedBox(height: 4),
-                          CustomText(
-                            text: incident.type.toUpperCase(),
-                            size: 11,
-                            weight: FontWeight.w400,
-                            color: AppTheme.getSecondaryTextColor(),
-                          ),
+                          if (incident.city != null)
+                            CustomText(
+                              text: incident.city!,
+                              size: 11,
+                              weight: FontWeight.w400,
+                              color: AppTheme.getSecondaryTextColor(),
+                            ),
                         ],
                       ),
                     ),

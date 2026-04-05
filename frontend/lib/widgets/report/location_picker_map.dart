@@ -3,15 +3,18 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
+import '../../services/backend_api/geocoding_api_service.dart';
 
 class LocationPickerMap extends StatefulWidget {
   final LatLng? initialLocation;
   final Function(LatLng) onLocationSelected;
+  final Function(String?, String?)? onAddressUpdated;
 
   const LocationPickerMap({
     Key? key,
     this.initialLocation,
     required this.onLocationSelected,
+    this.onAddressUpdated,
   }) : super(key: key);
 
   @override
@@ -24,6 +27,8 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   Marker? _selectedMarker;
   final Set<Marker> _markers = {};
   bool _isLoading = true;
+  String? _geoLocationText;
+  String? _geoLocationCity;
 
   static const LatLng _cairoCenter = LatLng(30.0444, 31.2357);
 
@@ -32,6 +37,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     super.initState();
     _selectedLocation = widget.initialLocation ?? _cairoCenter;
     _updateMarker();
+    _updateLocationPreview();
     _getUserLocationIfAvailable();
   }
 
@@ -52,6 +58,8 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         _updateMarker();
         _isLoading = false;
       });
+
+      await _updateLocationPreview();
 
       // Animate to user location
       _mapController.animateCamera(
@@ -75,9 +83,29 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
             setState(() {
               _selectedLocation = newPosition;
             });
+            _updateLocationPreview();
           },
         ),
       );
+    }
+  }
+
+  /// Fetch geocoded address for current location
+  Future<void> _updateLocationPreview() async {
+    if (_selectedLocation == null) return;
+
+    final result = await GeocodingService.reverseGeocode(
+      _selectedLocation!.latitude,
+      _selectedLocation!.longitude,
+    );
+
+    if (mounted) {
+      setState(() {
+        _geoLocationText = result['text'];
+        _geoLocationCity = result['city'];
+      });
+      // Notify parent about address update
+      widget.onAddressUpdated?.call(_geoLocationText, _geoLocationCity);
     }
   }
 
@@ -86,6 +114,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       _selectedLocation = tappedPosition;
       _updateMarker();
     });
+    _updateLocationPreview();
   }
 
   void _confirmLocation() {
@@ -173,14 +202,40 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.getPrimaryTextColor(),
+                    if (_geoLocationText != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _geoLocationText!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (_geoLocationCity != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'City: ${_geoLocationCity!}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                            ),
+                          ],
+                        ],
+                      )
+                    else
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.secondary,
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 12),
                     Text(
                       'Tap on the map to choose another location or drag the marker',

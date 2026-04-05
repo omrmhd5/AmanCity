@@ -60,8 +60,8 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
           // Header
           IncidentDetailHeader(
             incidentId: widget.incident.id,
-            location:
-                '${widget.incident.position.latitude.toStringAsFixed(4)}, ${widget.incident.position.longitude.toStringAsFixed(4)}',
+            addressText: widget.incident.addressText,
+            city: widget.incident.city,
             onBackPressed: () => Navigator.pop(context),
             onSharePressed: () {
               ScaffoldMessenger.of(context).showSnackBar(

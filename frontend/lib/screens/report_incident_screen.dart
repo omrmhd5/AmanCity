@@ -10,6 +10,7 @@ import '../models/report_incident_model.dart' hide LatLng;
 import '../models/prediction_result_model.dart';
 import '../services/backend_api/prediction_api_service.dart';
 import '../services/backend_api/incident_api_service.dart';
+import '../services/backend_api/geocoding_api_service.dart';
 import '../widgets/report/location_context_card.dart';
 import '../widgets/report/evidence_type_selector.dart';
 import '../widgets/report/prediction_result_dialog.dart';
@@ -32,6 +33,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   bool _isSubmitting = false;
   File? _selectedFile;
   bool _isPickingFile = false;
+  String? _geoLocationText;
+  String? _geoLocationCity;
 
   @override
   void initState() {
@@ -68,6 +71,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
             });
           }
           print('📍 Using cached location (${age.inSeconds}s old)');
+          // Geocode the initial location
+          await _updateLocationPreview(_currentLocation!);
           return;
         }
       }
@@ -91,6 +96,9 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
         });
       }
 
+      // Geocode the location
+      await _updateLocationPreview(_currentLocation!);
+
       // Cache the location
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -113,6 +121,22 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           _selectedLocation = _currentLocation;
         });
       }
+      // Geocode the default location
+      await _updateLocationPreview(_currentLocation!);
+    }
+  }
+
+  /// Update location preview with geocoded address and city
+  Future<void> _updateLocationPreview(LatLng location) async {
+    final result = await GeocodingService.reverseGeocode(
+      location.latitude,
+      location.longitude,
+    );
+    if (mounted) {
+      setState(() {
+        _geoLocationText = result['text'];
+        _geoLocationCity = result['city'];
+      });
     }
   }
 
@@ -337,6 +361,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                           latitude: _currentLocation!.latitude,
                           longitude: _currentLocation!.longitude,
                           isLoading: _isLoadingLocation,
+                          addressText: _geoLocationText,
+                          city: _geoLocationCity,
                         ),
                       )
                     else
@@ -350,6 +376,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                       currentLocation: _currentLocation,
                       onLocationSelected: (location) {
                         setState(() => _selectedLocation = location);
+                        _updateLocationPreview(location);
                       },
                     ),
                     const SizedBox(height: 16),
