@@ -12,12 +12,14 @@ class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
   final Function(ScrollController)? onScrollControllerReady;
   final Function(VoidCallback)? onSheetReady;
+  final Future<void> Function(MapIncident)? onIncidentTapped;
 
   const NearbyAlertsSheet({
     Key? key,
     required this.alerts,
     this.onScrollControllerReady,
     this.onSheetReady,
+    this.onIncidentTapped,
   }) : super(key: key);
 
   @override
@@ -116,6 +118,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
         return IncidentDetailScreen(
           incident: incident,
           timeAgo: alert['timeAgo'] as String,
+          onNavigate: widget.onIncidentTapped,
         );
       },
     );

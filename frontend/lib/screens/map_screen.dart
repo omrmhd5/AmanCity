@@ -83,6 +83,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   String? _routeDistance;
   String? _routeDuration;
   Color? _routeColor;
+  String? _routeIncidentType;
+  String? _routeLocationText;
+  bool _isNavigatingToIncident = false;
   List<EmergencyPOI> _searchResults = [];
   bool _showSearchResults = false;
 
@@ -587,7 +590,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _isLoadingRoute = true;
       _routeDestination = poi.position;
       _routeDestinationName = poi.name;
+      _routeIncidentType = poi.typeLabel;
+      _routeLocationText = poi.address;
       _routeColor = routeColor;
+      _isNavigatingToIncident = false;
       _showSearchResults = false;
     });
 
@@ -595,6 +601,61 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       final routeData = await DirectionsService.getRoute(
         _userLocation!,
         poi.position,
+      );
+
+      final points = routeData['points'] as List<LatLng>;
+
+      setState(() {
+        _routePolylines = {
+          Polyline(
+            polylineId: const PolylineId('route'),
+            color: routeColor,
+            width: 6,
+            points: points,
+          ),
+        };
+        _routeDistance = routeData['distance'];
+        _routeDuration = routeData['duration'];
+        _isLoadingRoute = false;
+      });
+
+      // Animate camera to show full route
+      _animateCameraToRoute(points);
+
+      _updateMapElements();
+    } catch (e) {
+      setState(() => _isLoadingRoute = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to calculate route: $e')),
+        );
+      }
+    }
+  }
+
+  /// Draw route to incident location
+  Future<void> _drawRouteToIncident(MapIncident incident) async {
+    if (_userLocation == null) return;
+
+    // Get incident type color from config
+    final incidentTypeConfig = IncidentTypesConfig.getByKey(incident.type);
+    final routeColor = incidentTypeConfig.color;
+
+    setState(() {
+      _isLoadingRoute = true;
+      _routeDestination = incident.position;
+      _routeDestinationName = incident.title;
+      _routeIncidentType = incident.type;
+      _routeLocationText = incident.addressText ?? incident.city;
+      _routeColor = routeColor;
+      _isNavigatingToIncident = true;
+      _showSearchResults = false;
+    });
+
+    try {
+      final routeData = await DirectionsService.getRoute(
+        _userLocation!,
+        incident.position,
       );
 
       final points = routeData['points'] as List<LatLng>;
@@ -660,6 +721,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _routeDistance = null;
       _routeDuration = null;
       _routeColor = null;
+      _routeIncidentType = null;
+      _routeLocationText = null;
+      _isNavigatingToIncident = false;
       _searchResults = [];
       _showSearchResults = false;
     });
@@ -700,6 +764,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       builder: (context) => IncidentDetailScreen(
         incident: incident,
         timeAgo: _getTimeAgo(incident.timestamp),
+        onNavigate: (selectedIncident) async {
+          await _drawRouteToIncident(selectedIncident);
+        },
       ),
     );
   }
@@ -708,7 +775,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => POIDetailSheet(poi: poi),
+      builder: (context) => POIDetailSheet(
+        poi: poi,
+        onNavigate: (selectedPoi) async {
+          await _drawRouteTo(selectedPoi);
+        },
+      ),
     );
   }
 
@@ -821,14 +893,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
         // Search results dropdown (overlay)
         if (_showSearchResults && _searchResults.isNotEmpty)
+          GestureDetector(
+            onTap: () {
+              setState(() => _showSearchResults = false);
+            },
+            child: Container(color: Colors.transparent),
+          ),
+
+        if (_showSearchResults && _searchResults.isNotEmpty)
           Positioned(
-            top: 100,
+            top: 56,
             left: 16,
             right: 16,
             child: SearchResultsDropdown(
               results: _searchResults,
               onResultTap: (place) {
                 _drawRouteTo(place);
+                setState(() => _showSearchResults = false);
               },
             ),
           ),
@@ -841,6 +922,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 MapFilterSection(
                   currentRadius: _radiusKm,
                   selectedIncidentTypes: _selectedIncidentTypes,
+                  hideFilters: _showSearchResults,
                   onFilterChanged: (filter) {
                     setState(() => selectedFilter = filter);
                     _applyFilter(filter);
@@ -908,6 +990,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               duration: _routeDuration,
               isLoading: _isLoadingRoute,
               routeColor: _routeColor,
+              incidentType: _routeIncidentType,
+              locationText: _routeLocationText,
+              isIncident: _isNavigatingToIncident,
               onNavigate: _openInGoogleMaps,
               onClose: _clearRoute,
             ),
@@ -1070,6 +1155,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       alerts: nearbyAlerts,
       onScrollControllerReady: (controller) {
         // Scroll controller callback
+      },
+      onIncidentTapped: (incident) async {
+        await _drawRouteToIncident(incident);
       },
     );
   }

@@ -10,6 +10,9 @@ class RouteInfoCard extends StatelessWidget {
   final Color? routeColor;
   final VoidCallback onNavigate;
   final VoidCallback onClose;
+  final String? incidentType;
+  final String? locationText;
+  final bool isIncident;
 
   const RouteInfoCard({
     Key? key,
@@ -20,6 +23,9 @@ class RouteInfoCard extends StatelessWidget {
     this.routeColor,
     required this.onNavigate,
     required this.onClose,
+    this.incidentType,
+    this.locationText,
+    this.isIncident = false,
   }) : super(key: key);
 
   @override
@@ -43,7 +49,7 @@ class RouteInfoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Route destination name
+            // Route destination name or incident title
             Row(
               children: [
                 Icon(
@@ -53,15 +59,61 @@ class RouteInfoCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    destinationName ?? 'Destination',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.getPrimaryTextColor(),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        destinationName ?? 'Destination',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.getPrimaryTextColor(),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (incidentType != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (routeColor ?? AppColors.secondary)
+                                .withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: (routeColor ?? AppColors.secondary)
+                                  .withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            isIncident
+                                ? '$incidentType Incident'
+                                : incidentType!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: routeColor ?? AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (locationText != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          locationText!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.getSecondaryTextColor(),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 IconButton(

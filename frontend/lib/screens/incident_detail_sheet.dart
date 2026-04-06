@@ -10,11 +10,13 @@ import '../widgets/incident_details/location_section.dart';
 class IncidentDetailScreen extends StatefulWidget {
   final MapIncident incident;
   final String timeAgo;
+  final Future<void> Function(MapIncident)? onNavigate;
 
   const IncidentDetailScreen({
     Key? key,
     required this.incident,
     required this.timeAgo,
+    this.onNavigate,
   }) : super(key: key);
 
   @override
@@ -102,15 +104,23 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: GestureDetector(
               onTap: () async {
-                final lat = widget.incident.position.latitude;
-                final lng = widget.incident.position.longitude;
-                final String googleMapsUrl =
-                    'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-                if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-                  await launchUrl(
-                    Uri.parse(googleMapsUrl),
-                    mode: LaunchMode.externalApplication,
-                  );
+                if (widget.onNavigate != null) {
+                  await widget.onNavigate!(widget.incident);
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                } else {
+                  // Fallback: open Google Maps directly
+                  final lat = widget.incident.position.latitude;
+                  final lng = widget.incident.position.longitude;
+                  final String googleMapsUrl =
+                      'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+                  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+                    await launchUrl(
+                      Uri.parse(googleMapsUrl),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
                 }
               },
               child: Container(

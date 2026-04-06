@@ -7,8 +7,10 @@ import '../shared/custom_text.dart';
 
 class POIDetailSheet extends StatelessWidget {
   final EmergencyPOI poi;
+  final Future<void> Function(EmergencyPOI)? onNavigate;
 
-  const POIDetailSheet({Key? key, required this.poi}) : super(key: key);
+  const POIDetailSheet({Key? key, required this.poi, this.onNavigate})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -238,15 +240,23 @@ class POIDetailSheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: GestureDetector(
               onTap: () async {
-                final lat = poi.position.latitude;
-                final lng = poi.position.longitude;
-                final String googleMapsUrl =
-                    'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-                if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-                  await launchUrl(
-                    Uri.parse(googleMapsUrl),
-                    mode: LaunchMode.externalApplication,
-                  );
+                if (onNavigate != null) {
+                  await onNavigate!(poi);
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                } else {
+                  // Fallback: open Google Maps directly
+                  final lat = poi.position.latitude;
+                  final lng = poi.position.longitude;
+                  final String googleMapsUrl =
+                      'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+                  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+                    await launchUrl(
+                      Uri.parse(googleMapsUrl),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
                 }
               },
               child: Container(

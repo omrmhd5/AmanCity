@@ -12,6 +12,7 @@ class MapFilterSection extends StatefulWidget {
   final ValueChanged<String>? onSearch;
   final double currentRadius;
   final Set<String> selectedIncidentTypes;
+  final bool hideFilters;
 
   const MapFilterSection({
     Key? key,
@@ -20,6 +21,7 @@ class MapFilterSection extends StatefulWidget {
     this.onSearch,
     this.currentRadius = 5.0,
     this.selectedIncidentTypes = const {},
+    this.hideFilters = false,
   }) : super(key: key);
 
   @override
@@ -87,70 +89,71 @@ class _MapFilterSectionState extends State<MapFilterSection> {
             ],
           ),
           const SizedBox(height: 8),
-          // Filter chips - horizontal scrolling
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: filters.map((filterItem) {
-                final label = filterItem['label'] as String;
-                final icon = filterItem['icon'] as IconData;
-                final color = filterItem['color'] as Color;
-                final isSelected = selectedFilters.contains(label);
+          // Filter chips - horizontal scrolling (hidden when dropdown is open)
+          if (!widget.hideFilters)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: filters.map((filterItem) {
+                  final label = filterItem['label'] as String;
+                  final icon = filterItem['icon'] as IconData;
+                  final color = filterItem['color'] as Color;
+                  final isSelected = selectedFilters.contains(label);
 
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          icon,
-                          size: 16,
-                          color: isSelected ? Colors.white : color,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : AppTheme.getPrimaryTextColor(),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            icon,
+                            size: 16,
+                            color: isSelected ? Colors.white : color,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            label,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppTheme.getPrimaryTextColor(),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            selectedFilters.add(label);
+                          } else {
+                            selectedFilters.remove(label);
+                          }
+                        });
+                        // Notify parent about the selected filter
+                        widget.onFilterChanged?.call(label);
+                      },
+                      selectedColor: color,
+                      backgroundColor: AppTheme.getCardBackgroundColor(),
+                      side: BorderSide(
+                        color: isSelected ? color : AppTheme.getBorderColor(),
+                        width: isSelected ? 2 : 1,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          selectedFilters.add(label);
-                        } else {
-                          selectedFilters.remove(label);
-                        }
-                      });
-                      // Notify parent about the selected filter
-                      widget.onFilterChanged?.call(label);
-                    },
-                    selectedColor: color,
-                    backgroundColor: AppTheme.getCardBackgroundColor(),
-                    side: BorderSide(
-                      color: isSelected ? color : AppTheme.getBorderColor(),
-                      width: isSelected ? 2 : 1,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
-          ),
         ],
       ),
     );
