@@ -4,19 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../utils/incident_types_config.dart';
+import '../utils/polyline_decoder.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
 import '../widgets/map/map_loading_indicator.dart';
 import '../widgets/map/nearby_alerts_sheet.dart';
+import '../widgets/map/route_info_card.dart';
+import '../widgets/map/search_results_dropdown.dart';
 import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
 import '../services/backend_api/incident_api_service.dart';
 import '../services/backend_api/places_api_service.dart';
+import '../services/backend_api/directions_service.dart';
 import '../services/location_service.dart';
 import 'incident_detail_sheet.dart';
 
@@ -69,6 +74,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   DateTime? _locationCachedTime;
   static const int _locationCacheDurationMinutes =
       60; // Cache location for 60 minutes
+
+  // Route/Navigation state
+  Set<Polyline> _routePolylines = {};
+  LatLng? _routeDestination;
+  String? _routeDestinationName;
+  bool _isLoadingRoute = false;
+  String? _routeDistance;
+  String? _routeDuration;
+  Color? _routeColor;
+  List<EmergencyPOI> _searchResults = [];
+  bool _showSearchResults = false;
 
   @override
   void initState() {
@@ -519,6 +535,163 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     return BitmapDescriptor.hueRed;
   }
 
+  /// Search for nearby places matching the search query
+  Future<void> _searchPlaces(String query) async {
+    if (query.isEmpty || _userLocation == null) {
+      setState(() => _searchResults = []);
+      return;
+    }
+
+    try {
+      // Use the nearby places API with 'all' type to find any matching places
+      final places = await PlacesApiService.getNearbyPlaces(
+        _userLocation!,
+        type: 'all',
+        radiusKm: 10.0,
+      );
+
+      // Filter results by name/address matching
+      final filtered = places
+          .where(
+            (p) =>
+                p.name.toLowerCase().contains(query.toLowerCase()) ||
+                p.address.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
+
+      setState(() => _searchResults = filtered);
+    } catch (e) {
+      print('❌ Error searching places: $e');
+    }
+  }
+
+  /// Draw route to selected destination
+  Future<void> _drawRouteTo(EmergencyPOI poi) async {
+    if (_userLocation == null) return;
+
+    // Determine route color based on POI type
+    Color routeColor = const Color(0xFFEF4444); // Default red (hospital color)
+    if (poi.type == POIType.hospital) {
+      routeColor = const Color(0xFFEF4444); // Hospital red
+    } else if (poi.type == POIType.policeStation) {
+      routeColor = const Color(0xFF3B82F6); // Police blue
+    } else if (poi.type == POIType.fireStation) {
+      routeColor = const Color(0xFFF59E0B); // Fire orange
+    } else if (poi.type == POIType.safeCafe) {
+      routeColor = const Color(0xFF10B981); // Safe café green
+    } else if (poi.type == POIType.safeZone) {
+      routeColor = const Color(0xFF00B3A4); // Safe zone teal
+    }
+
+    setState(() {
+      _isLoadingRoute = true;
+      _routeDestination = poi.position;
+      _routeDestinationName = poi.name;
+      _routeColor = routeColor;
+      _showSearchResults = false;
+    });
+
+    try {
+      final routeData = await DirectionsService.getRoute(
+        _userLocation!,
+        poi.position,
+      );
+
+      final points = routeData['points'] as List<LatLng>;
+
+      setState(() {
+        _routePolylines = {
+          Polyline(
+            polylineId: const PolylineId('route'),
+            color: routeColor,
+            width: 6,
+            points: points,
+          ),
+        };
+        _routeDistance = routeData['distance'];
+        _routeDuration = routeData['duration'];
+        _isLoadingRoute = false;
+      });
+
+      // Animate camera to show full route
+      _animateCameraToRoute(points);
+
+      _updateMapElements();
+    } catch (e) {
+      setState(() => _isLoadingRoute = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to calculate route: $e')),
+        );
+      }
+    }
+  }
+
+  /// Animate camera to show full route
+  void _animateCameraToRoute(List<LatLng> points) {
+    if (points.isEmpty) return;
+
+    double minLat = points.first.latitude;
+    double maxLat = points.first.latitude;
+    double minLng = points.first.longitude;
+    double maxLng = points.first.longitude;
+
+    for (var point in points) {
+      minLat = minLat > point.latitude ? point.latitude : minLat;
+      maxLat = maxLat < point.latitude ? point.latitude : maxLat;
+      minLng = minLng > point.longitude ? point.longitude : minLng;
+      maxLng = maxLng < point.longitude ? point.longitude : maxLng;
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+  }
+
+  /// Clear the current route
+  void _clearRoute() {
+    setState(() {
+      _routePolylines = {};
+      _routeDestination = null;
+      _routeDestinationName = null;
+      _routeDistance = null;
+      _routeDuration = null;
+      _routeColor = null;
+      _searchResults = [];
+      _showSearchResults = false;
+    });
+    _updateMapElements();
+  }
+
+  /// Open Google Maps for navigation
+  Future<void> _openInGoogleMaps() async {
+    if (_routeDestination == null) return;
+
+    final url =
+        'https://www.google.com/maps/dir/?api=1&destination=${_routeDestination!.latitude},${_routeDestination!.longitude}&travelmode=driving';
+
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Unable to open Google Maps')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
   void _onIncidentTapped(MapIncident incident) {
     showModalBottomSheet(
       context: context,
@@ -619,6 +792,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             },
             markers: _markers,
             circles: _circles,
+            polylines: _routePolylines,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
@@ -645,6 +819,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             ),
           ),
 
+        // Search results dropdown (overlay)
+        if (_showSearchResults && _searchResults.isNotEmpty)
+          Positioned(
+            top: 100,
+            left: 16,
+            right: 16,
+            child: SearchResultsDropdown(
+              results: _searchResults,
+              onResultTap: (place) {
+                _drawRouteTo(place);
+              },
+            ),
+          ),
+
         // Filter section
         SafeArea(
           child: SingleChildScrollView(
@@ -658,6 +846,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     _applyFilter(filter);
                   },
                   onSettingsChanged: _handleSettingsChanged,
+                  onSearch: (query) {
+                    if (query.isEmpty) {
+                      setState(() => _searchResults = []);
+                    } else {
+                      _searchPlaces(query);
+                      setState(() => _showSearchResults = true);
+                    }
+                  },
                 ),
               ],
             ),
@@ -699,6 +895,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             child: const Icon(Icons.my_location, color: Colors.white, size: 24),
           ),
         ),
+
+        // Route info card (if route selected)
+        if (_routeDestination != null)
+          Positioned(
+            bottom: 20,
+            left: 16,
+            right: 16,
+            child: RouteInfoCard(
+              destinationName: _routeDestinationName,
+              distance: _routeDistance,
+              duration: _routeDuration,
+              isLoading: _isLoadingRoute,
+              routeColor: _routeColor,
+              onNavigate: _openInGoogleMaps,
+              onClose: _clearRoute,
+            ),
+          ),
 
         // Nearby alerts section at bottom
         Positioned(
@@ -848,6 +1061,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildNearbyAlertsSection() {
+    // Hide nearby alerts when route is active
+    if (_routeDestination != null) {
+      return const SizedBox.shrink();
+    }
+
     return NearbyAlertsSheet(
       alerts: nearbyAlerts,
       onScrollControllerReady: (controller) {

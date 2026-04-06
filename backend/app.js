@@ -17,6 +17,7 @@ app.use("/api/incidents", require("./routes/incidents"));
 app.use("/api/predict", require("./routes/predict"));
 app.use("/api/places", require("./routes/places"));
 app.use("/api/geocode", require("./routes/geocode"));
+app.use("/api/directions", require("./routes/directions"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
