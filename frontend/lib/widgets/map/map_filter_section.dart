@@ -9,6 +9,7 @@ import 'filter_options_sheet.dart';
 class MapFilterSection extends StatefulWidget {
   final ValueChanged<String?>? onFilterChanged;
   final Function(FilterSettings settings)? onSettingsChanged;
+  final ValueChanged<String>? onSearch;
   final double currentRadius;
   final Set<String> selectedIncidentTypes;
 
@@ -16,6 +17,7 @@ class MapFilterSection extends StatefulWidget {
     Key? key,
     this.onFilterChanged,
     this.onSettingsChanged,
+    this.onSearch,
     this.currentRadius = 5.0,
     this.selectedIncidentTypes = const {},
   }) : super(key: key);
@@ -73,6 +75,7 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                 child: CustomSearchBar(
                   hintText: 'Search location...',
                   controller: searchController,
+                  onChanged: widget.onSearch,
                 ),
               ),
               const SizedBox(width: 12),
