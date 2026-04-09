@@ -204,51 +204,89 @@ class DualModelInference:
         - Otherwise: return only 7Classes output
         """
         try:
-            # Extract frame if video
+            # Extract frames if video (sample multiple frames)
             if media_type == "VIDEO":
-                frame_path = self._extract_frame_from_video(media_path)
+                frame_paths = self._extract_frames_from_video(media_path)
             else:
-                frame_path = media_path
+                frame_paths = [media_path]
             
-            # Always run both models
-            yolo_result = self._run_7classes_detection(frame_path)
-            weapons_result = self._run_weapons_detection(frame_path)
+            best_weapons_result = None
+            best_yolo_result = None
+            highest_weapon_confidence = 0
+            highest_yolo_confidence = 0
             
-            # Clean up temp frame if video
+            # Process each frame: EXECUTION ORDER = 7Classes FIRST, then Weapons
+            for frame_path in frame_paths:
+                yolo_result = self._run_7classes_detection(frame_path)  # RUN FIRST
+                weapons_result = self._run_weapons_detection(frame_path)  # RUN SECOND
+                
+                # Track best 7Classes detection (highest confidence)
+                if yolo_result['confidence'] > highest_yolo_confidence:
+                    best_yolo_result = yolo_result
+                    highest_yolo_confidence = yolo_result['confidence']
+                
+                # Track best weapons detection (highest confidence)
+                if weapons_result and weapons_result['confidence'] > highest_weapon_confidence:
+                    best_weapons_result = weapons_result
+                    highest_weapon_confidence = weapons_result['confidence']
+            
+            # Clean up temp frames if video
             if media_type == "VIDEO":
-                Path(frame_path).unlink(missing_ok=True)
+                for frame_path in frame_paths:
+                    Path(frame_path).unlink(missing_ok=True)
             
-            # Check if primary result is Normal - block it
-            if yolo_result['class_name'] == 'Normal':
+            # Determine response: WEAPONS FIRST (don't block with Normal)
+            if best_weapons_result:
+                # If alternative is "Normal", don't show it - user choice unnecessary
+                if best_yolo_result and best_yolo_result['class_name'] == 'Normal':
+                    return best_weapons_result
+                else:
+                    # Alternative is not Normal - show both for user to choose
+                    return {
+                        "dual_prediction": True,
+                        "primary": best_weapons_result,
+                        "alternative": best_yolo_result,
+                        "decision": "user_choice"
+                    }
+            
+            # Check if primary result is Normal - only block if no weapon detected
+            if best_yolo_result['class_name'] == 'Normal':
                 return {
                     "no_incident": True,
                     "reason": "Image classified as Normal - no incident detected"
                 }
-            
-            # Determine response: if weapon detected, return both
-            if weapons_result:
-                return {
-                    "dual_prediction": True,
-                    "primary": weapons_result,
-                    "alternative": yolo_result,
-                    "decision": "user_choice"
-                }
             else:
                 # No weapon detected, return only 7Classes
-                return yolo_result
+                return best_yolo_result
         
         except Exception as e:
             raise Exception(f"Prediction failed: {str(e)}")
     
-    def _extract_frame_from_video(self, video_path):
-        """Extract first frame from video for inference"""
+    def _extract_frames_from_video(self, video_path, num_frames=5):
+        """Extract multiple frames from video for inference"""
         cap = cv2.VideoCapture(video_path)
-        ret, frame = cap.read()
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        if total_frames == 0:
+            cap.release()
+            raise Exception("Failed to read video frames")
+        
+        # Calculate frame indices to sample (evenly distributed)
+        frame_indices = [int(i * total_frames / num_frames) for i in range(num_frames)]
+        frame_paths = []
+        
+        for idx, frame_num in enumerate(frame_indices):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+            ret, frame = cap.read()
+            
+            if ret:
+                temp_frame_path = video_path.replace(".mp4", f"_frame_{idx}.jpg").replace(".avi", f"_frame_{idx}.jpg")
+                cv2.imwrite(temp_frame_path, frame)
+                frame_paths.append(temp_frame_path)
+        
         cap.release()
         
-        if not ret:
-            raise Exception("Failed to extract frame from video")
+        if not frame_paths:
+            raise Exception("Failed to extract frames from video")
         
-        temp_frame_path = video_path.replace(".mp4", ".jpg").replace(".avi", ".jpg")
-        cv2.imwrite(temp_frame_path, frame)
-        return temp_frame_path
+        return frame_paths
