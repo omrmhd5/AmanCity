@@ -86,7 +86,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   String? _routeIncidentType;
   String? _routeLocationText;
   bool _isNavigatingToIncident = false;
-  List<EmergencyPOI> _searchResults = [];
+  List<Map<String, dynamic>> _searchResults = [];
   bool _showSearchResults = false;
 
   @override
@@ -546,25 +546,105 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
 
     try {
-      // Use the nearby places API with 'all' type to find any matching places
-      final places = await PlacesApiService.getNearbyPlaces(
+      // Use the new general search endpoint to find any places (POIs, streets, etc.)
+      final searchResults = await PlacesApiService.searchPlaces(
+        query,
         _userLocation!,
-        type: 'all',
         radiusKm: 10.0,
       );
 
-      // Filter results by name/address matching
-      final filtered = places
-          .where(
-            (p) =>
-                p.name.toLowerCase().contains(query.toLowerCase()) ||
-                p.address.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
-
-      setState(() => _searchResults = filtered);
+      setState(() => _searchResults = searchResults);
     } catch (e) {
-      print('❌ Error searching places: $e');
+      setState(() => _searchResults = []);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Search failed: $e')));
+      }
+    }
+  }
+
+  /// Draw route to place (either POI or generic place)
+  Future<void> _drawRouteToPlace(Map<String, dynamic> place) async {
+    if (_userLocation == null) return;
+
+    final lat = place['lat'] as double?;
+    final lng = place['lng'] as double?;
+    final name = place['name'] as String? ?? 'Unknown';
+    final address = place['address'] as String? ?? '';
+    final type = place['type'] as String?;
+
+    if (lat == null || lng == null) return;
+
+    final destination = LatLng(lat, lng);
+
+    // Determine route color based on place type
+    Color routeColor;
+    String typeLabel;
+
+    switch (type) {
+      case 'hospital':
+        routeColor = const Color(0xFFEF4444); // Red
+        typeLabel = 'Hospital';
+        break;
+      case 'police':
+        routeColor = const Color(0xFF3B82F6); // Blue
+        typeLabel = 'Police Station';
+        break;
+      case 'fire':
+        routeColor = const Color(0xFFF59E0B); // Orange
+        typeLabel = 'Fire Station';
+        break;
+      default:
+        // Generic place - use secondary color
+        routeColor = AppColors.secondary;
+        typeLabel = 'Location';
+    }
+
+    setState(() {
+      _isLoadingRoute = true;
+      _routeDestination = destination;
+      _routeDestinationName = name;
+      _routeIncidentType = typeLabel;
+      _routeLocationText = address;
+      _routeColor = routeColor;
+      _isNavigatingToIncident = false;
+      _showSearchResults = false;
+    });
+
+    try {
+      final routeData = await DirectionsService.getRoute(
+        _userLocation!,
+        destination,
+      );
+
+      final points = routeData['points'] as List<LatLng>;
+
+      setState(() {
+        _routePolylines = {
+          Polyline(
+            polylineId: const PolylineId('route'),
+            color: routeColor,
+            width: 6,
+            points: points,
+          ),
+        };
+        _routeDistance = routeData['distance'];
+        _routeDuration = routeData['duration'];
+        _isLoadingRoute = false;
+      });
+
+      // Animate camera to show full route
+      _animateCameraToRoute(points);
+
+      _updateMapElements();
+    } catch (e) {
+      setState(() => _isLoadingRoute = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to calculate route: $e')),
+        );
+      }
     }
   }
 
@@ -908,8 +988,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             child: SearchResultsDropdown(
               results: _searchResults,
               onResultTap: (place) {
-                _drawRouteTo(place);
-                setState(() => _showSearchResults = false);
+                _drawRouteToPlace(place);
               },
             ),
           ),
