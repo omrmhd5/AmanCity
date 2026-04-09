@@ -27,7 +27,6 @@ class LocationPickerMap extends StatefulWidget {
 class _LocationPickerMapState extends State<LocationPickerMap> {
   late GoogleMapController _mapController;
   LatLng? _selectedLocation;
-  Marker? _selectedMarker;
   final Set<Marker> _markers = {};
   bool _isLoading = true;
   String? _geoLocationText;
@@ -45,8 +44,12 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     super.initState();
     _selectedLocation = widget.initialLocation ?? _cairoCenter;
     _updateMarker();
+    // Update initial location preview immediately (fast)
     _updateLocationPreview();
-    _getUserLocationIfAvailable();
+    // Set loading to false so map shows immediately
+    setState(() => _isLoading = false);
+    // Load fresh user location in background (won't block UI)
+    _getUserLocationInBackground();
   }
 
   @override
@@ -55,32 +58,38 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     super.dispose();
   }
 
-  Future<void> _getUserLocationIfAvailable() async {
+  /// Get user location in background without blocking UI
+  Future<void> _getUserLocationInBackground() async {
     try {
       final permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        setState(() => _isLoading = false);
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition();
+      // Get position with timeout to prevent hanging
+      final position = await Geolocator.getCurrentPosition().timeout(
+        const Duration(seconds: 5),
+      );
+
       final userLocation = LatLng(position.latitude, position.longitude);
 
-      setState(() {
-        _selectedLocation = userLocation;
-        _updateMarker();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _selectedLocation = userLocation;
+          _updateMarker();
+        });
 
-      await _updateLocationPreview();
+        // Update location preview for new position
+        await _updateLocationPreview();
 
-      // Animate to user location
-      _mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(userLocation, 15.0),
-      );
+        // Animate to user location
+        _mapController.animateCamera(
+          CameraUpdate.newLatLngZoom(userLocation, 15.0),
+        );
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      // Error getting location or timeout, silently fail - keep initial location
     }
   }
 
