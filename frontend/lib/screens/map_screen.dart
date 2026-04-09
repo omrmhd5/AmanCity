@@ -299,7 +299,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       final pois = await PlacesApiService.getNearbyPlaces(
         initialLocation,
-        type: _poiFilter,
+        type: 'all',
         radiusKm: _radiusKm,
       );
 
@@ -341,7 +341,26 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     // Add POI markers (if POI display is enabled)
     if (_showPOIs) {
-      for (var poi in _pois) {
+      // Filter POIs by selected types
+      final visiblePOIs = _pois.where((poi) {
+        if (_selectedPoiFilters.isEmpty) {
+          return false; // Hide all POIs if no filters selected
+        }
+        // Map POI type to filter type string
+        String poiTypeStr;
+        if (poi.type == POIType.hospital) {
+          poiTypeStr = 'hospital';
+        } else if (poi.type == POIType.policeStation) {
+          poiTypeStr = 'police';
+        } else if (poi.type == POIType.fireStation) {
+          poiTypeStr = 'fire';
+        } else {
+          return false; // Skip other POI types
+        }
+        return _selectedPoiFilters.contains(poiTypeStr);
+      }).toList();
+
+      for (var poi in visiblePOIs) {
         _markers.add(
           Marker(
             markerId: MarkerId('poi_${poi.id}'),
@@ -1187,8 +1206,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _updatePoiFilter();
       });
 
-      // Don't reload POIs - let cache handle it
-      // Markers will still update because _pois list remains valid
+      // Just update markers - no backend call unless radius changes
       _updateMapElements();
     }
   }
