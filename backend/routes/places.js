@@ -106,7 +106,136 @@ router.get("/nearby", async (req, res) => {
   }
 });
 
-/// Helper function to search nearby places
+/// GET /api/places/search
+/// Query: query (search text), lat, lng, radius (optional, meters, default 5000)
+/// Returns: Array of places (both POIs and general places) with type classification
+router.get("/search", async (req, res) => {
+  try {
+    const { query, lat, lng, radius = "5000" } = req.query;
+
+    // Validate input
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({
+        message: "Search query is required.",
+      });
+    }
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        message:
+          "Unable to determine location. Please enable location services and try again.",
+      });
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const searchRadius = parseInt(radius);
+    const maxResults = 20;
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        message: "The location coordinates are invalid. Please try again.",
+      });
+    }
+
+    // Search using Google Places API Text Search
+    const places = await searchGeneralPlaces(
+      query,
+      latitude,
+      longitude,
+      searchRadius,
+      maxResults,
+    );
+
+    res.status(200).json({
+      success: true,
+      count: places.length,
+      userLocation: { lat: latitude, lng: longitude },
+      searchRadius: searchRadius,
+      places: places,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Search failed. Please try again later.",
+    });
+  }
+});
+
+/// Helper function to search for general places
+/// Uses Google Places API Text Search
+async function searchGeneralPlaces(
+  query,
+  latitude,
+  longitude,
+  radius = 5000,
+  maxResults = 20,
+) {
+  if (!GOOGLE_API_KEY) {
+    throw new Error(
+      "Location services are not configured. Please contact support.",
+    );
+  }
+
+  const url = "https://places.googleapis.com/v1/places:searchText";
+
+  const requestBody = {
+    textQuery: query,
+    maxResultCount: maxResults,
+    locationBias: {
+      circle: {
+        center: {
+          latitude: latitude,
+          longitude: longitude,
+        },
+        radius: radius,
+      },
+    },
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": GOOGLE_API_KEY,
+      "X-Goog-FieldMask":
+        "places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.types,places.name",
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error("Unable to search for places. Please try again.");
+  }
+
+  const data = await response.json();
+
+  // Map Google Places API response to our format
+  return (data.places || []).map((place) => {
+    // Determine if this is a POI type we recognize
+    let poiType = null;
+    const types = place.types || [];
+
+    if (types.includes("hospital")) {
+      poiType = "hospital";
+    } else if (types.includes("police")) {
+      poiType = "police";
+    } else if (types.includes("fire_station")) {
+      poiType = "fire";
+    }
+
+    return {
+      id: place.name,
+      name: place.displayName?.text || place.name || "Unknown",
+      lat: place.location?.latitude || 0,
+      lng: place.location?.longitude || 0,
+      address: place.formattedAddress || "",
+      phoneNumber: place.nationalPhoneNumber || null,
+      type: poiType, // null for generic places, "hospital"/"police"/"fire" for POIs
+      googleTypes: types, // Store original Google types for reference
+    };
+  });
+}
 /// Uses Google Places API searchNearby endpoint
 async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
   if (!GOOGLE_API_KEY) {
