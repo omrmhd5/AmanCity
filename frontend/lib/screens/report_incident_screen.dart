@@ -70,14 +70,13 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
               _isLoadingLocation = false;
             });
           }
-          print('📍 Using cached location (${age.inSeconds}s old)');
           // Geocode the initial location
           await _updateLocationPreview(_currentLocation!);
           return;
         }
       }
     } catch (e) {
-      print('⚠️ Error loading cached location: $e');
+      // Error loading cached location
     }
 
     // No valid cache, fetch fresh location
@@ -108,9 +107,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           'user_location_time',
           DateTime.now().toIso8601String(),
         );
-        print('✅ Location cached');
       } catch (e) {
-        print('⚠️ Failed to cache location: $e');
+        // Failed to cache location
       }
     } catch (e) {
       if (mounted) {

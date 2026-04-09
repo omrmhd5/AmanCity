@@ -23,7 +23,7 @@ class LocationService {
       // Convert to kilometers
       return distanceInMeters / 1000;
     } catch (e) {
-      print('❌ Error calculating distance: $e');
+      // Error calculating distance
       // Fallback to manual haversine calculation
       return _haversineDistance(lat1, lng1, lat2, lng2);
     }

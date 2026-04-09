@@ -3,7 +3,6 @@ import '../widgets/login/login_header.dart';
 import '../widgets/login/login_form.dart';
 import '../widgets/login/social_login_section.dart';
 import '../widgets/login/signup_link_section.dart';
-import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../utils/navigation_service.dart' as navigation;
 

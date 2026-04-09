@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
 import '../../services/backend_api/geocoding_api_service.dart';
@@ -188,6 +189,26 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     }
   }
 
+  /// Apply map style based on SharedPreferences preference
+  Future<void> _applyMapStyle(GoogleMapController controller) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final mapStylePreference =
+          prefs.getString('map_style_preference') ?? 'dark';
+
+      if (mapStylePreference == 'dark') {
+        await controller.setMapStyle(AppColors.darkMapStyle);
+      } else {
+        // Light style uses empty string (default Google Maps light style)
+        await controller.setMapStyle(
+          AppColors.lightMapStyle.isEmpty ? null : AppColors.lightMapStyle,
+        );
+      }
+    } catch (e) {
+      // Silently fail - map will use default style
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -221,7 +242,10 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 target: _selectedLocation ?? _cairoCenter,
                 zoom: 14.0,
               ),
-              onMapCreated: (controller) => _mapController = controller,
+              onMapCreated: (controller) {
+                _mapController = controller;
+                _applyMapStyle(controller);
+              },
               markers: _markers,
               onTap: _onMapTapped,
               myLocationEnabled: true,

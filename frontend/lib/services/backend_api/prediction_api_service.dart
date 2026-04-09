@@ -8,27 +8,6 @@ import '../../models/prediction_result_model.dart';
 /// API service for prediction-related requests
 /// Handles communication with the YOLO inference backend
 class PredictionApiService {
-  /// Get MIME type based on file extension
-  static String _getMimeType(String filename) {
-    final ext = filename.toLowerCase().split('.').last;
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'mp4':
-        return 'video/mp4';
-      case 'mov':
-        return 'video/quicktime';
-      case 'mpeg':
-      case 'mpg':
-        return 'video/mpeg';
-      default:
-        return 'application/octet-stream';
-    }
-  }
-
   /// Send image or video file for prediction
   /// Returns PredictionResult with class prediction and confidence score
   ///
@@ -86,12 +65,12 @@ class PredictionApiService {
         }
       }
     } on SocketException catch (e) {
-      debugPrint('❌ Network Error: $e');
+      // Network Error
       throw Exception(
         'Unable to connect to image analysis service. Please check your connection and try again.',
       );
     } catch (e) {
-      debugPrint('❌ Prediction Error: $e');
+      // Prediction Error
       throw Exception('Unable to analyze the image. Please try again.');
     }
   }
