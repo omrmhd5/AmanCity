@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_colors.dart';
 import '../../services/backend_api/geocoding_api_service.dart';
+import '../../services/backend_api/places_api_service.dart';
+import '../map/search_results_dropdown.dart';
 
 class LocationPickerMap extends StatefulWidget {
   final LatLng? initialLocation;
@@ -30,6 +32,11 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   String? _geoLocationText;
   String? _geoLocationCity;
 
+  // Search state
+  final searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _showSearchResults = false;
+
   static const LatLng _cairoCenter = LatLng(30.0444, 31.2357);
 
   @override
@@ -39,6 +46,12 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     _updateMarker();
     _updateLocationPreview();
     _getUserLocationIfAvailable();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _getUserLocationIfAvailable() async {
@@ -117,6 +130,55 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     _updateLocationPreview();
   }
 
+  /// Search for places (general places + POIs)
+  Future<void> _searchPlaces(String query) async {
+    if (query.isEmpty || _selectedLocation == null) {
+      setState(() => _searchResults = []);
+      return;
+    }
+
+    try {
+      final searchResults = await PlacesApiService.searchPlaces(
+        query,
+        _selectedLocation!,
+        radiusKm: 10.0,
+      );
+
+      setState(() => _searchResults = searchResults);
+    } catch (e) {
+      setState(() => _searchResults = []);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Search failed: $e')));
+      }
+    }
+  }
+
+  /// Handle search result selection
+  Future<void> _selectSearchResult(Map<String, dynamic> place) async {
+    final lat = place['lat'] as double?;
+    final lng = place['lng'] as double?;
+
+    if (lat == null || lng == null) return;
+
+    final selectedLocation = LatLng(lat, lng);
+
+    setState(() {
+      _selectedLocation = selectedLocation;
+      _updateMarker();
+      _showSearchResults = false;
+    });
+
+    // Animate camera to selected location
+    _mapController.animateCamera(
+      CameraUpdate.newLatLngZoom(selectedLocation, 15.0),
+    );
+
+    // Update preview with selected place info
+    await _updateLocationPreview();
+  }
+
   void _confirmLocation() {
     if (_selectedLocation != null) {
       widget.onLocationSelected(_selectedLocation!);
@@ -167,6 +229,98 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
               zoomControlsEnabled: true,
               mapToolbarEnabled: false,
               compassEnabled: true,
+            ),
+          // Search bar
+          Positioned(
+            top: 12,
+            left: 16,
+            right: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.currentMode == AppThemeMode.dark
+                    ? AppColors.primary
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.getBorderColor()),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: searchController,
+                onChanged: (query) {
+                  if (query.isEmpty) {
+                    setState(() => _showSearchResults = false);
+                  } else {
+                    _searchPlaces(query);
+                    setState(() => _showSearchResults = true);
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search location...',
+                  hintStyle: TextStyle(
+                    color: AppTheme.getSecondaryTextColor(),
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: AppTheme.getSecondaryTextColor(),
+                    size: 20,
+                  ),
+                  suffixIcon: searchController.text.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {
+                            searchController.clear();
+                            setState(() => _showSearchResults = false);
+                          },
+                          child: Icon(
+                            Icons.close,
+                            color: AppTheme.getSecondaryTextColor(),
+                            size: 20,
+                          ),
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 0,
+                  ),
+                  isDense: true,
+                ),
+                style: TextStyle(
+                  color: AppTheme.getPrimaryTextColor(),
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          // Search results dropdown
+          if (_showSearchResults && _searchResults.isNotEmpty)
+            Positioned(
+              top: 68,
+              left: 16,
+              right: 16,
+              child: SearchResultsDropdown(
+                results: _searchResults,
+                onResultTap: (place) {
+                  _selectSearchResult(place);
+                },
+              ),
+            ),
+          // Tap outside to close dropdown
+          if (_showSearchResults && _searchResults.isNotEmpty)
+            Positioned.fill(
+              top: 100,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() => _showSearchResults = false);
+                },
+                child: const SizedBox.expand(),
+              ),
             ),
           // Bottom info card
           if (!_isLoading && _selectedLocation != null)
