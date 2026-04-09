@@ -3,7 +3,6 @@ import '../widgets/register/register_header.dart';
 import '../widgets/register/personal_identity_section.dart';
 import '../widgets/register/terms_checkbox.dart';
 import '../widgets/register/register_footer.dart';
-import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../utils/navigation_service.dart' as navigation;
 

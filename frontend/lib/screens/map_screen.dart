@@ -6,9 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_colors.dart';
-import '../utils/app_theme.dart';
 import '../utils/incident_types_config.dart';
-import '../utils/polyline_decoder.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
@@ -46,8 +44,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<DangerZone> _dangerZones = [];
 
   // POI filtering
-  String _poiFilter =
-      'all'; // 'all', 'hospital', 'police', 'fire', or pipe-separated like 'hospital|police'
+  // 'all', 'hospital', 'police', 'fire', or pipe-separated like 'hospital|police'
   Set<String> _selectedPoiFilters = {}; // Track which filters are selected
   bool _showPOIs = true;
   DateTime? _poisCachedTime;
@@ -133,7 +130,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       });
       _updateMapElements();
     } catch (e) {
-      print('❌ Error loading incidents: $e');
+      // Error loading incidents
     }
   }
 
@@ -161,7 +158,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             );
             _locationLoaded = true;
           });
-          print('📍 Using cached location (${age.inSeconds}s old)');
 
           // Animate camera to cached location
           await Future.delayed(const Duration(milliseconds: 500));
@@ -174,7 +170,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
-      print('⚠️ Error loading cached location: $e');
+      // Error loading cached location
     }
 
     // No valid cache, fetch fresh location
@@ -186,13 +182,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (_locationCachedTime != null) {
       final age = DateTime.now().difference(_locationCachedTime!);
       if (age.inMinutes < _locationCacheDurationMinutes) {
-        print('📍 Location cache still fresh, skipping refresh');
         return; // Cache still fresh
       }
     }
 
     // Cache is old or empty, fetch fresh location
-    print('📍 Location cache expired, fetching fresh location...');
     await _getUserLocation();
   }
 
@@ -244,9 +238,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           'user_location_time',
           DateTime.now().toIso8601String(),
         );
-        print('✅ Location cached');
       } catch (e) {
-        print('⚠️ Failed to cache location: $e');
+        // Failed to cache location
       }
 
       // Animate camera to user location
@@ -261,7 +254,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _updateMapElements();
     } catch (e) {
       setState(() => _isLoadingLocation = false);
-      debugPrint('Error getting location: $e');
+      // Error getting location
     }
   }
 
@@ -270,14 +263,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (_poisCachedTime != null) {
       final age = DateTime.now().difference(_poisCachedTime!);
       if (age.inMinutes < _poiCacheDurationMinutes) {
-        print('📍 Using cached POIs (${age.inSeconds}s old)');
         return;
       }
     }
 
     // Don't load if no location
     if (_userLocation == null) {
-      print('⚠️ User location not available, cannot load POIs');
       return;
     }
 
@@ -293,10 +284,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final initialLocation = _userLocation!;
 
     try {
-      print(
-        '📍 Loading POIs around lat=${initialLocation.latitude}, lng=${initialLocation.longitude}, radius=${_radiusKm}km',
-      );
-
       final pois = await PlacesApiService.getNearbyPlaces(
         initialLocation,
         type: 'all',
@@ -310,7 +297,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       _updateMapElements();
     } catch (e) {
-      print('❌ Error loading POIs: $e');
+      // Error loading POIs
     }
   }
 
@@ -520,7 +507,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _updateMapElements();
       }
     } catch (e) {
-      debugPrint('Error creating marker icon: $e');
+      // Error creating marker icon
     }
   }
 
@@ -1119,66 +1106,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Future<void> _setMapStyle() async {
     if (_mapController == null) return;
 
-    // Apply different styles based on theme
-    if (AppTheme.currentMode == AppThemeMode.dark) {
-      const String darkMapStyle = '''
-      [
-        {
-          "elementType": "geometry",
-          "stylers": [{"color": "#212121"}]
-        },
-        {
-          "elementType": "labels.icon",
-          "stylers": [{"visibility": "off"}]
-        },
-        {
-          "elementType": "labels.text.fill",
-          "stylers": [{"color": "#757575"}]
-        },
-        {
-          "elementType": "labels.text.stroke",
-          "stylers": [{"color": "#212121"}]
-        },
-        {
-          "featureType": "administrative",
-          "elementType": "geometry",
-          "stylers": [{"color": "#757575"}]
-        },
-        {
-          "featureType": "poi",
-          "elementType": "labels.text.fill",
-          "stylers": [{"color": "#757575"}]
-        },
-        {
-          "featureType": "poi.park",
-          "elementType": "geometry",
-          "stylers": [{"color": "#181818"}]
-        },
-        {
-          "featureType": "road",
-          "elementType": "geometry.fill",
-          "stylers": [{"color": "#5a5a5a"}]
-        },
-        {
-          "featureType": "road",
-          "elementType": "labels.text.fill",
-          "stylers": [{"color": "#b0b0b0"}]
-        },
-        {
-          "featureType": "water",
-          "elementType": "geometry",
-          "stylers": [{"color": "#000000"}]
-        },
-        {
-          "featureType": "water",
-          "elementType": "labels.text.fill",
-          "stylers": [{"color": "#3d3d3d"}]
-        }
-      ]
-      ''';
-      await _mapController?.setMapStyle(darkMapStyle);
+    // Get map style preference from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final mapStylePreference =
+        prefs.getString('map_style_preference') ?? 'dark';
+
+    // Apply style based on user preference
+    if (mapStylePreference == 'dark') {
+      await _mapController?.setMapStyle(AppColors.darkMapStyle);
     } else {
-      await _mapController?.setMapStyle(null); // Use default light style
+      // Light style uses empty string (default Google Maps light style)
+      await _mapController?.setMapStyle(
+        AppColors.lightMapStyle.isEmpty ? null : AppColors.lightMapStyle,
+      );
     }
   }
 
@@ -1214,12 +1154,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Update the _poiFilter string based on selected filters
   void _updatePoiFilter() {
     if (_selectedPoiFilters.isEmpty) {
-      _poiFilter = 'none'; // No type selected
+      // No type selected
     } else if (_selectedPoiFilters.length == 1) {
-      _poiFilter = _selectedPoiFilters.first;
     } else {
       // Multiple filters selected - join with pipe
-      _poiFilter = _selectedPoiFilters.toList().join('|');
     }
   }
 

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
-import '../../utils/poi_types_config.dart';
 import '../shared/custom_search_bar.dart';
 import 'map_filter_button.dart';
 import 'filter_options_sheet.dart';

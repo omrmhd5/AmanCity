@@ -79,11 +79,6 @@ class IncidentApiService {
         'longitude': longitude,
       });
 
-      print('📤 Creating incident: $title ($className)');
-      print('📁 File: $filename');
-      print('📍 Location: $latitude, $longitude');
-      print('📨 Sending to: $incidentsUrl');
-
       // Send request
       final streamedResponse = await request.send().timeout(
         const Duration(seconds: 30),
@@ -91,9 +86,6 @@ class IncidentApiService {
       );
 
       final response = await http.Response.fromStream(streamedResponse);
-
-      print('📨 Response status: ${response.statusCode}');
-      print('📨 Response: ${response.body}');
 
       if (response.statusCode == 201) {
         final jsonData = jsonDecode(response.body);
@@ -117,12 +109,12 @@ class IncidentApiService {
         }
       }
     } on SocketException catch (e) {
-      print('❌ Network Error: $e');
+      // Network Error
       throw Exception(
         'Unable to connect to the server. Please check your connection and try again.',
       );
     } catch (e) {
-      print('❌ Error: $e');
+      // Error saving incident
       throw Exception('Unable to save your report. Please try again.');
     }
   }
@@ -133,16 +125,12 @@ class IncidentApiService {
     final incidentsUrl = '${AppConfig.backendUrl}/incidents';
 
     try {
-      print('📍 Fetching incidents from: $incidentsUrl');
-
       final response = await http
           .get(Uri.parse(incidentsUrl))
           .timeout(
             const Duration(seconds: 30),
             onTimeout: () => throw SocketException('Request timeout'),
           );
-
-      print('📨 Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
@@ -154,22 +142,21 @@ class IncidentApiService {
             final mapIncident = _parseIncident(incident);
             mapIncidents.add(mapIncident);
           } catch (e) {
-            print('⚠️ Skipping invalid incident: $e');
+            // Skipping invalid incident
           }
         }
 
-        print('✅ Loaded ${mapIncidents.length} incidents');
         return mapIncidents;
       } else {
         throw Exception('Unable to retrieve reports. Please try again.');
       }
     } on SocketException catch (e) {
-      print('❌ Network Error: $e');
+      // Network Error
       throw Exception(
         'Unable to connect to the server. Please check your connection and try again.',
       );
     } catch (e) {
-      print('❌ Error loading incidents: $e');
+      // Error loading incidents
       throw Exception('Unable to retrieve reports. Please try again.');
     }
   }

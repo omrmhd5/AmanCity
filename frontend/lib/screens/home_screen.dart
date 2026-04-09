@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/shared/bottom_navbar.dart';
+import 'profile_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import 'map_screen.dart';
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case NavItem.alerts:
         return _buildPlaceholder('Safety Alerts');
       case NavItem.profile:
-        return _buildPlaceholder('User Profile');
+        return const ProfileScreen();
     }
   }
 
