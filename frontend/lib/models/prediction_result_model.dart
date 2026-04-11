@@ -52,10 +52,11 @@ class PredictionResult {
       );
     }
 
-    // Handle single prediction response
+    // Handle single prediction response (supports both class_name and incident_type)
+    String className = json['class_name'] ?? json['incident_type'] ?? 'Unknown';
     return PredictionResult(
       classId: json['class_id'] ?? 0,
-      className: json['class_name'] ?? 'Unknown',
+      className: className,
       confidence: (json['confidence'] ?? 0.0).toDouble(),
       isDualPrediction: false,
     );

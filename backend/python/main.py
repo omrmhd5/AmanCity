@@ -22,12 +22,12 @@ app.add_middleware(
 # Initialize tri-model inference (7Classes + Weapons + Crime)
 YOLO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/7Classes/AmanCity_7Classes_Model.pt")
 WEAPONS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/Weapon/AmanCity_Weapons_Model.onnx")
-POSE_ONNX_PATH = os.path.join(os.path.dirname(__file__), "models/Crime/AmanCity_Crime_Model.onnx")
+POSE_PT_PATH = os.path.join(os.path.dirname(__file__), "models/Crime/AmanCity_Crime_Model.pt")
 BRAIN_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/Crime/AmanCity_Crime_Brain_Model.pkl")
 
 dual_model = None
 try:
-    dual_model = DualModelInference(YOLO_MODEL_PATH, WEAPONS_MODEL_PATH, POSE_ONNX_PATH, BRAIN_MODEL_PATH)
+    dual_model = DualModelInference(YOLO_MODEL_PATH, WEAPONS_MODEL_PATH, POSE_PT_PATH, BRAIN_MODEL_PATH)
     print(f"✓ Tri-model system initialized: 7Classes + Weapons + Crime Detection")
 except Exception as e:
     print(f"✗ Failed to initialize tri-model system: {str(e)}")

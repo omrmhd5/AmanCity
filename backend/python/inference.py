@@ -27,15 +27,15 @@ CRIME_CONFIDENCE_THRESHOLD = 0.3
 
 
 class CrimeModelInference:
-    """Pose estimation (ONNX) + Crime classification for behavioral crimes"""
+    """Pose estimation (.pt) + Crime classification for behavioral crimes"""
     
-    def __init__(self, pose_model_onnx_path, brain_model_path):
-        """Initialize ONNX pose detector and crime classifier"""
+    def __init__(self, pose_model_pt_path, brain_model_path):
+        """Initialize pose detector and crime classifier"""
         try:
-            self.pose_model = YOLO(pose_model_onnx_path)  # Load ONNX model
-            print(f"✓ Pose ONNX model loaded: {pose_model_onnx_path}")
+            self.pose_model = YOLO(pose_model_pt_path)  # Load .pt pose model (not ONNX)
+            print(f"✓ Pose .pt model loaded: {pose_model_pt_path}")
         except Exception as e:
-            raise Exception(f"Failed to load ONNX pose model: {str(e)}")
+            raise Exception(f"Failed to load pose model: {str(e)}")
         
         try:
             self.brain_model = joblib.load(brain_model_path)
@@ -111,14 +111,21 @@ class CrimeModelInference:
     def detect_crime_from_video(self, video_path):
         """Detect crime from VIDEO using every 3rd frame approach (WORKING MODEL LOGIC)"""
         try:
+            if self.brain_model is None:
+                print("❌ Brain model not loaded!")
+                return None
+            
             cap = cv2.VideoCapture(video_path)
             if not cap.isOpened():
+                print(f"❌ Could not open video: {video_path}")
                 return None
             
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             frame_skip = 3  # Process every 3rd frame
             frame_count = 0
             all_predictions = []  # Collect ALL predictions
+            
+            print(f"🎬 Processing video: {video_path} ({total_frames} total frames)")
             
             while True:
                 ret, frame = cap.read()
@@ -129,42 +136,52 @@ class CrimeModelInference:
                 
                 # Only process every 3rd frame (like working model)
                 if frame_count % frame_skip == 1:
-                    skeletons = self._extract_skeleton_features(frame)
+                    # Use stream=True like working model - DIRECT prediction
+                    results = self.pose_model.predict(frame, conf=0.5, verbose=False, stream=True)
                     
-                    if not skeletons:
-                        continue
-                    
-                    # Process ALL skeletons in this frame
-                    for skeleton in skeletons:
-                        flat_skeleton = skeleton.flatten().reshape(1, -1)
-                        
-                        # Check for zero skeleton (invalid pose)
-                        if np.all(flat_skeleton == 0):
-                            continue
-                        
-                        # Predict crime action
-                        try:
-                            with warnings.catch_warnings():
-                                warnings.simplefilter("ignore")
-                                prediction = self.brain_model.predict(flat_skeleton)
+                    for r in results:
+                        if r.keypoints is not None and len(r.keypoints) > 0:
+                            # Get normalized keypoint coordinates
+                            all_skeletons = r.keypoints.xyn.cpu().numpy()
                             
-                            # Clean output string
-                            crime_label = str(prediction[0]).replace("[", "").replace("]", "").replace("'", "").strip()
-                            all_predictions.append(crime_label)
-                        except Exception as e:
-                            continue
+                            # Process ALL skeletons in this frame
+                            for skeleton in all_skeletons:
+                                flat_skeleton = skeleton.flatten().reshape(1, -1)
+                                
+                                # Check for zero skeleton (invalid pose)
+                                if np.all(flat_skeleton == 0):
+                                    continue
+                                
+                                # Predict crime action
+                                try:
+                                    with warnings.catch_warnings():
+                                        warnings.simplefilter("ignore")
+                                        prediction = self.brain_model.predict(flat_skeleton)
+                                    
+                                    # Clean output string (like working model)
+                                    crime_label = str(prediction[0]).replace("[", "").replace("]", "").replace("'", "").strip()
+                                    all_predictions.append(crime_label)
+                                    print(f"  Frame {frame_count}: {crime_label}")
+                                except Exception as e:
+                                    continue
             
             cap.release()
             
+            print(f"📊 Total predictions collected: {len(all_predictions)}")
+            
             # Apply working model's final logic
             if not all_predictions:
+                print("⚠️  No humans detected in video")
                 return None
             
             # Filter out "Normal" frames
             crimes_only = [p for p in all_predictions if p != "Normal"]
             
+            print(f"🔍 Crimes found: {len(crimes_only)} out of {len(all_predictions)}")
+            
             if not crimes_only:
                 # All predictions were Normal
+                print("✓ No crimes detected - all frames were Normal")
                 return {
                     "crime_action": "Normal",
                     "is_normal": True,
@@ -173,7 +190,9 @@ class CrimeModelInference:
             
             # Get the MOST COMMON crime (like working model)
             top_crime, frequency = Counter(crimes_only).most_common(1)[0]
-            confidence = frequency / len(crimes_only)  # Frequency as confidence
+            confidence = frequency / len(all_predictions)  # Frequency relative to total
+            
+            print(f"🎯 FINAL VERDICT: {top_crime.upper()} DETECTED ({frequency}/{len(all_predictions)} frames)")
             
             return {
                 "crime_action": top_crime,
@@ -183,7 +202,9 @@ class CrimeModelInference:
                 "crime_count": len(crimes_only)
             }
         except Exception as e:
-            print(f"Error in detect_crime_from_video: {str(e)}")
+            print(f"❌ Error in detect_crime_from_video: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def detect_crime_from_frames(self, frame_paths):
@@ -404,6 +425,10 @@ class DualModelInference:
         Returns best detection or {"no_incident": True}
         """
         try:
+            print(f"\n{'='*60}")
+            print(f"🔍 Starting prediction for {media_type}: {media_path}")
+            print(f"{'='*60}")
+            
             best_crime_result = None
             best_weapons_result = None
             best_yolo_result = None
@@ -412,6 +437,7 @@ class DualModelInference:
             
             # === CRIME MODEL (Highest Priority) ===
             if self.crime_model:
+                print("\n1️⃣  RUNNING CRIME MODEL...")
                 try:
                     if media_type == "VIDEO":
                         # For video: process every 3rd frame and aggregate predictions
@@ -420,14 +446,24 @@ class DualModelInference:
                         # For image: single prediction
                         crime_result = self.crime_model.detect_crime_from_image(media_path)
                     
-                    if crime_result and not crime_result.get("is_normal", False):
-                        best_crime_result = crime_result
+                    if crime_result:
+                        print(f"   ✓ Crime result: {crime_result}")
+                        if not crime_result.get("is_normal", False):
+                            best_crime_result = crime_result
+                            print(f"   ✓ Non-Normal crime detected!")
+                    else:
+                        print(f"   ⚠️  No crime detected")
                 except Exception as e:
-                    print(f"Crime model error: {str(e)}")
+                    print(f"   ❌ Crime model error: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+            else:
+                print("1️⃣  ⚠️  Crime model not loaded!")
             
             # === WEAPONS MODEL (Second Priority) ===
+            print("\n2️⃣  RUNNING WEAPONS MODEL...")
             if media_type == "VIDEO":
-                # Extract one frame for weapons detection
+                # Extract first frame for weapons detection
                 cap = cv2.VideoCapture(media_path)
                 ret, frame = cap.read()
                 cap.release()
@@ -439,15 +475,18 @@ class DualModelInference:
                     if weapons_result and weapons_result['confidence'] > highest_weapon_confidence:
                         best_weapons_result = weapons_result
                         highest_weapon_confidence = weapons_result['confidence']
+                        print(f"   ✓ Weapon detected: {weapons_result}")
             else:
                 weapons_result = self._run_weapons_detection(media_path)
                 if weapons_result and weapons_result['confidence'] > highest_weapon_confidence:
                     best_weapons_result = weapons_result
                     highest_weapon_confidence = weapons_result['confidence']
+                    print(f"   ✓ Weapon detected: {weapons_result}")
             
             # === 7CLASSES MODEL (Third Priority) ===
+            print("\n3️⃣  RUNNING 7CLASSES MODEL...")
             if media_type == "VIDEO":
-                # Extract one frame for 7classes detection
+                # Extract first frame for 7classes detection
                 cap = cv2.VideoCapture(media_path)
                 ret, frame = cap.read()
                 cap.release()
@@ -459,39 +498,56 @@ class DualModelInference:
                     if yolo_result['confidence'] > highest_yolo_confidence:
                         best_yolo_result = yolo_result
                         highest_yolo_confidence = yolo_result['confidence']
+                        print(f"   ✓ 7Classes result: {yolo_result}")
             else:
                 yolo_result = self._run_7classes_detection(media_path)
                 if yolo_result['confidence'] > highest_yolo_confidence:
                     best_yolo_result = yolo_result
                     highest_yolo_confidence = yolo_result['confidence']
+                    print(f"   ✓ 7Classes result: {yolo_result}")
             
             # === DECISION LOGIC: Priority-based response ===
+            print(f"\n{'='*60}")
+            print("📋 DECISION LOGIC:")
+            print(f"   Crime: {best_crime_result}")
+            print(f"   Weapons: {best_weapons_result}")
+            print(f"   7Classes: {best_yolo_result}")
+            print(f"{'='*60}")
             
             # 1. If crime detected (non-Normal), return it
             if best_crime_result:
-                crime_class = best_crime_result.get("crime_action", "Unknown").lower()
-                return {
+                crime_class = best_crime_result.get("crime_action", "Unknown")
+                result = {
                     "incident_type": crime_class,
                     "confidence": best_crime_result.get("confidence", 0.0),
                     "model": "crime",
                     "details": f"Analyzed {best_crime_result.get('prediction_count', 0)} keyframes"
                 }
+                print(f"\n✅ FINAL: {result}")
+                return result
             
             # 2. If weapon detected, return it
             if best_weapons_result:
+                print(f"\n✅ FINAL: {best_weapons_result}")
                 return best_weapons_result
             
             # 3. If 7Classes detected (and not Normal), return it
             if best_yolo_result and best_yolo_result['class_name'] != 'Normal':
+                print(f"\n✅ FINAL: {best_yolo_result}")
                 return best_yolo_result
             
             # 4. No valid incident detected
-            return {
+            result = {
                 "no_incident": True,
                 "reason": "All models classified as Normal or no detection"
             }
+            print(f"\n✅ FINAL: {result}")
+            return result
         
         except Exception as e:
+            print(f"\n❌ ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
             raise Exception(f"Prediction failed: {str(e)}")
     
     def _extract_frames_from_video(self, video_path, num_frames=5):
