@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/app_config.dart';
 import '../../models/map_incident.dart';
+import '../../utils/incident_types_config.dart';
 
 /// Model for incident creation response
 class IncidentResponse {
@@ -162,6 +163,7 @@ class IncidentApiService {
   }
 
   /// Parse backend incident to MapIncident
+  /// Handles both legacy responses and new three-model system responses
   static MapIncident _parseIncident(Map<String, dynamic> data) {
     final id = data['_id'] ?? '';
     final title = data['title'] ?? '';
@@ -179,6 +181,18 @@ class IncidentApiService {
     if (data['type'] is Map) {
       final typeObj = data['type'] as Map<String, dynamic>;
       type = typeObj['nameEn'] ?? typeObj['type'] ?? '';
+    } else if (data['type'] is String) {
+      // Direct string reference (legacy)
+      type = data['type'];
+    }
+
+    // Validate type exists in IncidentTypesConfig
+    // If invalid, mark as unknown
+    try {
+      IncidentTypesConfig.getByKey(type);
+    } catch (e) {
+      // Type not found in config, keep as-is but log
+      print('⚠ Unknown incident type: $type');
     }
 
     // Parse media

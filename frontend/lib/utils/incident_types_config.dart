@@ -52,6 +52,73 @@ class IncidentTypesConfig {
       icon: Icons.content_cut,
       color: Colors.cyan,
     ),
+    // Behavioral Crimes (Crime Model)
+    IncidentTypeConfig(
+      key: 'Arrest',
+      displayName: 'Arrest',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Arson',
+      displayName: 'Arson',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Assault',
+      displayName: 'Assault',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Burglary',
+      displayName: 'Burglary',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Explosion',
+      displayName: 'Explosion',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Fighting',
+      displayName: 'Fighting',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Robbery',
+      displayName: 'Robbery',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Shooting',
+      displayName: 'Shooting',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Shoplifting',
+      displayName: 'Shoplifting',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Stealing',
+      displayName: 'Stealing',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
+    IncidentTypeConfig(
+      key: 'Vandalism',
+      displayName: 'Vandalism',
+      icon: Icons.person,
+      color: Colors.purple,
+    ),
   ];
 
   /// Get config by incident type key

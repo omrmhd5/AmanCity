@@ -8,3 +8,5 @@ Pillow
 python-multipart
 numpy
 onnxruntime
+joblib
+scikit-learn

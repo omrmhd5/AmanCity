@@ -7,14 +7,28 @@ const incidentTypeSchema = new mongoose.Schema(
       required: true,
       unique: true,
       enum: [
+        // Environmental (7Classes Model)
         "Accident",
         "Damaged Building",
         "Fire",
         "Flood",
         "Public Issue",
         "Road Damage",
+        // Weapons (Weapons Model)
         "Firearm",
         "Cold Weapon",
+        // Behavioral Crimes (Crime Model)
+        "Arrest",
+        "Arson",
+        "Assault",
+        "Burglary",
+        "Explosion",
+        "Fighting",
+        "Robbery",
+        "Shooting",
+        "Shoplifting",
+        "Stealing",
+        "Vandalism",
       ],
     },
     nameEn: {
