@@ -146,10 +146,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       XFile? pickedFile;
 
       if (type == EvidenceType.photo) {
-        pickedFile = await picker.pickImage(
-          source: ImageSource.gallery,
-          imageQuality: 80,
-        );
+        pickedFile = await picker.pickImage(source: ImageSource.gallery);
       } else if (type == EvidenceType.video) {
         pickedFile = await picker.pickVideo(source: ImageSource.gallery);
       }
@@ -208,7 +205,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Incident created: ${incident.title}'),
+            content: Text('Incident created: ${incident.title}'),
             backgroundColor: Colors.green,
           ),
         );

@@ -3,6 +3,7 @@ class PredictionResult {
   final int classId;
   final String className;
   final double confidence;
+  final String? model; // Model source: 'crime', 'weapons', '7Classes'
 
   // Multiple prediction fields - support up to 3 selectable predictions
   final bool hasMultiplePredictions;
@@ -16,6 +17,7 @@ class PredictionResult {
     required this.classId,
     required this.className,
     required this.confidence,
+    this.model,
     this.hasMultiplePredictions = false,
     this.alternatives,
     this.noIncident = false,
@@ -49,12 +51,16 @@ class PredictionResult {
               classId: inc['class_id'] ?? 0,
               className: inc['incident_type'] ?? 'Unknown',
               confidence: (inc['confidence'] ?? 0.0).toDouble(),
+              model: inc['model'],
               noIncident: false,
             ),
           );
         }
 
-        // Primary is first one
+        // Sort by confidence (highest first)
+        predictions.sort((a, b) => b.confidence.compareTo(a.confidence));
+
+        // Primary is first one (highest confidence)
         PredictionResult primary = predictions[0];
         List<PredictionResult>? alts = predictions.length > 1
             ? predictions.sublist(1)
@@ -64,6 +70,7 @@ class PredictionResult {
           classId: primary.classId,
           className: primary.className,
           confidence: primary.confidence,
+          model: primary.model,
           hasMultiplePredictions: predictions.length > 1,
           alternatives: alts,
         );
@@ -76,6 +83,7 @@ class PredictionResult {
       classId: json['class_id'] ?? 0,
       className: className,
       confidence: (json['confidence'] ?? 0.0).toDouble(),
+      model: json['model'],
     );
   }
 

@@ -26,6 +26,7 @@ class FileService {
       // Validate class name (prevent directory traversal)
       // Note: Normal images are blocked and never uploaded
       const validClasses = [
+        // Environmental (7Classes Model)
         "Accident",
         "Damaged Building",
         "Fire",
@@ -33,8 +34,21 @@ class FileService {
         "Normal",
         "Public Issue",
         "Road Damage",
+        // Weapons (Weapons Model)
         "Firearm",
         "Cold Weapon",
+        // Behavioral Crimes (Crime Model)
+        "Arrest",
+        "Arson",
+        "Assault",
+        "Burglary",
+        "Explosion",
+        "Fighting",
+        "Robbery",
+        "Shooting",
+        "Shoplifting",
+        "Stealing",
+        "Vandalism",
       ];
 
       if (!validClasses.includes(className)) {
@@ -76,7 +90,7 @@ class FileService {
         fs.unlinkSync(filePath);
       }
     } catch (error) {
-      console.error(`Failed to delete file: ${error.message}`);
+      // Silently ignore file deletion errors
     }
   }
 }

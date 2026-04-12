@@ -47,33 +47,37 @@ class IncidentDetailHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(
-                    text: 'INCIDENT #$incidentId',
-                    size: 12,
-                    weight: FontWeight.w700,
-                    color: AppTheme.getPrimaryTextColor(),
-                  ),
-                  const SizedBox(height: 2),
-                  if (addressText != null)
-                    Flexible(
-                      child: CustomText(
-                        text: addressText!.toUpperCase(),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      text: 'INCIDENT #$incidentId',
+                      size: 12,
+                      weight: FontWeight.w700,
+                      color: AppTheme.getPrimaryTextColor(),
+                    ),
+                    const SizedBox(height: 2),
+                    if (addressText != null)
+                      Flexible(
+                        child: CustomText(
+                          text: addressText!.toUpperCase(),
+                          size: 10,
+                          weight: FontWeight.w400,
+                          color: AppTheme.getSecondaryTextColor(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )
+                    else if (city != null)
+                      CustomText(
+                        text: city!.toUpperCase(),
                         size: 10,
                         weight: FontWeight.w400,
                         color: AppTheme.getSecondaryTextColor(),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    )
-                  else if (city != null)
-                    CustomText(
-                      text: city!.toUpperCase(),
-                      size: 10,
-                      weight: FontWeight.w400,
-                      color: AppTheme.getSecondaryTextColor(),
-                    ),
-                ],
+                  ],
+                ),
               ),
               GestureDetector(
                 onTap: onSharePressed,

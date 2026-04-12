@@ -49,17 +49,14 @@ class IncidentController {
       }
 
       // Look up IncidentType by class name (type field)
-      console.log(`🔍 Looking up incident type: "${className}"`);
       const incidentType = await IncidentType.findOne({ type: className });
 
       if (!incidentType) {
-        console.error(`❌ Incident type not found: "${className}"`);
         return res.status(400).json({
           message:
             "The selected incident type is not recognized. Please select a valid incident type.",
         });
       }
-      console.log(`✅ Found incident type: ${incidentType._id}`);
 
       // Handle file upload if present
       let mediaArray = [];
@@ -88,16 +85,12 @@ class IncidentController {
       }
 
       // Reverse geocode the location
-      console.log(
-        `📍 Reverse geocoding: ${parsedLocation.latitude}, ${parsedLocation.longitude}`,
-      );
       const { text, city } = await GeocodingService.reverseGeocode(
         parsedLocation.latitude,
         parsedLocation.longitude,
       );
       parsedLocation.text = text;
       parsedLocation.city = city;
-      console.log(`✅ Location geocoded: "${text}" (City: "${city}")`);
 
       const incidentData = {
         title,
@@ -110,11 +103,8 @@ class IncidentController {
         timestamp: new Date(),
       };
 
-      console.log(`💾 Creating incident with data:`, incidentData);
       const incident = await IncidentService.createIncident(incidentData);
-      console.log(`✅ Incident created: ${incident._id}`);
 
-      console.log(`📤 Preparing response with incident:`, incident);
       const responseData = {
         _id: incident._id,
         title: incident.title,
@@ -125,15 +115,12 @@ class IncidentController {
         timestamp: incident.timestamp,
         media: incident.media,
       };
-      console.log(`📤 Response data:`, responseData);
 
       res.status(201).json({
         message: "Incident created successfully",
         data: responseData,
       });
     } catch (error) {
-      console.error("❌ Create incident error:", error.message);
-      console.error("Stack:", error.stack);
       res.status(500).json({
         message:
           error.message || "Unable to save your report. Please try again.",

@@ -9,9 +9,6 @@ class GeocodingService {
    */
   static async reverseGeocode(latitude, longitude) {
     if (!GOOGLE_API_KEY) {
-      console.warn(
-        "⚠️ WARNING: GOOGLE_API_KEY not configured. Geocoding will return null.",
-      );
       return { text: null, city: null };
     }
 
@@ -19,10 +16,6 @@ class GeocodingService {
       const url =
         `https://maps.googleapis.com/maps/api/geocode/json?` +
         `latlng=${latitude},${longitude}&key=${GOOGLE_API_KEY}`;
-
-      console.log(
-        `📍 Reverse geocoding coordinates: (${latitude}, ${longitude})`,
-      );
 
       const response = await fetch(url);
 
@@ -33,7 +26,6 @@ class GeocodingService {
       const data = await response.json();
 
       if (data.status !== "OK" || !data.results || data.results.length === 0) {
-        console.warn(`⚠️ No geocoding results for (${latitude}, ${longitude})`);
         return { text: null, city: null };
       }
 
@@ -46,11 +38,8 @@ class GeocodingService {
       );
       const city = cityComponent?.short_name || null;
 
-      console.log(`✅ Geocoded to: "${text}" (City: "${city}")`);
-
       return { text, city };
     } catch (error) {
-      console.error("❌ Reverse geocoding error:", error.message);
       return { text: null, city: null };
     }
   }

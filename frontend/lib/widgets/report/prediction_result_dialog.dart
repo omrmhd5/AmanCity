@@ -40,18 +40,18 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
   }) {
     if (isAlternative) {
       // Use muted colors for alternative
-      if (confidence >= 0.8) {
+      if (confidence >= 0.75) {
         return const Color(0xFF4CAF50);
-      } else if (confidence >= 0.6) {
+      } else if (confidence >= 0.65) {
         return const Color(0xFFFF9800);
       } else {
         return const Color(0xFFF44336);
       }
     } else {
       // Bright colors for main prediction
-      if (confidence >= 0.8) {
+      if (confidence >= 0.75) {
         return const Color(0xFF4CAF50);
-      } else if (confidence >= 0.6) {
+      } else if (confidence >= 0.65) {
         return const Color(0xFFFFA500);
       } else {
         return const Color(0xFFFF5252);
@@ -61,9 +61,9 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
 
   /// Get confidence level text
   String _getConfidenceLevelText(double confidence) {
-    if (confidence >= 0.8) {
+    if (confidence >= 0.75) {
       return 'High Confidence';
-    } else if (confidence >= 0.6) {
+    } else if (confidence >= 0.65) {
       return 'Medium Confidence';
     } else {
       return 'Low Confidence';
@@ -322,7 +322,7 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                   padding: const EdgeInsets.only(top: 12),
                   child: CustomText(
                     text:
-                        'Multiple detections found.\nPrimary is the highest priority threat.\nChoose which to report:',
+                        'Multiple incidents detected.\nSelect which one to report:',
                     size: 13,
                     weight: FontWeight.w400,
                     color: AppTheme.getSecondaryTextColor(),
@@ -336,7 +336,13 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
 
               // Primary Prediction Card
               _buildPredictionCard(
-                title: isDual ? '⚠️ Primary Detection' : 'Detected Type',
+                title: isDual
+                    ? (widget.prediction.model?.toLowerCase() == 'weapons'
+                          ? '🔪 Weapon'
+                          : widget.prediction.model?.toLowerCase() == '7classes'
+                          ? '🌍 Environmental Incident'
+                          : '🚨 Crime Detection')
+                    : 'Detected Type',
                 className: widget.prediction.className,
                 confidence: widget.prediction.confidence,
                 isSelected:
@@ -355,13 +361,23 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                 ...widget.prediction.alternatives!.asMap().entries.map((entry) {
                   final index = entry.key;
                   final alt = entry.value;
-                  final titles = ['📋 Option 2', '📊 Option 3'];
+
+                  // Get title based on model type
+                  String getModelTitle(String? model) {
+                    switch (model?.toLowerCase()) {
+                      case 'weapons':
+                        return '🔪 Weapon';
+                      case '7classes':
+                        return '🌍 Environmental Incident';
+                      default:
+                        return 'Alternative';
+                    }
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: _buildPredictionCard(
-                      title: index < titles.length
-                          ? titles[index]
-                          : 'Alternative',
+                      title: getModelTitle(alt.model),
                       className: alt.className,
                       confidence: alt.confidence,
                       isSelected:

@@ -27,6 +27,7 @@ class FilterOptionsSheet extends StatefulWidget {
 
 class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
   Set<String> selectedIncidentTypes = {};
+  bool _showAllTypes = false;
 
   // POI Settings
   late double radiusKm;
@@ -186,7 +187,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                       spacing: 8,
                       runSpacing: 8,
                       children: List.generate(
-                        IncidentTypesConfig.allTypes.length,
+                        _showAllTypes ? IncidentTypesConfig.allTypes.length : 9,
                         (index) {
                           final incident = IncidentTypesConfig.allTypes[index];
                           final isSelected = selectedIncidentTypes.contains(
@@ -245,6 +246,37 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                         },
                       ).toList(),
                     ),
+                    if (!_showAllTypes &&
+                        IncidentTypesConfig.allTypes.length > 9)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _showAllTypes = true);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.secondary,
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: CustomText(
+                                text: 'Show More',
+                                size: 12,
+                                weight: FontWeight.w600,
+                                color: AppColors.secondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

@@ -31,6 +31,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   late AnimationController _animationController;
   late ScrollController _scrollController;
   bool _isExpanded = false;
+  bool _showAllTypes = false;
   String _searchQuery = '';
   String? _selectedFilter;
 
@@ -273,65 +274,109 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                     ),
                                   ),
                                   const SizedBox(width: 6),
-                                  // All incident types
-                                  ...IncidentTypesConfig.allTypes.map((config) {
-                                    final isSelected =
-                                        _selectedFilter == config.key;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 6),
-                                      child: FilterChip(
-                                        label: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              config.icon,
-                                              size: 14,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : config.color,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              config.displayName,
-                                              style: TextStyle(
+                                  // Incident types (limited to 9 or all if expanded)
+                                  ...List.generate(
+                                    _showAllTypes
+                                        ? IncidentTypesConfig.allTypes.length
+                                        : 9,
+                                    (index) {
+                                      final config =
+                                          IncidentTypesConfig.allTypes[index];
+                                      final isSelected =
+                                          _selectedFilter == config.key;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 6,
+                                        ),
+                                        child: FilterChip(
+                                          label: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                config.icon,
+                                                size: 14,
                                                 color: isSelected
                                                     ? Colors.white
-                                                    : AppTheme.getPrimaryTextColor(),
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 11,
+                                                    : config.color,
                                               ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                config.displayName,
+                                                style: TextStyle(
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : AppTheme.getPrimaryTextColor(),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          selected: isSelected,
+                                          onSelected: (selected) {
+                                            setState(() {
+                                              _selectedFilter = selected
+                                                  ? config.key
+                                                  : null;
+                                            });
+                                          },
+                                          selectedColor: config.color,
+                                          backgroundColor:
+                                              AppTheme.getCardBackgroundColor(),
+                                          side: BorderSide(
+                                            color: isSelected
+                                                ? config.color
+                                                : AppTheme.getBorderColor(),
+                                            width: isSelected ? 2 : 1,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 6,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                        selected: isSelected,
-                                        onSelected: (selected) {
-                                          setState(() {
-                                            _selectedFilter = selected
-                                                ? config.key
-                                                : null;
-                                          });
+                                      );
+                                    },
+                                  ),
+                                  // Show More button
+                                  if (!_showAllTypes &&
+                                      IncidentTypesConfig.allTypes.length > 9)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 6),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() => _showAllTypes = true);
                                         },
-                                        selectedColor: config.color,
-                                        backgroundColor:
-                                            AppTheme.getCardBackgroundColor(),
-                                        side: BorderSide(
-                                          color: isSelected
-                                              ? config.color
-                                              : AppTheme.getBorderColor(),
-                                          width: isSelected ? 2 : 1,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 6,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color:
+                                                  AppTheme.getSecondaryTextColor(),
+                                              width: 1.5,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          child: CustomText(
+                                            text:
+                                                '+${IncidentTypesConfig.allTypes.length - 9}',
+                                            size: 11,
+                                            weight: FontWeight.w600,
+                                            color:
+                                                AppTheme.getSecondaryTextColor(),
                                           ),
                                         ),
                                       ),
-                                    );
-                                  }).toList(),
+                                    ),
                                 ],
                               ),
                             ),

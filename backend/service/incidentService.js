@@ -16,12 +16,10 @@ class IncidentService {
   static async createIncident(incidentData) {
     try {
       // Verify incident type exists
-      console.log(`🔍 Verifying incident type: ${incidentData.type}`);
       const incidentType = await IncidentType.findById(incidentData.type);
       if (!incidentType) {
         throw new Error("The selected incident type is not valid.");
       }
-      console.log(`✅ Incident type verified: ${incidentType.type}`);
 
       const incident = new Incident({
         title: incidentData.title,
@@ -39,18 +37,13 @@ class IncidentService {
         reportedBy: incidentData.reportedBy,
       });
 
-      console.log(`💾 Saving incident to database...`);
       await incident.save();
-      console.log(`✅ Incident saved: ${incident._id}`);
 
       const populatedIncident = await Incident.findById(incident._id)
         .populate("type")
         .populate("reportedBy");
-      console.log(`✅ Incident populated and retrieved`);
       return populatedIncident;
     } catch (error) {
-      console.error(`❌ Error creating incident:`, error.message);
-      console.error(`Stack:`, error.stack);
       throw new Error(
         error.message || "Unable to save your report. Please try again.",
       );
