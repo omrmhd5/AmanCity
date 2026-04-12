@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import joblib
 import warnings
-from collections import Counter
+from pathlib import Path
 from ultralytics import YOLO
 
 
@@ -73,23 +73,62 @@ class CrimeModelInference:
             return None
     
     def detect_from_image(self, image_path):
-        """Detect crime from single image"""
+        """Detect crime from single image - checks ALL skeletons"""
         try:
             frame = cv2.imread(image_path)
             if frame is None:
                 return None
             
             skeletons = self._extract_skeleton_features(frame)
-            if not skeletons:
+            if len(skeletons) == 0:
                 return None
             
-            skeleton = skeletons[0]
-            return self._classify_crime_action(skeleton)
+            # Check ALL skeletons, return best detection
+            best_detection = None
+            highest_confidence = 0
+            
+            for skeleton in skeletons:
+                detection = self._classify_crime_action(skeleton)
+                if detection and detection['confidence'] >= 0.5:
+                    # Prefer non-Normal detections
+                    if not detection.get("is_normal", False):
+                        if detection['confidence'] > highest_confidence:
+                            highest_confidence = detection['confidence']
+                            best_detection = detection
+                    elif best_detection is None:  # Use Normal as fallback if no crime found
+                        best_detection = detection
+            
+            return best_detection
         except Exception as e:
             return None
     
+    def _extract_key_frames(self, video_path, num_frames=10):
+        """Extract key frames from video - evenly distributed"""
+        cap = cv2.VideoCapture(video_path)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        if total_frames == 0:
+            cap.release()
+            return []
+        
+        # Calculate frame indices to sample (evenly distributed)
+        frame_indices = [int(i * total_frames / num_frames) for i in range(num_frames)]
+        frame_paths = []
+        
+        for idx, frame_num in enumerate(frame_indices):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+            ret, frame = cap.read()
+            
+            if ret:
+                temp_frame_path = video_path.replace(".mp4", f"_crime_{idx}.jpg").replace(".avi", f"_crime_{idx}.jpg")
+                cv2.imwrite(temp_frame_path, frame)
+                frame_paths.append(temp_frame_path)
+        
+        cap.release()
+        return frame_paths
+    
     def detect_from_video(self, video_path):
-        """Detect crime from video - processes every 3rd frame"""
+        """Detect crime from video - extract 10 key frames with consensus voting"""
         try:
             if self.brain_model is None:
                 print("❌ Brain model not loaded!")
@@ -101,94 +140,66 @@ class CrimeModelInference:
                 return None
             
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            frame_skip = 3
-            frame_count = 0
-            frames_processed = 0  # Track actual frames processed
-            all_predictions = []  # Store (frame_num, crime_label) tuples
-            frame_predictions = {}  # Track predictions per frame
+            cap.release()
             
             print(f"🎬 Processing video: {video_path} ({total_frames} total frames)")
             
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                
-                frame_count += 1
-                
-                if frame_count % frame_skip == 1:
-                    frames_processed += 1  # Increment frames processed
-                    frame_predictions[frame_count] = []  # Track predictions for this frame
-                    results = self.pose_model.predict(frame, conf=0.5, verbose=False, stream=True)
-                    
-                    for r in results:
-                        if r.keypoints is not None and len(r.keypoints) > 0:
-                            all_skeletons = r.keypoints.xyn.cpu().numpy()
-                            
-                            for skeleton in all_skeletons:
-                                flat_skeleton = skeleton.flatten().reshape(1, -1)
-                                
-                                if np.all(flat_skeleton == 0):
-                                    continue
-                                
-                                try:
-                                    with warnings.catch_warnings():
-                                        warnings.simplefilter("ignore")
-                                        probabilities = self.brain_model.predict_proba(flat_skeleton)
-                                        prediction = self.brain_model.predict(flat_skeleton)
-                                    
-                                    crime_label = str(prediction[0]).replace("[", "").replace("]", "").replace("'", "").strip()
-                                    # Get confidence from probabilities
-                                    confidence = float(np.max(probabilities))
-                                    
-                                    # Only store if confidence >= 0.5
-                                    if confidence >= 0.5:
-                                        all_predictions.append((frame_count, crime_label, confidence))
-                                        frame_predictions[frame_count].append(crime_label)
-                                        print(f"  Frame {frame_count}: {crime_label} (conf={confidence:.2f})")
-                                except Exception as e:
-                                    continue
+            # Extract 10 key frames
+            frame_paths = self._extract_key_frames(video_path, num_frames=10)
             
-            cap.release()
-            
-            print(f"📊 Total predictions collected: {len(all_predictions)}")
-            
-            if not all_predictions:
-                print("⚠️  No humans detected in video")
+            if not frame_paths:
+                print("⚠️  Could not extract frames from video")
                 return None
             
-            # Extract just the labels, excluding Normal
-            crimes_only = [label for frame, label, conf in all_predictions if label != "Normal"]
+            best_crime_result = None
+            highest_confidence = 0
+            all_detections = []
             
-            print(f"🔍 Crimes found: {len(crimes_only)} out of {len(all_predictions)}")
+            # Process each key frame
+            for frame_path in frame_paths:
+                try:
+                    result = self.detect_from_image(frame_path)
+                    if result and not result.get("is_normal", False):  # Only count non-Normal crimes
+                        all_detections.append(result)
+                        print(f"  Detected: {result['crime_action']} (conf={result['confidence']:.2f})")
+                        
+                        # Track best detection
+                        if result['confidence'] > highest_confidence:
+                            highest_confidence = result['confidence']
+                            best_crime_result = result
+                except Exception as e:
+                    continue
             
-            if not crimes_only:
-                print("✓ No crimes detected - all frames were Normal")
+            # Clean up temp frames
+            for frame_path in frame_paths:
+                Path(frame_path).unlink(missing_ok=True)
+            
+            print(f"📊 Total crime detections: {len(all_detections)} out of 10 frames")
+            
+            # Consensus voting: require detection in at least 2 frames
+            if len(all_detections) < 2:
+                print("⚠️  Crime consensus not met (detected in < 2 frames)")
                 return {
                     "crime_action": "Normal",
                     "is_normal": True,
                     "confidence": 0.0
                 }
             
-            # Find the most common crime
-            top_crime, _ = Counter(crimes_only).most_common(1)[0]
+            if not best_crime_result:
+                print("⚠️  No crimes detected in video")
+                return {
+                    "crime_action": "Normal",
+                    "is_normal": True,
+                    "confidence": 0.0
+                }
             
-            # Calculate average confidence from all detections for top crime
-            crime_confidences = []
-            for frame_num, label, conf in all_predictions:
-                if label == top_crime:
-                    crime_confidences.append(conf)
-            
-            confidence = sum(crime_confidences) / len(crime_confidences) if crime_confidences else 0.0
-            
-            print(f"🎯 FINAL VERDICT: {top_crime.upper()} DETECTED ({len(crime_confidences)} detections, conf={confidence:.2f})")
+            print(f"🎯 FINAL VERDICT: {best_crime_result['crime_action'].upper()} DETECTED (conf={best_crime_result['confidence']:.2f}, consensus={len(all_detections)}/10)")
             
             return {
-                "crime_action": top_crime,
+                "crime_action": best_crime_result['crime_action'],
                 "is_normal": False,
-                "confidence": confidence,
-                "prediction_count": len(all_predictions),
-                "crime_count": len(crimes_only)
+                "confidence": best_crime_result['confidence'],
+                "model": "crime_brain"
             }
         except Exception as e:
             print(f"❌ Error in detect_crime_from_video: {str(e)}")

@@ -58,8 +58,7 @@ class WeaponsModelInference:
         except Exception as e:
             print(f"⚠ Weapons detection error: {str(e)}")
             return None
-    
-    def _extract_key_frames(self, video_path, num_frames=5):
+    def _extract_key_frames(self, video_path, num_frames=10):
         """Extract key frames from video - evenly distributed"""
         cap = cv2.VideoCapture(video_path)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -85,7 +84,7 @@ class WeaponsModelInference:
         return frame_paths
     
     def detect_from_video(self, video_path):
-        """Detect weapons from video - extract 5 key frames, return best detection"""
+        """Detect weapons from video - extract 10 key frames with consensus voting"""
         if self.model is None:
             print("❌ Weapons model not loaded!")
             return None
@@ -101,8 +100,8 @@ class WeaponsModelInference:
             
             print(f"🎬 Processing video for weapons: {video_path} ({total_frames} total frames)")
             
-            # Extract 5 key frames
-            frame_paths = self._extract_key_frames(video_path, num_frames=5)
+            # Extract 10 key frames
+            frame_paths = self._extract_key_frames(video_path, num_frames=10)
             
             if not frame_paths:
                 print("⚠️  Could not extract frames from video")
@@ -131,13 +130,18 @@ class WeaponsModelInference:
             for frame_path in frame_paths:
                 Path(frame_path).unlink(missing_ok=True)
             
-            print(f"📊 Total weapon detections: {len(all_detections)}")
+            print(f"📊 Total weapon detections: {len(all_detections)} out of 10 frames")
+            
+            # Consensus voting: require detection in at least 2 frames
+            if len(all_detections) < 2:
+                print("⚠️  Weapon consensus not met (detected in < 2 frames)")
+                return None
             
             if not best_weapon_result:
                 print("⚠️  No weapons detected in video")
                 return None
             
-            print(f"🎯 FINAL VERDICT: {best_weapon_result['class_name'].upper()} DETECTED (conf={best_weapon_result['confidence']:.2f})")
+            print(f"🎯 FINAL VERDICT: {best_weapon_result['class_name'].upper()} DETECTED (conf={best_weapon_result['confidence']:.2f}, consensus={len(all_detections)}/10)")
             
             return best_weapon_result
         
