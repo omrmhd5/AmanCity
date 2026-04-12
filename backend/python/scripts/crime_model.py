@@ -5,6 +5,10 @@ import warnings
 from pathlib import Path
 from ultralytics import YOLO
 
+# Suppress YOLO and sklearn warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='ultralytics')
+warnings.filterwarnings('ignore', category=Warning, module='sklearn')
+
 
 class CrimeModelInference:
     """Pose estimation (.pt) + Crime classification for behavioral crimes"""

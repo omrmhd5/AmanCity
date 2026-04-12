@@ -1,3 +1,9 @@
+import warnings
+
+# Suppress warnings globally
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', category=Warning)
+
 from scripts.crime_model import CrimeModelInference
 from scripts.weapons_model import WeaponsModelInference
 from scripts.yolo_7classes_model import YOLOSevenClassesInference

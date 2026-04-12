@@ -1,7 +1,11 @@
 import cv2
 import numpy as np
+import warnings
 from ultralytics import YOLO
 from pathlib import Path
+
+# Suppress YOLO task warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='ultralytics')
 
 WEAPON_CONFIDENCE_THRESHOLD = 0.5
 CLASS_NAMES = {
