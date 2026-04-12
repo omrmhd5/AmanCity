@@ -33,9 +33,9 @@ class PredictionApiService {
 
       // Send request
       final streamedResponse = await request.send().timeout(
-        const Duration(seconds: 30),
+        const Duration(minutes: 3),
         onTimeout: () =>
-            throw SocketException('Request timeout after 30 seconds'),
+            throw SocketException('Request timeout after 3 minutes'),
       );
 
       final response = await http.Response.fromStream(streamedResponse);

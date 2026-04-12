@@ -82,7 +82,7 @@ class IncidentApiService {
 
       // Send request
       final streamedResponse = await request.send().timeout(
-        const Duration(seconds: 30),
+        const Duration(minutes: 3),
         onTimeout: () => throw SocketException('Request timeout'),
       );
 
@@ -129,7 +129,7 @@ class IncidentApiService {
       final response = await http
           .get(Uri.parse(incidentsUrl))
           .timeout(
-            const Duration(seconds: 30),
+            const Duration(minutes: 3),
             onTimeout: () => throw SocketException('Request timeout'),
           );
 

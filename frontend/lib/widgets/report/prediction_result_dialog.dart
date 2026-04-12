@@ -41,20 +41,20 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
     if (isAlternative) {
       // Use muted colors for alternative
       if (confidence >= 0.8) {
-        return Colors.green.withOpacity(0.6);
+        return const Color(0xFF4CAF50);
       } else if (confidence >= 0.6) {
-        return Colors.orange.withOpacity(0.6);
+        return const Color(0xFFFF9800);
       } else {
-        return Colors.red.withOpacity(0.6);
+        return const Color(0xFFF44336);
       }
     } else {
       // Bright colors for main prediction
       if (confidence >= 0.8) {
-        return Colors.green;
+        return const Color(0xFF4CAF50);
       } else if (confidence >= 0.6) {
-        return Colors.orange;
+        return const Color(0xFFFFA500);
       } else {
-        return Colors.red;
+        return const Color(0xFFFF5252);
       }
     }
   }
@@ -273,8 +273,9 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
       confidence: widget.prediction.confidence,
     );
     final isDual =
-        widget.prediction.isDualPrediction &&
-        widget.prediction.alternativeResult != null;
+        widget.prediction.hasMultiplePredictions &&
+        widget.prediction.alternatives != null &&
+        widget.prediction.alternatives!.isNotEmpty;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -321,7 +322,7 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                   padding: const EdgeInsets.only(top: 12),
                   child: CustomText(
                     text:
-                        'Both weapon and incident detected.\nPlease choose the correct classification:',
+                        'Multiple detections found.\nPrimary is the highest priority threat.\nChoose which to report:',
                     size: 13,
                     weight: FontWeight.w400,
                     color: AppTheme.getSecondaryTextColor(),
@@ -349,22 +350,29 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                     : null,
               ),
 
-              // Alternative Prediction Card (if dual)
-              if (isDual) ...[
-                const SizedBox(height: 16),
-                _buildPredictionCard(
-                  title: '📋 Alternative Detection',
-                  className: widget.prediction.alternativeResult!.className,
-                  confidence: widget.prediction.alternativeResult!.confidence,
-                  isSelected:
-                      _selectedPrediction.className ==
-                      widget.prediction.alternativeResult!.className,
-                  isAlternative: true,
-                  onTap: () => setState(() {
-                    _selectedPrediction = widget.prediction.alternativeResult!;
-                  }),
-                ),
-              ],
+              // Alternative Prediction Cards (if multiple - up to 3 total)
+              if (isDual && widget.prediction.alternatives != null)
+                ...widget.prediction.alternatives!.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final alt = entry.value;
+                  final titles = ['📋 Option 2', '📊 Option 3'];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: _buildPredictionCard(
+                      title: index < titles.length
+                          ? titles[index]
+                          : 'Alternative',
+                      className: alt.className,
+                      confidence: alt.confidence,
+                      isSelected:
+                          _selectedPrediction.className == alt.className,
+                      isAlternative: true,
+                      onTap: () => setState(() {
+                        _selectedPrediction = alt;
+                      }),
+                    ),
+                  );
+                }).toList(),
 
               const SizedBox(height: 32),
 

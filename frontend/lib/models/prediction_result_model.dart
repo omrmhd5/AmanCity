@@ -4,10 +4,9 @@ class PredictionResult {
   final String className;
   final double confidence;
 
-  // Dual prediction fields
-  final bool isDualPrediction;
-  final PredictionResult? alternativeResult;
-  final String? decision;
+  // Multiple prediction fields - support up to 3 selectable predictions
+  final bool hasMultiplePredictions;
+  final List<PredictionResult>? alternatives;
 
   // No incident fields
   final bool noIncident;
@@ -17,58 +16,66 @@ class PredictionResult {
     required this.classId,
     required this.className,
     required this.confidence,
-    this.isDualPrediction = false,
-    this.alternativeResult,
-    this.decision,
+    this.hasMultiplePredictions = false,
+    this.alternatives,
     this.noIncident = false,
     this.noIncidentReason,
   });
 
   /// Factory constructor to create instance from JSON
   factory PredictionResult.fromJson(Map<String, dynamic> json) {
-    // Handle no incident response (Normal classification)
+    // Handle no incident response
     if (json['no_incident'] == true) {
       return PredictionResult(
         classId: 0,
         className: 'Normal',
         confidence: 0.0,
-        isDualPrediction: false,
         noIncident: true,
         noIncidentReason: json['reason'],
       );
     }
 
-    // Handle dual prediction response
-    if (json['dual_prediction'] == true && json['primary'] != null) {
-      return PredictionResult(
-        classId: json['primary']['class_id'] ?? 0,
-        className: json['primary']['class_name'] ?? 'Unknown',
-        confidence: (json['primary']['confidence'] ?? 0.0).toDouble(),
-        isDualPrediction: true,
-        alternativeResult: json['alternative'] != null
-            ? PredictionResult._fromSinglePrediction(json['alternative'])
-            : null,
-        decision: json['decision'],
-      );
+    // Handle multiple incidents - convert to selectable predictions
+    if (json['incidents'] != null && json['incidents'] is List) {
+      List<dynamic> incidentsList = json['incidents'];
+
+      if (incidentsList.isNotEmpty) {
+        // Parse all incidents as alternatives to choose from
+        List<PredictionResult> predictions = [];
+
+        for (var inc in incidentsList) {
+          predictions.add(
+            PredictionResult(
+              classId: inc['class_id'] ?? 0,
+              className: inc['incident_type'] ?? 'Unknown',
+              confidence: (inc['confidence'] ?? 0.0).toDouble(),
+              noIncident: false,
+            ),
+          );
+        }
+
+        // Primary is first one
+        PredictionResult primary = predictions[0];
+        List<PredictionResult>? alts = predictions.length > 1
+            ? predictions.sublist(1)
+            : null;
+
+        return PredictionResult(
+          classId: primary.classId,
+          className: primary.className,
+          confidence: primary.confidence,
+          hasMultiplePredictions: predictions.length > 1,
+          alternatives: alts,
+        );
+      }
     }
 
-    // Handle single prediction response (supports both class_name and incident_type)
+    // Handle single prediction response
     String className = json['class_name'] ?? json['incident_type'] ?? 'Unknown';
     return PredictionResult(
       classId: json['class_id'] ?? 0,
       className: className,
       confidence: (json['confidence'] ?? 0.0).toDouble(),
-      isDualPrediction: false,
-    );
-  }
-
-  /// Private factory for alternative predictions (no dual prediction nesting)
-  factory PredictionResult._fromSinglePrediction(Map<String, dynamic> json) {
-    return PredictionResult(
-      classId: json['class_id'] ?? 0,
-      className: json['class_name'] ?? 'Unknown',
-      confidence: (json['confidence'] ?? 0.0).toDouble(),
-      isDualPrediction: false,
     );
   }
 
@@ -78,35 +85,10 @@ class PredictionResult {
       return {'no_incident': true, 'reason': noIncidentReason};
     }
 
-    if (isDualPrediction && alternativeResult != null) {
-      return {
-        'dual_prediction': true,
-        'primary': {
-          'class_id': classId,
-          'class_name': className,
-          'confidence': confidence,
-        },
-        'alternative': {
-          'class_id': alternativeResult!.classId,
-          'class_name': alternativeResult!.className,
-          'confidence': alternativeResult!.confidence,
-        },
-        'decision': decision,
-      };
-    }
-
     return {
       'class_id': classId,
       'class_name': className,
       'confidence': confidence,
     };
-  }
-
-  /// Create a new PredictionResult selecting the alternative (for when user chooses alternative)
-  PredictionResult selectAlternative() {
-    if (alternativeResult != null) {
-      return alternativeResult!;
-    }
-    return this;
   }
 }
