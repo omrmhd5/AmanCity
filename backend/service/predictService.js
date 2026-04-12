@@ -35,7 +35,7 @@ class YOLOService {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          timeout: 30000, // 30 seconds for inference
+          timeout: 180000, // 3 minutes for inference (crime detection processes multiple frames)
         },
       );
 
@@ -84,7 +84,7 @@ class YOLOService {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          timeout: 60000, // 60 seconds for batch
+          timeout: 180000, // 3 minutes for batch (multiple videos can take time)
         },
       );
 
