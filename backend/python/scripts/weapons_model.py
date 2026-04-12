@@ -58,14 +58,28 @@ class WeaponsModelInference:
         except Exception as e:
             print(f"⚠ Weapons detection error: {str(e)}")
             return None
-    def _extract_key_frames(self, video_path, num_frames=10):
-        """Extract key frames from video - evenly distributed"""
+    def _extract_key_frames(self, video_path, total_frames):
+        """Extract key frames from video - evenly distributed based on video length"""
         cap = cv2.VideoCapture(video_path)
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        video_seconds = total_frames / fps if fps > 0 else 10
+        
+        # Adaptive frame extraction based on video length
+        if video_seconds <= 10:
+            num_frames = 10
+            consensus_required = 2
+        elif video_seconds <= 30:
+            num_frames = 15
+            consensus_required = 3
+        else:
+            num_frames = 15
+            consensus_required = 3
+        
+        print(f"  Video duration: {video_seconds:.1f}s → Extracting {num_frames} frames, consensus={consensus_required}")
         
         if total_frames == 0:
             cap.release()
-            return []
+            return [], num_frames, consensus_required
         
         # Calculate frame indices to sample (evenly distributed)
         frame_indices = [int(i * total_frames / num_frames) for i in range(num_frames)]
@@ -81,10 +95,10 @@ class WeaponsModelInference:
                 frame_paths.append(temp_frame_path)
         
         cap.release()
-        return frame_paths
+        return frame_paths, num_frames, consensus_required
     
     def detect_from_video(self, video_path):
-        """Detect weapons from video - extract 10 key frames with consensus voting"""
+        """Detect weapons from video - extract key frames with adaptive consensus voting"""
         if self.model is None:
             print("❌ Weapons model not loaded!")
             return None
@@ -100,10 +114,10 @@ class WeaponsModelInference:
             
             print(f"🎬 Processing video for weapons: {video_path} ({total_frames} total frames)")
             
-            # Extract 10 key frames
-            frame_paths = self._extract_key_frames(video_path, num_frames=10)
+            # Extract frames with adaptive settings
+            frame_paths, num_frames, consensus_required = self._extract_key_frames(video_path, total_frames)
             
-            if not frame_paths:
+            if len(frame_paths) == 0:
                 print("⚠️  Could not extract frames from video")
                 return None
             
@@ -130,18 +144,18 @@ class WeaponsModelInference:
             for frame_path in frame_paths:
                 Path(frame_path).unlink(missing_ok=True)
             
-            print(f"📊 Total weapon detections: {len(all_detections)} out of 10 frames")
+            print(f"📊 Total weapon detections: {len(all_detections)} out of {num_frames} frames")
             
-            # Consensus voting: require detection in at least 2 frames
-            if len(all_detections) < 2:
-                print("⚠️  Weapon consensus not met (detected in < 2 frames)")
+            # Consensus voting: require detection in at least required frames
+            if len(all_detections) < consensus_required:
+                print(f"⚠️  Weapon consensus not met (detected in {len(all_detections)}/{consensus_required} required frames)")
                 return None
             
             if not best_weapon_result:
                 print("⚠️  No weapons detected in video")
                 return None
             
-            print(f"🎯 FINAL VERDICT: {best_weapon_result['class_name'].upper()} DETECTED (conf={best_weapon_result['confidence']:.2f}, consensus={len(all_detections)}/10)")
+            print(f"🎯 FINAL VERDICT: {best_weapon_result['class_name'].upper()} DETECTED (conf={best_weapon_result['confidence']:.2f}, consensus={len(all_detections)}/{consensus_required})")
             
             return best_weapon_result
         
