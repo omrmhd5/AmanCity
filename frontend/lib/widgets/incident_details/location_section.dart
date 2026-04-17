@@ -1,12 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../models/map_incident.dart';
 import '../shared/custom_text.dart';
 
-class LocationSection extends StatelessWidget {
+class LocationSection extends StatefulWidget {
   final MapIncident incident;
 
   const LocationSection({Key? key, required this.incident}) : super(key: key);
+
+  @override
+  State<LocationSection> createState() => _LocationSectionState();
+}
+
+class _LocationSectionState extends State<LocationSection> {
+  String _mapStylePreference = 'dark';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMapStylePreference();
+  }
+
+  Future<void> _loadMapStylePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _mapStylePreference = prefs.getString('map_style_preference') ?? 'dark';
+    });
+  }
+
+  String _buildMapUrl() {
+    final lat = widget.incident.position.latitude;
+    final lng = widget.incident.position.longitude;
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+
+    if (_mapStylePreference == 'dark') {
+      return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng&zoom=15&size=600x240&style=feature:all|element:labels|visibility:off&style=feature:water|element:geometry|color:0x0d0d0d&style=feature:all|element:geometry|color:0x222222&style=feature:road|element:geometry|color:0x333333&key=$apiKey';
+    } else {
+      return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng&zoom=15&size=600x240&style=feature:all|element:labels|visibility:off&key=$apiKey';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +70,7 @@ class LocationSection extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(
-                        'https://lh3.googleusercontent.com/aida-public/AB6AXuAYlsWPun-Cu_C3AzuVJPP0Vpo12EaHRCfaWOWBOJ81Qll30bOP2iXiBYGDGoeF51pqPuYS9d1yyRHOkEbnpQW4gAIc3mIVKfikgtxcxkeE9wqkeKI6QaeN_bS-xn9b_gRInJsbDExKi46g_wIMXAX5g_Nfp7bpdJoOsHR6jl70tOp4VW_Kn4Ph5GfWxh1IiW-qsbkJm4c5x9nYzWz8mj9Nb7U3Rsm-N-MWT5Ni3QPGc58Oj38RPTVuZBLLs6CrywdeSE-8YEaWyX0X',
-                      ),
+                      image: NetworkImage(_buildMapUrl()),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -55,11 +87,11 @@ class LocationSection extends StatelessWidget {
                       height: 16,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: incident.typeColor,
+                        color: widget.incident.typeColor,
                         border: Border.all(color: Colors.white, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            color: incident.typeColor.withOpacity(0.6),
+                            color: widget.incident.typeColor.withOpacity(0.6),
                             blurRadius: 12,
                             spreadRadius: 6,
                           ),
@@ -96,7 +128,7 @@ class LocationSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         CustomText(
-                          text: incident.city ?? 'Location',
+                          text: widget.incident.city ?? 'Location',
                           size: 9,
                           weight: FontWeight.w500,
                           color: AppTheme.getSecondaryTextColor(),
@@ -104,11 +136,11 @@ class LocationSection extends StatelessWidget {
                         const SizedBox(height: 2),
                         CustomText(
                           text:
-                              incident.addressText?.substring(
+                              widget.incident.addressText?.substring(
                                 0,
-                                incident.addressText!.length > 20
+                                widget.incident.addressText!.length > 20
                                     ? 20
-                                    : incident.addressText!.length,
+                                    : widget.incident.addressText!.length,
                               ) ??
                               'Unknown',
                           size: 10,
@@ -142,13 +174,13 @@ class LocationSection extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: incident.typeColor.withOpacity(0.1),
+                        color: widget.incident.typeColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.location_on,
                         size: 20,
-                        color: incident.typeColor,
+                        color: widget.incident.typeColor,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -156,9 +188,9 @@ class LocationSection extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (incident.addressText != null)
+                          if (widget.incident.addressText != null)
                             CustomText(
-                              text: incident.addressText!,
+                              text: widget.incident.addressText!,
                               size: 13,
                               weight: FontWeight.w600,
                               color: AppTheme.getPrimaryTextColor(),
@@ -168,15 +200,15 @@ class LocationSection extends StatelessWidget {
                           else
                             CustomText(
                               text:
-                                  '${incident.position.latitude.toStringAsFixed(4)}, ${incident.position.longitude.toStringAsFixed(4)}',
+                                  '${widget.incident.position.latitude.toStringAsFixed(4)}, ${widget.incident.position.longitude.toStringAsFixed(4)}',
                               size: 13,
                               weight: FontWeight.w600,
                               color: AppTheme.getPrimaryTextColor(),
                             ),
                           const SizedBox(height: 4),
-                          if (incident.city != null)
+                          if (widget.incident.city != null)
                             CustomText(
-                              text: incident.city!,
+                              text: widget.incident.city!,
                               size: 11,
                               weight: FontWeight.w400,
                               color: AppTheme.getSecondaryTextColor(),
