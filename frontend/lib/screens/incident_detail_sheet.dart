@@ -4,6 +4,7 @@ import '../utils/app_theme.dart';
 import '../models/map_incident.dart';
 import '../widgets/incident_details/incident_detail_header.dart';
 import '../widgets/incident_details/reporter_profile_card.dart';
+import '../widgets/incident_details/confidence_section.dart';
 import '../widgets/incident_details/evidence_feed_section.dart';
 import '../widgets/incident_details/location_section.dart';
 
@@ -85,6 +86,10 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                       incident: widget.incident,
                       timeAgo: widget.timeAgo,
                     ),
+                    const SizedBox(height: 16),
+
+                    // AI Confidence
+                    ConfidenceSection(incident: widget.incident),
                     const SizedBox(height: 16),
 
                     // Evidence Feed

@@ -19,6 +19,7 @@ class MapIncident {
   final List<MediaItem> media;
   final String? addressText;
   final String? city;
+  final double confidence;
 
   MapIncident({
     required this.id,
@@ -30,6 +31,7 @@ class MapIncident {
     this.media = const [],
     this.addressText,
     this.city,
+    this.confidence = 0.0,
   });
 
   // Get color based on incident type

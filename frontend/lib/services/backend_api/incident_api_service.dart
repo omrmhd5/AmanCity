@@ -210,6 +210,19 @@ class IncidentApiService {
       }
     }
 
+    // Parse confidence (handle various numeric types from API)
+    double confidence = 0.0;
+    if (data['confidence'] != null) {
+      final confValue = data['confidence'];
+      if (confValue is double) {
+        confidence = confValue;
+      } else if (confValue is int) {
+        confidence = confValue.toDouble();
+      } else if (confValue is num) {
+        confidence = confValue.toDouble();
+      }
+    }
+
     return MapIncident(
       id: id,
       type: type,
@@ -220,6 +233,7 @@ class IncidentApiService {
       media: mediaList,
       addressText: data['location']?['text'] as String?,
       city: data['location']?['city'] as String?,
+      confidence: confidence,
     );
   }
 }
