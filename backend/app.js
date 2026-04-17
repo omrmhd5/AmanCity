@@ -10,7 +10,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("uploads")); // Serve uploaded files
+
+// Serve uploaded files with proper headers for video streaming
+app.use(
+  express.static("uploads", {
+    setHeaders: (res, path) => {
+      // Enable range requests for MP4 video files
+      if (path.endsWith(".mp4")) {
+        res.setHeader("Accept-Ranges", "bytes");
+        res.setHeader("Content-Type", "video/mp4");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+      }
+    },
+  }),
+);
 
 // Routes
 app.use("/api/incidents", require("./routes/incidents"));

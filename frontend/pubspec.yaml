@@ -60,6 +60,9 @@ dependencies:
   # Local storage for caching
   shared_preferences: ^2.0.0
 
+  # Path provider for accessing device directories
+  path_provider: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
