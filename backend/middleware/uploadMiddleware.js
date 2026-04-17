@@ -4,43 +4,31 @@ const path = require("path");
 // Configure multer for file uploads
 const storage = multer.memoryStorage(); // Store in memory for quick processing
 
-// MIME type mapping from file extensions
-const mimeTypeMap = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".mp4": "video/mp4",
-  ".mov": "video/quicktime",
-  ".mpeg": "video/mpeg",
-};
-
 const upload = multer({
   storage: storage,
   limits: {
     fileSize: 100 * 1024 * 1024, // 100MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedMimes = [
-      "image/jpeg",
-      "image/png",
-      "image/jpg",
-      "video/mp4",
-      "video/x-mpeg",
-      "video/quicktime",
-      "application/octet-stream", // Accept generic binary (will validate by extension)
-    ];
+    const filename = file.originalname.toLowerCase();
+    const mimeType = file.mimetype.toLowerCase();
 
-    // If MIME type is generic, try to detect from file extension
-    const fileExt = path.extname(file.originalname).toLowerCase();
-    const mimeFromExt = mimeTypeMap[fileExt];
+    // Allow only images (JPG, PNG) and MP4 videos
+    const isImage =
+      mimeType.startsWith("image/") &&
+      (filename.endsWith(".jpg") ||
+        filename.endsWith(".jpeg") ||
+        filename.endsWith(".png"));
+    const isMp4 =
+      (mimeType === "video/mp4" || mimeType === "application/octet-stream") &&
+      filename.endsWith(".mp4");
 
-    // Validate: either known MIME type or we can detect from extension
-    if (allowedMimes.includes(file.mimetype) || mimeFromExt) {
+    if (isImage || isMp4) {
       cb(null, true);
     } else {
       cb(
         new Error(
-          `Please upload a valid image (JPG or PNG) or video (MP4 or MOV) file.`,
+          `Invalid file type. Please upload an image (JPG/PNG) or MP4 video file only.`,
         ),
       );
     }

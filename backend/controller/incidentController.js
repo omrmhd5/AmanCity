@@ -62,17 +62,36 @@ class IncidentController {
       let mediaArray = [];
       if (req.file) {
         try {
+          // Validate file type - allow images and MP4 videos only
+          const filename = req.file.originalname.toLowerCase();
+          const mimeType = req.file.mimetype.toLowerCase();
+          const isImage = mimeType.startsWith("image/");
+          const isVideo =
+            mimeType.startsWith("video/") && filename.endsWith(".mp4");
+          const isMp4Extension = filename.endsWith(".mp4");
+
+          if (!isImage && !isVideo && !isMp4Extension) {
+            return res.status(400).json({
+              message:
+                "Invalid file type. Please upload an image or MP4 video file.",
+            });
+          }
+
           const filePath = FileService.saveFileToClass(
             req.file.buffer,
             className,
             req.file.originalname,
           );
 
+          // Determine media type - check extension and mimetype
+          let mediaType = "IMAGE";
+          if (isMp4Extension || isVideo) {
+            mediaType = "VIDEO";
+          }
+
           mediaArray = [
             {
-              mediaType: req.file.mimetype.startsWith("video")
-                ? "VIDEO"
-                : "IMAGE",
+              mediaType: mediaType,
               url: filePath,
             },
           ];
