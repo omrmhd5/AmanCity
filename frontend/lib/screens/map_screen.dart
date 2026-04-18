@@ -10,6 +10,7 @@ import '../utils/incident_types_config.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
+import '../widgets/map/hotspot_detail_sheet.dart';
 import '../widgets/map/map_loading_indicator.dart';
 import '../widgets/map/nearby_alerts_sheet.dart';
 import '../widgets/map/route_info_card.dart';
@@ -17,9 +18,11 @@ import '../widgets/map/search_results_dropdown.dart';
 import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
+import '../models/hotspot_zone.dart';
 import '../services/backend_api/incident_api_service.dart';
 import '../services/backend_api/places_api_service.dart';
 import '../services/backend_api/directions_service.dart';
+import '../services/hotspot_api_service.dart';
 import '../services/location_service.dart';
 import 'incident_detail_sheet.dart';
 
@@ -42,6 +45,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<MapIncident> _incidents = [];
   List<EmergencyPOI> _pois = [];
   List<DangerZone> _dangerZones = [];
+  List<HotspotZone> _hotspots = [];
+
+  // Hotspot settings
+  bool _showHotspots = true;
+  DateTime? _hotspotsCachedTime;
+  static const int _hotspotsCacheDurationMinutes = 10;
 
   // POI filtering
   // 'all', 'hospital', 'police', 'fire', or pipe-separated like 'hospital|police'
@@ -102,6 +111,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
     _loadPOIs();
+    _loadHotspots();
   }
 
   @override
@@ -111,6 +121,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _loadIncidents();
       // Only fetch new location if cache is old
       _refreshLocationIfNeeded();
+      // Refresh hotspots if cache expired
+      _hotspotsCachedTime = null;
+      _loadHotspots();
       // Don't reload POIs - let cache handle it
     }
   }
@@ -301,6 +314,35 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadHotspots() async {
+    // Check cache validity
+    if (_hotspotsCachedTime != null) {
+      final age = DateTime.now().difference(_hotspotsCachedTime!);
+      if (age.inMinutes < _hotspotsCacheDurationMinutes) {
+        return;
+      }
+    }
+
+    // Don't load if hotspots are disabled
+    if (!_showHotspots) {
+      return;
+    }
+
+    try {
+      final hotspots = await HotspotApiService.getHotspots();
+
+      setState(() {
+        _hotspots = hotspots;
+        _hotspotsCachedTime = DateTime.now();
+      });
+
+      _updateMapElements();
+    } catch (e) {
+      // Error loading hotspots
+      // Hotspots are optional UI enhancement
+    }
+  }
+
   void _updateMapElements() {
     _markers.clear();
     _circles.clear();
@@ -383,6 +425,38 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           strokeWidth: 2,
         ),
       );
+    }
+
+    // Add hotspot zones as circles (if enabled)
+    if (_showHotspots) {
+      for (var hotspot in _hotspots) {
+        // Add circle for hotspot
+        _circles.add(
+          Circle(
+            circleId: CircleId('hotspot_${hotspot.id}'),
+            center: hotspot.center,
+            radius: hotspot.radiusMeters,
+            fillColor: hotspot.fillColor,
+            strokeColor: hotspot.strokeColor,
+            strokeWidth: 2,
+          ),
+        );
+
+        // Add marker at hotspot center for interactivity
+        _markers.add(
+          Marker(
+            markerId: MarkerId('hotspot_marker_${hotspot.id}'),
+            position: hotspot.center,
+            icon: _getHotspotMarker(hotspot),
+            consumeTapEvents: true,
+            onTap: () => _onHotspotTapped(hotspot),
+            infoWindow: InfoWindow(
+              title: '${hotspot.riskLevel} Risk Zone',
+              snippet: '${hotspot.incidentCount} incidents',
+            ),
+          ),
+        );
+      }
     }
 
     setState(() {});
@@ -526,6 +600,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _createAndCacheMarkerIcon(cacheKey, iconData, iconColor, userColor);
 
     return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+  }
+
+  /// Creates a hotspot marker icon (warning/alert style)
+  BitmapDescriptor _getHotspotMarker(HotspotZone hotspot) {
+    final cacheKey = 'hotspot_${hotspot.riskScore.toStringAsFixed(2)}';
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+
+    // Use warning icon for hotspots
+    const iconData = Icons.warning_amber;
+    const iconColor = Colors.white;
+    final backgroundColor = hotspot.riskColor;
+
+    _createAndCacheMarkerIcon(
+      cacheKey,
+      iconData,
+      iconColor,
+      backgroundColor,
+      markerSize: 90.0,
+    );
+
+    return BitmapDescriptor.defaultMarkerWithHue(
+      _getHueFromColor(backgroundColor),
+    );
   }
 
   double _getHueFromColor(Color color) {
@@ -867,6 +966,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           await _drawRouteTo(selectedPoi);
         },
       ),
+    );
+  }
+
+  void _onHotspotTapped(HotspotZone hotspot) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => HotspotDetailSheet(hotspot: hotspot),
     );
   }
 

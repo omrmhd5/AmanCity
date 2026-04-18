@@ -2,6 +2,7 @@ const IncidentService = require("../service/incidentService");
 const FileService = require("../service/fileService");
 const GeocodingService = require("../service/geocodingService");
 const IncidentType = require("../model/IncidentType");
+const HotspotController = require("./hotspotController");
 
 class IncidentController {
   /**
@@ -134,6 +135,10 @@ class IncidentController {
         timestamp: incident.timestamp,
         media: incident.media,
       };
+
+      // Trigger async hotspot recalculation (non-blocking)
+      // This updates the hotspot predictions based on the new incident
+      HotspotController.triggerAsyncRecalculation();
 
       res.status(201).json({
         message: "Incident created successfully",
