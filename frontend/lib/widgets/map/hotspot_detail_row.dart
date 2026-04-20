@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_theme.dart';
+import '../shared/custom_text.dart';
 
 class HotspotDetailRow extends StatelessWidget {
   final String label;
@@ -12,17 +14,17 @@ class HotspotDetailRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+        CustomText(
+          text: label,
+          size: 13,
+          color: AppTheme.getSecondaryTextColor(),
+          weight: FontWeight.w500,
         ),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+        CustomText(
+          text: value,
+          size: 13,
+          weight: FontWeight.w700,
+          color: AppTheme.getPrimaryTextColor(),
         ),
       ],
     );

@@ -145,6 +145,28 @@ const calculateHotspots = (incidents) => {
 
       const normalizedRisk = Math.min(1.0, Math.max(0, riskScore));
 
+      // Get incident types in this cluster
+      const incidentTypes = [
+        ...new Set(
+          clusterIncidents
+            .map((inc) => {
+              // Handle both populated objects and plain IDs
+              if (inc.type && typeof inc.type === "object") {
+                // Populated object - extract the type name
+                // Try type field first (main identifier), then nameEn, then nameAr
+                return (
+                  inc.type.type ||
+                  inc.type.nameEn ||
+                  inc.type.nameAr ||
+                  "Unknown"
+                );
+              }
+              return null;
+            })
+            .filter((type) => type !== null && type !== "Unknown"),
+        ),
+      ];
+
       return {
         id: `hotspot_${centerLat.toFixed(4)}_${centerLng.toFixed(4)}`,
         center: {
@@ -158,6 +180,7 @@ const calculateHotspots = (incidents) => {
         avgConfidence: avgConfidence,
         updatedAt: new Date(),
         recentIncidents: clusterIndices,
+        incidentTypes: incidentTypes,
       };
     })
     .filter((h) => h !== null)

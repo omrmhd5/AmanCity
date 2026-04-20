@@ -164,48 +164,55 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
       return _buildVideoItem(mediaUrl);
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        alignment: Alignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              mediaUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
+    return GestureDetector(
+      onTap: () => _showImageViewer(mediaUrl),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-          ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: CustomText(
-                text: media.mediaType.toUpperCase(),
-                size: 10,
-                weight: FontWeight.w700,
-                color: Colors.white,
+          ],
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          alignment: Alignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                mediaUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildErrorWidget(),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: CustomText(
+                  text: media.mediaType.toUpperCase(),
+                  size: 10,
+                  weight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -226,6 +233,68 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
               color: Colors.grey,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showImageViewer(String imageUrl) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            color: Colors.black87,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Center(
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.image_not_supported,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 12),
+                          CustomText(
+                            text: 'Failed to load image',
+                            size: 12,
+                            weight: FontWeight.w400,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.close, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

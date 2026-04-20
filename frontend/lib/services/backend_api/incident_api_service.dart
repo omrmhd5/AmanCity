@@ -102,7 +102,7 @@ class IncidentApiService {
         try {
           final errorJson = jsonDecode(response.body);
           final errorMessage =
-              errorJson['message'] ?? 'Unable to create report';
+              errorJson['message'] ?? 'Unable to save your report';
           throw Exception(errorMessage);
         } catch (e) {
           // If JSON parsing fails, show generic message
@@ -191,8 +191,7 @@ class IncidentApiService {
     try {
       IncidentTypesConfig.getByKey(type);
     } catch (e) {
-      // Type not found in config, keep as-is but log
-      print('⚠ Unknown incident type: $type');
+      // Type not found in config, keep as-is
     }
 
     // Parse media

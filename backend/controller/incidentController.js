@@ -66,15 +66,25 @@ class IncidentController {
           // Validate file type - allow images and MP4 videos only
           const filename = req.file.originalname.toLowerCase();
           const mimeType = req.file.mimetype.toLowerCase();
-          const isImage = mimeType.startsWith("image/");
-          const isVideo =
-            mimeType.startsWith("video/") && filename.endsWith(".mp4");
-          const isMp4Extension = filename.endsWith(".mp4");
 
-          if (!isImage && !isVideo && !isMp4Extension) {
+          // Check if it's an image (JPG, PNG)
+          const isJpg = filename.endsWith(".jpg") || filename.endsWith(".jpeg");
+          const isPng = filename.endsWith(".png");
+          const isImage =
+            (mimeType.startsWith("image/") ||
+              mimeType === "application/octet-stream") &&
+            (isJpg || isPng);
+
+          // Check if it's a video (MP4)
+          const isVideo =
+            (mimeType === "video/mp4" ||
+              mimeType === "application/octet-stream") &&
+            filename.endsWith(".mp4");
+
+          if (!isImage && !isVideo) {
             return res.status(400).json({
               message:
-                "Invalid file type. Please upload an image or MP4 video file.",
+                "Invalid file type. Please upload an image (JPG/PNG) or MP4 video file.",
             });
           }
 
@@ -84,9 +94,9 @@ class IncidentController {
             req.file.originalname,
           );
 
-          // Determine media type - check extension and mimetype
+          // Determine media type based on file extension
           let mediaType = "IMAGE";
-          if (isMp4Extension || isVideo) {
+          if (filename.endsWith(".mp4")) {
             mediaType = "VIDEO";
           }
 

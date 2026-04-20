@@ -12,6 +12,7 @@ class HotspotZone {
   final int incidentCount;
   final double avgConfidence;
   final DateTime updatedAt;
+  final List<String> incidentTypes; // Types of incidents in this hotspot
 
   HotspotZone({
     required this.id,
@@ -22,6 +23,7 @@ class HotspotZone {
     required this.incidentCount,
     required this.avgConfidence,
     required this.updatedAt,
+    this.incidentTypes = const [],
   });
 
   /// Factory constructor to create from JSON
@@ -40,6 +42,9 @@ class HotspotZone {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : DateTime.now(),
+      incidentTypes: json['incidentTypes'] != null
+          ? List<String>.from(json['incidentTypes'] as List)
+          : [],
     );
   }
 
@@ -84,6 +89,27 @@ class HotspotZone {
       return '${difference.inHours}h ago';
     } else {
       return '${difference.inDays}d ago';
+    }
+  }
+
+  /// Generate smart warning message based on incident types
+  String get smartWarningMessage {
+    // Filter out "Unknown" and empty types
+    final validTypes = incidentTypes
+        .where((type) => type.isNotEmpty && type.toLowerCase() != 'unknown')
+        .toList();
+
+    if (validTypes.isEmpty) {
+      return 'High predicted risk based on recent incident patterns.';
+    }
+
+    final typeList = validTypes.join(', ');
+    final typeCount = validTypes.length;
+
+    if (typeCount == 1) {
+      return 'Recent $typeList reports in this area have elevated risk.';
+    } else {
+      return 'Multiple incident types: $typeList.';
     }
   }
 }

@@ -15,12 +15,15 @@ const upload = multer({
 
     // Allow only images (JPG, PNG) and MP4 videos
     const isImage =
-      mimeType.startsWith("image/") &&
+      (mimeType.startsWith("image/") ||
+        mimeType === "application/octet-stream") &&
       (filename.endsWith(".jpg") ||
         filename.endsWith(".jpeg") ||
         filename.endsWith(".png"));
     const isMp4 =
-      (mimeType === "video/mp4" || mimeType === "application/octet-stream") &&
+      (mimeType === "video/mp4" ||
+        mimeType === "application/octet-stream" ||
+        filename.endsWith(".mp4")) &&
       filename.endsWith(".mp4");
 
     if (isImage || isMp4) {

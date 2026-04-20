@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/hotspot_zone.dart';
+import '../../utils/app_theme.dart';
+import '../shared/custom_text.dart';
 import 'hotspot_detail_row.dart';
 
 class HotspotDetailSheet extends StatelessWidget {
@@ -11,7 +13,7 @@ class HotspotDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: AppTheme.getBackgroundColor(),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SingleChildScrollView(
@@ -37,23 +39,29 @@ class HotspotDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Predicted Risk Zone',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        CustomText(
+                          text: 'Predicted Risk Zone',
+                          size: 12,
+                          color: AppTheme.getSecondaryTextColor(),
+                          weight: FontWeight.w500,
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          hotspot.riskLevel,
-                          style: Theme.of(context).textTheme.titleLarge,
+                        CustomText(
+                          text: hotspot.riskLevel,
+                          size: 18,
+                          weight: FontWeight.w700,
+                          color: AppTheme.getPrimaryTextColor(),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: Navigator.of(context).pop,
-                    icon: const Icon(Icons.close),
+                  GestureDetector(
+                    onTap: Navigator.of(context).pop,
+                    child: Icon(
+                      Icons.close,
+                      color: AppTheme.getSecondaryTextColor(),
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
@@ -63,9 +71,11 @@ class HotspotDetailSheet extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Risk Score',
-                    style: Theme.of(context).textTheme.labelMedium,
+                  CustomText(
+                    text: 'Risk Score',
+                    size: 13,
+                    weight: FontWeight.w600,
+                    color: AppTheme.getPrimaryTextColor(),
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
@@ -73,16 +83,18 @@ class HotspotDetailSheet extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: hotspot.riskScore,
                       minHeight: 8,
-                      backgroundColor: Colors.grey.shade300,
+                      backgroundColor: AppTheme.getCardBackgroundColor(),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         hotspot.riskColor,
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '${(hotspot.riskScore * 100).toStringAsFixed(0)}%',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  CustomText(
+                    text: '${(hotspot.riskScore * 100).toStringAsFixed(0)}%',
+                    size: 12,
+                    weight: FontWeight.w500,
+                    color: AppTheme.getSecondaryTextColor(),
                   ),
                 ],
               ),
@@ -91,10 +103,12 @@ class HotspotDetailSheet extends StatelessWidget {
               // Details
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade900
-                      : Colors.grey.shade100,
+                  color: AppTheme.getCardBackgroundColor(),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.getBorderColor(),
+                    width: 0.5,
+                  ),
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -129,7 +143,7 @@ class HotspotDetailSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: hotspot.riskColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: hotspot.riskColor),
+                  border: Border.all(color: hotspot.riskColor.withOpacity(0.3)),
                 ),
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -137,9 +151,11 @@ class HotspotDetailSheet extends StatelessWidget {
                     Icon(Icons.info, color: hotspot.riskColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        'This zone has high predicted risk based on recent incident patterns.',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      child: CustomText(
+                        text: hotspot.smartWarningMessage,
+                        size: 12,
+                        color: AppTheme.getPrimaryTextColor(),
+                        weight: FontWeight.w500,
                       ),
                     ),
                   ],
