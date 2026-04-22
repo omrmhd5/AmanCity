@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Main Color (Primary)
-  // Navy Blue — #0B1D3A
+  // Navy Blue — #09182F
   // Represents trust, security, authority
   // Strong foundation for headers, app bars, buttons, map overlays
   // Works perfectly for dark mode base
-  static const Color primary = Color(0xFF0B1D3A);
+  static const Color primary = Color(0xFF09182F);
   static const Color primaryHover = Color(0xFF152D52);
 
   // Secondary Color (Accent)

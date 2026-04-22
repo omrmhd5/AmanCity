@@ -63,7 +63,7 @@ class AiMessageBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isUser
                         ? AppColors.primary
-                        : AppTheme.getCardBackgroundColor(),
+                        : AppColors.secondary.withOpacity(0.15),
                     borderRadius: isUser
                         ? const BorderRadius.only(
                             topLeft: Radius.circular(20),

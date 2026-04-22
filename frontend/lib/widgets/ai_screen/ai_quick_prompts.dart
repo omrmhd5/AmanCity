@@ -37,9 +37,9 @@ class AiQuickPrompts extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.getCardBackgroundColor(),
+                    color: AppColors.secondary.withOpacity(0.12),
                     border: Border.all(
-                      color: AppTheme.getBorderColor(),
+                      color: AppColors.secondary.withOpacity(0.3),
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(8),
