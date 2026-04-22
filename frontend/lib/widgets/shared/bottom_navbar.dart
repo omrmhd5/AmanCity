@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_theme.dart';
 
-enum NavItem { map, report, home, alerts, profile }
+enum NavItem { map, report, home, ai, profile }
 
 class BottomNavBar extends StatelessWidget {
   final NavItem currentItem;
@@ -47,9 +47,9 @@ class BottomNavBar extends StatelessWidget {
               ),
               _buildHomeButton(),
               _buildNavItem(
-                icon: Icons.notifications,
-                label: 'Alerts',
-                item: NavItem.alerts,
+                icon: Icons.smart_toy,
+                label: 'AI',
+                item: NavItem.ai,
               ),
               _buildNavItem(
                 icon: Icons.person,

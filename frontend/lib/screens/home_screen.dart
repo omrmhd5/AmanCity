@@ -5,6 +5,7 @@ import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import 'map_screen.dart';
 import 'report_incident_screen.dart';
+import 'ai_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -65,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return const ReportIncidentScreen();
       case NavItem.home:
         return _buildWelcomePage();
-      case NavItem.alerts:
-        return _buildPlaceholder('Safety Alerts');
+      case NavItem.ai:
+        return AiScreen();
       case NavItem.profile:
         return const ProfileScreen();
     }
