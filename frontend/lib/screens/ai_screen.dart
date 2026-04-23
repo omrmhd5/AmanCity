@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../utils/app_theme.dart';
+import '../services/backend_api/gemini_chat_service.dart';
 import '../widgets/ai_screen/ai_chat_header.dart';
 import '../widgets/ai_screen/ai_message_bubble.dart';
 import '../widgets/ai_screen/ai_quick_prompts.dart';
@@ -31,6 +33,8 @@ class _AiScreenState extends State<AiScreen> {
   late TextEditingController _inputController;
   late ScrollController _scrollController;
   bool _isTyping = false;
+  double? _userLat;
+  double? _userLng;
 
   @override
   void initState() {
@@ -47,6 +51,9 @@ class _AiScreenState extends State<AiScreen> {
         timestamp: _getCurrentTime(),
       ),
     ];
+
+    // Get user location for chat context
+    _getUserLocation();
   }
 
   @override
@@ -61,6 +68,21 @@ class _AiScreenState extends State<AiScreen> {
     return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _getUserLocation() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _userLat = position.latitude;
+        _userLng = position.longitude;
+      });
+    } catch (e) {
+      // Location permission denied or error; continue without location context
+      print('Location error: $e');
+    }
+  }
+
   Future<void> _sendMessage(String text) async {
     // Add user message
     setState(() {
@@ -72,58 +94,34 @@ class _AiScreenState extends State<AiScreen> {
 
     _scrollToBottom();
 
-    // Simulate typing delay
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    // Generate AI response based on keywords
-    String aiResponse = _generateAiResponse(text);
-    String? citation;
-
-    if (text.toLowerCase().contains('safe') ||
-        text.toLowerCase().contains('area')) {
-      citation =
-          'Based on 3 verified reports in the last hour regarding low lighting.';
-    } else if (text.toLowerCase().contains('route') ||
-        text.toLowerCase().contains('way')) {
-      citation =
-          'Safe route analysis using real-time incident data and street lighting information.';
-    }
-
-    setState(() {
-      _messages.add(
-        ChatMessage(
-          text: aiResponse,
-          isUser: false,
-          timestamp: _getCurrentTime(),
-          citationText: citation,
-        ),
+    try {
+      // Call Gemini service with location context
+      final reply = await GeminiChatService.sendMessage(
+        text,
+        latitude: _userLat,
+        longitude: _userLng,
       );
-      _isTyping = false;
-    });
+
+      setState(() {
+        _messages.add(
+          ChatMessage(text: reply, isUser: false, timestamp: _getCurrentTime()),
+        );
+        _isTyping = false;
+      });
+    } catch (error) {
+      setState(() {
+        _messages.add(
+          ChatMessage(
+            text: 'Sorry, I encountered an error: ${error.toString()}',
+            isUser: false,
+            timestamp: _getCurrentTime(),
+          ),
+        );
+        _isTyping = false;
+      });
+    }
 
     _scrollToBottom();
-  }
-
-  String _generateAiResponse(String userText) {
-    final text = userText.toLowerCase();
-
-    if (text.contains('safe') || text.contains('danger')) {
-      return 'Current analysis suggests caution is required in your area. Based on recent reports, there have been several incidents. I recommend staying alert and avoiding isolated areas, especially during late hours. Would you like specific safety recommendations?';
-    } else if (text.contains('route') ||
-        text.contains('way') ||
-        text.contains('path')) {
-      return 'The Ring Road is currently the safest option due to high traffic flow and active street lighting. Estimated time: 24 minutes. Main streets are well-lit and monitored. Would you like directions or more alternatives?';
-    } else if (text.contains('emergency') ||
-        text.contains('help') ||
-        text.contains('danger')) {
-      return 'In case of emergency, call 122 (Emergency Services) or 126 (Tourist Police). If you need immediate assistance, your location has been noted. Stay safe and keep emergency contacts saved.';
-    } else if (text.contains('incident') || text.contains('report')) {
-      return 'You can report incidents through the app\'s Report feature. Provide details, location, and any evidence (photos/videos). Your reports help improve community safety. Would you like to file a report?';
-    } else if (text.contains('alert') || text.contains('notification')) {
-      return 'I can send you safety alerts for your area. Enable notifications in settings to receive real-time updates about incidents and recommended safe routes. This helps you stay informed and avoid dangerous areas.';
-    } else {
-      return 'I\'m here to help with safety information. You can ask me about area safety, safest routes, emergency contacts, or how to report incidents. What would you like to know?';
-    }
   }
 
   void _scrollToBottom() {
