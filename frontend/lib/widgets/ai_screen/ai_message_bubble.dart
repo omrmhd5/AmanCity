@@ -49,12 +49,7 @@ class AiMessageBubble extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: CustomText(
-                      text: 'AI',
-                      size: 10,
-                      weight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                    child: Icon(Icons.smart_toy, size: 18, color: Colors.white),
                   ),
                 ),
               const SizedBox(width: 8),
@@ -62,7 +57,7 @@ class AiMessageBubble extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: isUser
-                        ? AppColors.primary
+                        ? Colors.blue[800]
                         : AppColors.secondary.withOpacity(0.15),
                     borderRadius: isUser
                         ? const BorderRadius.only(
