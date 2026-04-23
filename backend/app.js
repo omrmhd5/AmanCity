@@ -32,6 +32,7 @@ app.use("/api/places", require("./routes/places"));
 app.use("/api/geocode", require("./routes/geocode"));
 app.use("/api/directions", require("./routes/directions"));
 app.use("/api/hotspots", require("./routes/hotspots"));
+app.use("/api/osint", require("./routes/osint"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

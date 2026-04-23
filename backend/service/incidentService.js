@@ -31,10 +31,20 @@ class IncidentService {
           text: incidentData.location.text,
           city: incidentData.location.city,
         },
-        confidence: incidentData.confidence || 0.5,
         timestamp: incidentData.timestamp || new Date(),
         media: incidentData.media || [],
         reportedBy: incidentData.reportedBy,
+        ...(incidentData.confidence !== undefined && {
+          confidence: incidentData.confidence,
+        }),
+        ...(incidentData.source && { source: incidentData.source }),
+        ...(incidentData.sourceUrls && { sourceUrls: incidentData.sourceUrls }),
+        ...(incidentData.osintConfidence !== undefined && {
+          osintConfidence: incidentData.osintConfidence,
+        }),
+        ...(incidentData.locationPrecision && {
+          locationPrecision: incidentData.locationPrecision,
+        }),
       });
 
       await incident.save();
@@ -48,6 +58,35 @@ class IncidentService {
         error.message || "Unable to save your report. Please try again.",
       );
     }
+  }
+
+  /**
+   * Check if an OSINT incident already exists nearby (deduplication)
+   * Matches same type, within ~500m, in the last 30 minutes
+   * @param {ObjectId} typeId
+   * @param {number} lat
+   * @param {number} lng
+   * @returns {Promise<boolean>}
+   */
+  static async checkDuplicate(typeId, lat, lng) {
+    const DEGREE_OFFSET = 0.0045; // ~500m
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+
+    const existing = await Incident.findOne({
+      type: typeId,
+      source: "OSINT_Twitter",
+      timestamp: { $gte: thirtyMinutesAgo },
+      "location.latitude": {
+        $gte: lat - DEGREE_OFFSET,
+        $lte: lat + DEGREE_OFFSET,
+      },
+      "location.longitude": {
+        $gte: lng - DEGREE_OFFSET,
+        $lte: lng + DEGREE_OFFSET,
+      },
+    });
+
+    return existing !== null;
   }
 
   /**

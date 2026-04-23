@@ -59,6 +59,26 @@ const incidentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    source: {
+      type: String,
+      enum: ["Human", "OSINT_Twitter"],
+      default: "Human",
+    },
+    sourceUrls: {
+      type: [String],
+      default: undefined,
+    },
+    osintConfidence: {
+      type: Number,
+      min: 0,
+      max: 1,
+      default: undefined,
+    },
+    locationPrecision: {
+      type: String,
+      enum: ["EXACT", "VAGUE"],
+      default: undefined,
+    },
   },
   { timestamps: true },
 );
