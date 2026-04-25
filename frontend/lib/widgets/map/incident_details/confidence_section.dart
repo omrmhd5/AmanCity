@@ -12,11 +12,11 @@ class ConfidenceSection extends StatelessWidget {
   /// Get color based on confidence level
   Color _getConfidenceColor(double confidence) {
     if (confidence >= 0.75) {
-      return const Color(0xFF4CAF50);
+      return const Color(0xFFFF5252);
     } else if (confidence >= 0.65) {
       return const Color(0xFFFFA500);
     } else {
-      return const Color(0xFFFF5252);
+      return const Color(0xFF4CAF50);
     }
   }
 

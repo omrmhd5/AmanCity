@@ -28,8 +28,8 @@ class NearbyAlertCard extends StatelessWidget {
   }) : super(key: key);
 
   Color _getConfidenceColor() {
-    if (confidence >= 0.7) return AppColors.danger;
-    if (confidence >= 0.4) return AppColors.warning;
+    if (confidence >= 0.75) return AppColors.danger;
+    if (confidence >= 0.65) return AppColors.warning;
     return AppColors.success;
   }
 
