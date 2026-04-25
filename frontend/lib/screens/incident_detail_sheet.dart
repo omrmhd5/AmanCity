@@ -65,6 +65,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
             incidentId: widget.incident.id,
             addressText: widget.incident.addressText,
             city: widget.incident.city,
+            timestamp: widget.incident.timestamp,
             onBackPressed: () => Navigator.pop(context),
             onSharePressed: () {
               ScaffoldMessenger.of(context).showSnackBar(

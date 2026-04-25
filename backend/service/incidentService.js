@@ -252,6 +252,25 @@ class IncidentService {
       throw new Error("Unable to delete the report. Please try again.");
     }
   }
+
+  /**
+   * Get incidents by source (Human, OSINT_Twitter, etc.)
+   */
+  static async getIncidentsBySource(source, limit = 50) {
+    try {
+      const incidents = await Incident.find({ source })
+        .populate("type")
+        .populate("reportedBy", "name email")
+        .sort({ timestamp: -1 })
+        .limit(limit);
+
+      return incidents;
+    } catch (error) {
+      throw new Error(
+        "Unable to retrieve incidents by source. Please try again.",
+      );
+    }
+  }
 }
 
 module.exports = IncidentService;

@@ -1,6 +1,9 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
-const { scanOsint } = require("../controller/osintController");
+const {
+  scanOsint,
+  getOsintIncidents,
+} = require("../controller/osintController");
 
 const router = express.Router();
 
@@ -18,5 +21,8 @@ const scanLimiter = rateLimit({
 
 // POST /api/osint/scan
 router.post("/scan", scanLimiter, scanOsint);
+
+// GET /api/osint/incidents
+router.get("/incidents", getOsintIncidents);
 
 module.exports = router;

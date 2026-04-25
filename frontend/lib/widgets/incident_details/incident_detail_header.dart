@@ -7,6 +7,7 @@ class IncidentDetailHeader extends StatelessWidget {
   final String incidentId;
   final String? addressText;
   final String? city;
+  final DateTime? timestamp;
   final VoidCallback onBackPressed;
   final VoidCallback onSharePressed;
 
@@ -15,9 +16,20 @@ class IncidentDetailHeader extends StatelessWidget {
     required this.incidentId,
     this.addressText,
     this.city,
+    this.timestamp,
     required this.onBackPressed,
     required this.onSharePressed,
   }) : super(key: key);
+
+  String _formatTime12Hour(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final second = dt.second.toString().padLeft(2, '0');
+    final month = dt.month.toString().padLeft(2, '0');
+    final day = dt.day.toString().padLeft(2, '0');
+    return '${dt.year}-$month-$day $hour:$minute:$second $period';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +88,15 @@ class IncidentDetailHeader extends StatelessWidget {
                         color: AppTheme.getSecondaryTextColor(),
                         overflow: TextOverflow.ellipsis,
                       ),
+                    if (timestamp != null) ...[
+                      const SizedBox(height: 4),
+                      CustomText(
+                        text: _formatTime12Hour(timestamp!),
+                        size: 9,
+                        weight: FontWeight.w400,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ],
                   ],
                 ),
               ),

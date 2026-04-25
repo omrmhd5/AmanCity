@@ -126,4 +126,42 @@ async function scanOsint(req, res) {
   });
 }
 
-module.exports = { scanOsint };
+/**
+ * GET /api/osint/incidents
+ * Fetches all OSINT_Twitter incidents from MongoDB, sorted by timestamp desc
+ */
+async function getOsintIncidents(req, res) {
+  try {
+    const incidents = await IncidentService.getIncidentsBySource(
+      "OSINT_Twitter",
+      50, // limit to 50 incidents
+    );
+
+    console.log(`✅ Fetched ${incidents.length} OSINT_Twitter incidents`);
+
+    return res.status(200).json({
+      message: "OSINT incidents retrieved successfully.",
+      count: incidents.length,
+      incidents: incidents.map((i) => ({
+        id: i._id,
+        title: i.title,
+        type: i.type?.type || "Unknown",
+        location: i.location?.text,
+        latitude: i.location?.latitude,
+        longitude: i.location?.longitude,
+        locationPrecision: i.locationPrecision,
+        osintConfidence: i.osintConfidence,
+        sourceUrls: i.sourceUrls || [],
+        timestamp: i.timestamp,
+      })),
+    });
+  } catch (err) {
+    console.error("❌ Failed to fetch OSINT incidents:", err.message);
+    return res.status(500).json({
+      message: "Failed to fetch incidents.",
+      error: err.message,
+    });
+  }
+}
+
+module.exports = { scanOsint, getOsintIncidents };

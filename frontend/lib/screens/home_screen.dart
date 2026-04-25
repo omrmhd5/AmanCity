@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/shared/bottom_navbar.dart';
 import 'profile_screen.dart';
+import 'news_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_theme.dart';
 import 'map_screen.dart';
@@ -70,92 +71,168 @@ class _HomeScreenState extends State<HomeScreen> {
         return AiScreen();
       case NavItem.profile:
         return const ProfileScreen();
+      case NavItem.news:
+        return NewsScreen(onBack: () => _onNavItemTapped(NavItem.home));
     }
   }
 
   Widget _buildWelcomePage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Welcome Icon
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withOpacity(0.3),
-                  blurRadius: 16,
-                  spreadRadius: 4,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Welcome Icon
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.secondary.withOpacity(0.3),
+                    blurRadius: 16,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.shield_outlined,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Welcome Text
+            Text(
+              'Welcome to AmanCity',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.getPrimaryTextColor(),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            // Subtitle
+            Text(
+              'Your Safety, Our Priority',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.getSecondaryTextColor(),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            // Description
+            Text(
+              'Stay safe with real-time community alerts, incident reporting, and emergency SOS features. Together, we build a safer neighborhood.',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: AppTheme.getSecondaryTextColor(),
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
+            // Feature Cards
+            _buildFeatureCard(
+              icon: Icons.location_on,
+              title: 'Real-time Alerts',
+              description:
+                  'Get instant notifications of safety incidents near you',
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureCard(
+              icon: Icons.report,
+              title: 'Easy Reporting',
+              description: 'Report incidents quickly with photos and location',
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureCard(
+              icon: Icons.sos,
+              title: 'SOS Emergency',
+              description: 'One-tap emergency alert to trusted contacts',
+            ),
+            const SizedBox(height: 32),
+            // Latest News Card
+            GestureDetector(
+              onTap: () => _onNavItemTapped(NavItem.news),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.1),
+                      Colors.blue.withOpacity(0.08),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.secondary.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
-              ],
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.newspaper,
+                        color: AppColors.secondary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Latest Twitter News',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'View real-time incidents detected by Grok AI',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: AppTheme.getSecondaryTextColor(),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: AppColors.secondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            child: const Icon(
-              Icons.shield_outlined,
-              color: Colors.white,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 32),
-          // Welcome Text
-          Text(
-            'Welcome to AmanCity',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.getPrimaryTextColor(),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          // Subtitle
-          Text(
-            'Your Safety, Our Priority',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.getSecondaryTextColor(),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          // Description
-          Text(
-            'Stay safe with real-time community alerts, incident reporting, and emergency SOS features. Together, we build a safer neighborhood.',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.getSecondaryTextColor(),
-              height: 1.6,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 48),
-          // Feature Cards
-          _buildFeatureCard(
-            icon: Icons.location_on,
-            title: 'Real-time Alerts',
-            description:
-                'Get instant notifications of safety incidents near you',
-          ),
-          const SizedBox(height: 16),
-          _buildFeatureCard(
-            icon: Icons.report,
-            title: 'Easy Reporting',
-            description: 'Report incidents quickly with photos and location',
-          ),
-          const SizedBox(height: 16),
-          _buildFeatureCard(
-            icon: Icons.sos,
-            title: 'SOS Emergency',
-            description: 'One-tap emergency alert to trusted contacts',
-          ),
-        ],
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -207,47 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder(String screenName) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.construction,
-              color: AppColors.secondary,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            screenName,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.getPrimaryTextColor(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.getSecondaryTextColor(),
             ),
           ),
         ],
