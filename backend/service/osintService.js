@@ -17,7 +17,7 @@ Your ONLY job is to analyze the X (Twitter) search results you gather and format
 
 If there are no emergencies, output []. Do not output any conversational text or markdown blocks outside of the JSON.`;
 
-const SEARCH_PROMPT = `Please search X (Twitter) for posts from the last 24 hours reporting real-time safety emergencies like car accidents, massive fires, severe road damage, floods, or violent fights. 
+const SEARCH_PROMPT = `Please search X (Twitter) for posts from the last 48 hours reporting real-time safety emergencies like car accidents, massive fires, severe road damage, floods, or violent fights. 
 
 Target Areas to search: Greater Cairo, Giza, Nasr City, Maadi, Heliopolis, 6th of October, Sheikh Zayed, Haram, Shubra, Imbaba, New Cairo, El Shorouk, Madinaty, Al Rehab, Obour City, Badr City, the Ring Road, Suez Road, and Ismailia Road.`;
 

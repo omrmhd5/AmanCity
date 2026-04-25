@@ -15,7 +15,7 @@ class OsintApiService {
             Uri.parse('$_baseUrl/scan'),
             headers: {'Content-Type': 'application/json'},
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 180));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -53,7 +53,7 @@ class OsintApiService {
             Uri.parse('$_baseUrl/incidents'),
             headers: {'Content-Type': 'application/json'},
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
