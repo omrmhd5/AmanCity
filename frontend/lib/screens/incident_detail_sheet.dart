@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_theme.dart';
 import '../models/map_incident.dart';
-import '../widgets/incident_details/incident_detail_header.dart';
-import '../widgets/incident_details/reporter_profile_card.dart';
-import '../widgets/incident_details/confidence_section.dart';
-import '../widgets/incident_details/evidence_feed_section.dart';
-import '../widgets/incident_details/location_section.dart';
+import '../widgets/map/incident_details/incident_detail_header.dart';
+import '../widgets/map/incident_details/reporter_profile_card.dart';
+import '../widgets/map/incident_details/confidence_section.dart';
+import '../widgets/map/incident_details/evidence_feed_section.dart';
+import '../widgets/map/incident_details/location_section.dart';
 
 class IncidentDetailScreen extends StatefulWidget {
   final MapIncident incident;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_theme.dart';
-import '../../models/map_incident.dart';
-import '../shared/custom_text.dart';
+import '../../../utils/app_theme.dart';
+import '../../../models/map_incident.dart';
+import '../../shared/custom_text.dart';
 
 class ReporterProfileCard extends StatelessWidget {
   final MapIncident incident;

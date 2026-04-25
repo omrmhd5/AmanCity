@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../utils/app_theme.dart';
-import '../../models/map_incident.dart';
-import '../shared/custom_text.dart';
+import '../../../utils/app_theme.dart';
+import '../../../models/map_incident.dart';
+import '../../shared/custom_text.dart';
 
 class LocationSection extends StatefulWidget {
   final MapIncident incident;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_theme.dart';
-import '../../utils/app_colors.dart';
-import '../../models/map_incident.dart';
-import '../shared/custom_text.dart';
+import '../../../utils/app_theme.dart';
+import '../../../utils/app_colors.dart';
+import '../../../models/map_incident.dart';
+import '../../shared/custom_text.dart';
 
 class ConfidenceSection extends StatelessWidget {
   final MapIncident? incident;

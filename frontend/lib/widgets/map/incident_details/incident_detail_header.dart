@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_theme.dart';
-import '../../utils/app_colors.dart';
-import '../shared/custom_text.dart';
+import '../../../utils/app_theme.dart';
+import '../../../utils/app_colors.dart';
+import '../../shared/custom_text.dart';
 
 class IncidentDetailHeader extends StatelessWidget {
   final String incidentId;
