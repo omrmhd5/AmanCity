@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/osint_incident.dart';
 import '../utils/app_theme.dart';
 import '../widgets/news/news_details/news_detail_header.dart';
-import '../widgets/news/news_details/news_detail_location_section.dart';
+import '../widgets/news/news_details/news_location_section.dart';
 import '../widgets/news/news_details/news_detail_confidence_section.dart';
 import '../widgets/news/news_details/news_detail_sources_section.dart';
 
@@ -64,8 +64,8 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Location Section (includes time)
-                  NewsDetailLocationSection(incident: widget.incident),
+                  // Location Section (map preview + details)
+                  NewsLocationSection(incident: widget.incident),
 
                   // Confidence Section
                   NewsDetailConfidenceSection(incident: widget.incident),

@@ -1022,6 +1022,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             'distance': LocationService.formatDistance(distanceKm) + ' away',
             'color': incident.typeColor,
             'icon': incident.typeIcon,
+            'confidence': incident.confidence,
+            'location': {'text': incident.addressText},
           };
         })
         .where(

@@ -33,14 +33,18 @@ class NewsFeedCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppTheme.getCardBackgroundColor(),
-          borderRadius: BorderRadius.circular(12),
+          color: Color.alphaBlend(
+            typeConfig.color.withOpacity(0.04),
+            AppTheme.getCardBackgroundColor(),
+          ),
+          borderRadius: BorderRadius.circular(16),
           border: Border(left: BorderSide(color: typeConfig.color, width: 4)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: typeConfig.color.withOpacity(0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
+              spreadRadius: 0,
             ),
           ],
         ),
@@ -79,8 +83,8 @@ class NewsFeedCard extends StatelessWidget {
                 // Time
                 CustomText(
                   text: incident.timeAgo,
-                  size: 10,
-                  weight: FontWeight.w400,
+                  size: 11,
+                  weight: FontWeight.w900,
                   color: AppTheme.getSecondaryTextColor(),
                 ),
               ],

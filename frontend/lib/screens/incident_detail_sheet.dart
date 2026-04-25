@@ -63,6 +63,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
           // Header
           IncidentDetailHeader(
             incidentId: widget.incident.id,
+            title: widget.incident.title,
             addressText: widget.incident.addressText,
             city: widget.incident.city,
             timestamp: widget.incident.timestamp,
@@ -86,6 +87,8 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                     ReporterProfileCard(
                       incident: widget.incident,
                       timeAgo: widget.timeAgo,
+                      timestamp: widget.incident.timestamp,
+                      description: widget.incident.description,
                     ),
                     const SizedBox(height: 16),
 

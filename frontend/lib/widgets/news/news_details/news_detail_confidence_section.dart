@@ -41,7 +41,6 @@ class NewsDetailConfidenceSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppTheme.getCardBackgroundColor(),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.getBorderColor(), width: 1),
             ),
             child: Center(
               child: SizedBox(

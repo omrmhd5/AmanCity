@@ -8,6 +8,8 @@ class ReporterProfileCard extends StatelessWidget {
   final String timeAgo;
   final String reporterId;
   final double karma;
+  final DateTime? timestamp;
+  final String? description;
 
   const ReporterProfileCard({
     Key? key,
@@ -15,7 +17,19 @@ class ReporterProfileCard extends StatelessWidget {
     required this.timeAgo,
     this.reporterId = 'Anon #442',
     this.karma = 4.8,
+    this.timestamp,
+    this.description,
   }) : super(key: key);
+
+  String _formatTime12Hour(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final second = dt.second.toString().padLeft(2, '0');
+    final month = dt.month.toString().padLeft(2, '0');
+    final day = dt.day.toString().padLeft(2, '0');
+    return '${dt.year}-$month-$day $hour:$minute:$second $period';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,31 +54,32 @@ class ReporterProfileCard extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: CustomText(
-              text: incident.type.toUpperCase(),
-              size: 10,
-              weight: FontWeight.w600,
-              color: incident.typeColor,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(incident.typeIcon, size: 12, color: incident.typeColor),
+                const SizedBox(width: 4),
+                CustomText(
+                  text: incident.type.toUpperCase(),
+                  size: 10,
+                  weight: FontWeight.w600,
+                  color: incident.typeColor,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
 
-          // Description
-          CustomText(
-            text: incident.title,
-            size: 14,
-            weight: FontWeight.w700,
-            color: AppTheme.getPrimaryTextColor(),
-          ),
-          const SizedBox(height: 8),
-          CustomText(
-            text: incident.description,
-            size: 12,
-            weight: FontWeight.w400,
-            color: AppTheme.getSecondaryTextColor(),
-            height: 1.5,
-          ),
-          const SizedBox(height: 12),
+          if (description != null) ...[
+            const SizedBox(height: 6),
+            CustomText(
+              text: description!,
+              size: 14,
+              weight: FontWeight.w400,
+              color: AppTheme.getSecondaryTextColor(),
+              height: 1.5,
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // Time Info
           Row(
@@ -75,11 +90,25 @@ class ReporterProfileCard extends StatelessWidget {
                 color: AppTheme.getSecondaryTextColor(),
               ),
               const SizedBox(width: 8),
-              CustomText(
-                text: timeAgo,
-                size: 12,
-                weight: FontWeight.w500,
-                color: AppTheme.getSecondaryTextColor(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: timeAgo,
+                    size: 12,
+                    weight: FontWeight.w500,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
+                  if (timestamp != null) ...[
+                    const SizedBox(height: 2),
+                    CustomText(
+                      text: _formatTime12Hour(timestamp!),
+                      size: 10,
+                      weight: FontWeight.w400,
+                      color: AppTheme.getSecondaryTextColor(),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

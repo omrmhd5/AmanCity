@@ -412,11 +412,14 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                       child: NearbyAlertCard(
                                         incidentType: alert['type'],
                                         title: alert['title'],
-                                        description: alert['description'],
                                         timeAgo: alert['timeAgo'],
                                         distance: alert['distance'],
                                         borderColor: alert['color'],
                                         icon: alert['icon'],
+                                        confidence: alert['confidence'] ?? 0.0,
+                                        locationText:
+                                            alert['location']?['text']
+                                                as String?,
                                         onTap: () =>
                                             _showIncidentDetails(alert),
                                       ),

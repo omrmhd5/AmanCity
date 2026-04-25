@@ -6,6 +6,8 @@ import '../widgets/news/news_header.dart';
 import '../widgets/news/news_feed_card.dart';
 import '../widgets/news/news_scan_button.dart';
 import '../widgets/news/news_scan_result_banner.dart';
+import '../widgets/news/news_search_bar.dart';
+import '../widgets/news/news_type_filter.dart';
 import 'news_incident_detail_sheet.dart';
 
 class NewsScreen extends StatefulWidget {
@@ -24,6 +26,9 @@ class _NewsScreenState extends State<NewsScreen> {
   String? _error;
   String? _scanError;
   Map<String, dynamic>? _lastScanResult;
+  String _searchQuery = '';
+  String? _selectedTypeFilter;
+  bool _showAllTypes = false;
 
   @override
   void initState() {
@@ -52,6 +57,24 @@ class _NewsScreenState extends State<NewsScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Get filtered incidents based on search query and type filter
+  List<OsintIncident> _getFilteredIncidents() {
+    return _incidents.where((incident) {
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          incident.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          incident.locationText.toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          );
+
+      final matchesFilter =
+          _selectedTypeFilter == null ||
+          incident.type.toLowerCase() == _selectedTypeFilter!.toLowerCase();
+
+      return matchesSearch && matchesFilter;
+    }).toList();
   }
 
   /// Trigger Grok scan
@@ -127,7 +150,6 @@ class _NewsScreenState extends State<NewsScreen> {
                         isLoading: _isScanning,
                         errorMessage: _scanError,
                       ),
-
                       const SizedBox(height: 8),
 
                       // Scan Result Banner
@@ -144,11 +166,45 @@ class _NewsScreenState extends State<NewsScreen> {
 
                       const SizedBox(height: 12),
 
+                      // Search Bar
+                      NewsSearchBar(
+                        searchQuery: _searchQuery,
+                        onSearchChanged: (value) {
+                          setState(() => _searchQuery = value);
+                        },
+                      ),
+
+                      // Type Filter
+                      NewsTypeFilter(
+                        selectedFilter: _selectedTypeFilter,
+                        onFilterChanged: (filter) {
+                          setState(() => _selectedTypeFilter = filter);
+                        },
+                        showAllTypes: _showAllTypes,
+                        onShowAllTypesChanged: (value) {
+                          setState(() => _showAllTypes = value);
+                        },
+                      ),
+
                       // Incidents List or Empty State
                       if (_error != null)
                         _buildErrorState()
                       else if (_incidents.isEmpty)
                         _buildEmptyState()
+                      else if (_getFilteredIncidents().isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Text(
+                              'No incidents match your search or filter',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                            ),
+                          ),
+                        )
                       else
                         ..._buildIncidentsList(),
                     ],
@@ -239,11 +295,12 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   List<Widget> _buildIncidentsList() {
+    final filteredIncidents = _getFilteredIncidents();
     return [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
-          '${_incidents.length} incidents found',
+          '${filteredIncidents.length} of ${_incidents.length} incidents',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
@@ -251,7 +308,7 @@ class _NewsScreenState extends State<NewsScreen> {
           ),
         ),
       ),
-      ..._incidents
+      ...filteredIncidents
           .map(
             (incident) => NewsFeedCard(
               incident: incident,
