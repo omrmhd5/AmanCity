@@ -3,7 +3,7 @@ import '../shared/custom_text_field.dart';
 import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_gesture_detector.dart';
-import '../../utils/app_colors.dart';
+import '../../data/app_colors.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onLoginPressed;

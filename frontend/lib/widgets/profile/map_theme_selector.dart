@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../utils/app_colors.dart';
+import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
 class MapThemeSelector extends StatefulWidget {

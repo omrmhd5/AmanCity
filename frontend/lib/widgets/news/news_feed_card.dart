@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/osint_incident.dart';
 import '../../utils/app_theme.dart';
-import '../../utils/app_colors.dart';
-import '../../utils/incident_types_config.dart';
+import '../../data/app_colors.dart';
+import '../../data/incident_types_config.dart';
 import '../shared/custom_text.dart';
 
 class NewsFeedCard extends StatelessWidget {

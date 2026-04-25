@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
-import '../../../data/app_colors.dart';
-import '../../shared/custom_text.dart';
+import '../../data/app_colors.dart';
+import '../shared/custom_text.dart';
 
 class IncidentDetailHeader extends StatelessWidget {
   final String incidentId;
-  final String? title;
   final String? addressText;
   final String? city;
   final DateTime? timestamp;
@@ -15,13 +14,22 @@ class IncidentDetailHeader extends StatelessWidget {
   const IncidentDetailHeader({
     Key? key,
     required this.incidentId,
-    this.title,
     this.addressText,
     this.city,
     this.timestamp,
     required this.onBackPressed,
     required this.onSharePressed,
   }) : super(key: key);
+
+  String _formatTime12Hour(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final second = dt.second.toString().padLeft(2, '0');
+    final month = dt.month.toString().padLeft(2, '0');
+    final day = dt.day.toString().padLeft(2, '0');
+    return '${dt.year}-$month-$day $hour:$minute:$second $period';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,22 +63,40 @@ class IncidentDetailHeader extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (title != null)
-                      CustomText(
-                        text: title!,
-                        size: 14,
-                        weight: FontWeight.w700,
-                        color: AppTheme.getPrimaryTextColor(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    CustomText(
+                      text: 'INCIDENT #$incidentId',
+                      size: 12,
+                      weight: FontWeight.w700,
+                      color: AppTheme.getPrimaryTextColor(),
+                    ),
+                    const SizedBox(height: 2),
+                    if (addressText != null)
+                      Flexible(
+                        child: CustomText(
+                          text: addressText!.toUpperCase(),
+                          size: 10,
+                          weight: FontWeight.w400,
+                          color: AppTheme.getSecondaryTextColor(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       )
-                    else
+                    else if (city != null)
                       CustomText(
-                        text: 'INCIDENT #$incidentId',
-                        size: 12,
-                        weight: FontWeight.w700,
-                        color: AppTheme.getPrimaryTextColor(),
+                        text: city!.toUpperCase(),
+                        size: 10,
+                        weight: FontWeight.w400,
+                        color: AppTheme.getSecondaryTextColor(),
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    if (timestamp != null) ...[
+                      const SizedBox(height: 4),
+                      CustomText(
+                        text: _formatTime12Hour(timestamp!),
+                        size: 9,
+                        weight: FontWeight.w400,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ],
                   ],
                 ),
               ),

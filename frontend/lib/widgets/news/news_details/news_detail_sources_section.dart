@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/osint_incident.dart';
 import '../../../utils/app_theme.dart';
-import '../../../utils/app_colors.dart';
+import '../../../data/app_colors.dart';
 import '../../shared/custom_text.dart';
 
 class NewsDetailSourcesSection extends StatelessWidget {

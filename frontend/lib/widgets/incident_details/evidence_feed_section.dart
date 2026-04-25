@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../config/app_config.dart';
 import '../../../utils/app_theme.dart';
-import '../../../data/app_colors.dart';
+import '../../data/app_colors.dart';
 import '../../../models/map_incident.dart';
-import '../../shared/custom_text.dart';
+import '../shared/custom_text.dart';
 
 class EvidenceFeedSection extends StatefulWidget {
   final MapIncident? incident;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../utils/poi_types_config.dart';
+import '../data/poi_types_config.dart';
 
 enum POIType { hospital, policeStation, fireStation, safeCafe, safeZone }
 

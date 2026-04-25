@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../shared/custom_text_field.dart';
 import '../shared/custom_text.dart';
-import '../../utils/app_colors.dart';
+import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
 class PersonalIdentitySection extends StatefulWidget {

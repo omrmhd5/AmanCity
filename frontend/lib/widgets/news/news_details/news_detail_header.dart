@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
-import '../../../utils/incident_types_config.dart';
+import '../../../data/incident_types_config.dart';
 import '../../shared/custom_text.dart';
 
 class NewsDetailHeader extends StatelessWidget {

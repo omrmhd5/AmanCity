@@ -3,7 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
-import '../../utils/app_colors.dart';
+import '../../data/app_colors.dart';
 import '../../services/backend_api/geocoding_api_service.dart';
 import '../../services/backend_api/places_api_service.dart';
 import '../map/search_results_dropdown.dart';

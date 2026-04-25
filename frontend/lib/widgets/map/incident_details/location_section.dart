@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/app_theme.dart';
 import '../../../models/map_incident.dart';
 import '../../shared/custom_text.dart';
@@ -42,6 +43,15 @@ class _LocationSectionState extends State<LocationSection> {
     }
   }
 
+  Future<void> _openGoogleMaps() async {
+    final lat = widget.incident.position.latitude;
+    final lng = widget.incident.position.longitude;
+    final mapsUrl = Uri.parse('https://maps.app.goo.gl/?q=$lat,$lng');
+    if (await canLaunchUrl(mapsUrl)) {
+      await launchUrl(mapsUrl, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -61,99 +71,102 @@ class _LocationSectionState extends State<LocationSection> {
       child: Column(
         children: [
           // Map Preview
-          Container(
-            height: 240,
-            color: AppTheme.getBackgroundColor(),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(_buildMapUrl()),
-                      fit: BoxFit.cover,
+          GestureDetector(
+            onTap: _openGoogleMaps,
+            child: Container(
+              height: 240,
+              color: AppTheme.getBackgroundColor(),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(_buildMapUrl()),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  color: AppTheme.getBackgroundColor().withOpacity(0.2),
-                ),
-                // Map pin with glow
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 16,
-                      height: 16,
+                  Container(
+                    color: AppTheme.getBackgroundColor().withOpacity(0.2),
+                  ),
+                  // Map pin with glow
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: widget.incident.typeColor,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.incident.typeColor.withOpacity(0.6),
+                              blurRadius: 12,
+                              spreadRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Location info badge
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: widget.incident.typeColor,
-                        border: Border.all(color: Colors.white, width: 3),
+                        color: AppTheme.getBackgroundColor().withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppTheme.getBorderColor(),
+                          width: 1,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: widget.incident.typeColor.withOpacity(0.6),
-                            blurRadius: 12,
-                            spreadRadius: 6,
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CustomText(
+                            text: widget.incident.city ?? 'Location',
+                            size: 9,
+                            weight: FontWeight.w500,
+                            color: AppTheme.getSecondaryTextColor(),
+                          ),
+                          const SizedBox(height: 2),
+                          CustomText(
+                            text:
+                                widget.incident.addressText?.substring(
+                                  0,
+                                  widget.incident.addressText!.length > 20
+                                      ? 20
+                                      : widget.incident.addressText!.length,
+                                ) ??
+                                'Unknown',
+                            size: 10,
+                            weight: FontWeight.w700,
+                            color: AppTheme.getPrimaryTextColor(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                // Location info badge
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getBackgroundColor().withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppTheme.getBorderColor(),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        CustomText(
-                          text: widget.incident.city ?? 'Location',
-                          size: 9,
-                          weight: FontWeight.w500,
-                          color: AppTheme.getSecondaryTextColor(),
-                        ),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          text:
-                              widget.incident.addressText?.substring(
-                                0,
-                                widget.incident.addressText!.length > 20
-                                    ? 20
-                                    : widget.incident.addressText!.length,
-                              ) ??
-                              'Unknown',
-                          size: 10,
-                          weight: FontWeight.w700,
-                          color: AppTheme.getPrimaryTextColor(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           // Location Details

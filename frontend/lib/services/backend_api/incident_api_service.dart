@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/app_config.dart';
 import '../../models/map_incident.dart';
-import '../../utils/incident_types_config.dart';
+import '../../data/incident_types_config.dart';
 
 /// Model for incident creation response
 class IncidentResponse {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../utils/app_colors.dart';
+import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import 'location_picker_map.dart';
 

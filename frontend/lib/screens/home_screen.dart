@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/shared/bottom_navbar.dart';
 import 'profile_screen.dart';
 import 'news_screen.dart';
-import '../utils/app_colors.dart';
+import '../data/app_colors.dart';
 import '../utils/app_theme.dart';
 import 'map_screen.dart';
 import 'report_incident_screen.dart';

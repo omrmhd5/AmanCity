@@ -4,7 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/app_colors.dart';
+import '../data/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../models/report_incident_model.dart' hide LatLng;
 import '../models/prediction_result_model.dart';

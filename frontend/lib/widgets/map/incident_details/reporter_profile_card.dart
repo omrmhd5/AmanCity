@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
+import '../../../utils/date_time_utils.dart';
 import '../../../models/map_incident.dart';
 import '../../shared/custom_text.dart';
 
@@ -20,16 +21,6 @@ class ReporterProfileCard extends StatelessWidget {
     this.timestamp,
     this.description,
   }) : super(key: key);
-
-  String _formatTime12Hour(DateTime dt) {
-    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
-    final period = dt.hour >= 12 ? 'PM' : 'AM';
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final second = dt.second.toString().padLeft(2, '0');
-    final month = dt.month.toString().padLeft(2, '0');
-    final day = dt.day.toString().padLeft(2, '0');
-    return '${dt.year}-$month-$day $hour:$minute:$second $period';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +93,7 @@ class ReporterProfileCard extends StatelessWidget {
                   if (timestamp != null) ...[
                     const SizedBox(height: 2),
                     CustomText(
-                      text: _formatTime12Hour(timestamp!),
+                      text: DateTimeUtils.formatTime12Hour(timestamp!),
                       size: 10,
                       weight: FontWeight.w400,
                       color: AppTheme.getSecondaryTextColor(),
