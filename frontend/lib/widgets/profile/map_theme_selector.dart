@@ -75,7 +75,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Map Theme',
+                    'Theme',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppTheme.getPrimaryTextColor(),

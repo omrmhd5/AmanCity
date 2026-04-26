@@ -35,7 +35,7 @@ class AppTheme {
   /// Get secondary text color based on current theme
   static Color getSecondaryTextColor() {
     return currentMode == AppThemeMode.dark
-        ? AppColors.slateGray
+        ? Colors.white.withOpacity(0.7)
         : AppColors.slateGray;
   }
 

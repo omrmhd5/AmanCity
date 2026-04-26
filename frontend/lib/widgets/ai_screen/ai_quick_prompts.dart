@@ -8,7 +8,6 @@ class AiQuickPrompts extends StatelessWidget {
 
   static const List<String> prompts = [
     'Is my area safe?',
-    'Report incident',
     'Safest route home',
     'Emergency numbers',
   ];

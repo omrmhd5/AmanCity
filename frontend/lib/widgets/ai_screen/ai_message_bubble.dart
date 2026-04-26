@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
 import '../shared/custom_text.dart';
+import 'ai_route_home_button.dart';
 
 class AiMessageBubble extends StatelessWidget {
   final String text;
@@ -9,6 +10,7 @@ class AiMessageBubble extends StatelessWidget {
   final String timestamp;
   final String? citationText;
   final VoidCallback? onCitationTap;
+  final SafeRouteHomeData? routeHomeData;
 
   const AiMessageBubble({
     Key? key,
@@ -17,6 +19,7 @@ class AiMessageBubble extends StatelessWidget {
     required this.timestamp,
     this.citationText,
     this.onCitationTap,
+    this.routeHomeData,
   }) : super(key: key);
 
   @override
@@ -158,6 +161,8 @@ class AiMessageBubble extends StatelessWidget {
                           ),
                         ),
                       ],
+                      if (routeHomeData != null && !isUser)
+                        AiRouteHomeButton(data: routeHomeData!),
                     ],
                   ),
                 ),

@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/app_theme.dart';
 import '../services/backend_api/gemini_chat_service.dart';
+import '../services/hotspot_api_service.dart';
+import '../services/safe_route_home_service.dart';
 import '../widgets/ai_screen/ai_chat_header.dart';
 import '../widgets/ai_screen/ai_message_bubble.dart';
 import '../widgets/ai_screen/ai_quick_prompts.dart';
 import '../widgets/ai_screen/ai_chat_input.dart';
+import '../widgets/ai_screen/ai_route_home_button.dart';
+import '../models/hotspot_zone.dart';
 
 class ChatMessage {
   final String text;
   final bool isUser;
   final String timestamp;
   final String? citationText;
+  final SafeRouteHomeData? routeHomeData;
 
   ChatMessage({
     required this.text,
     required this.isUser,
     required this.timestamp,
     this.citationText,
+    this.routeHomeData,
   });
 }
 
@@ -35,6 +42,7 @@ class _AiScreenState extends State<AiScreen> {
   bool _isTyping = false;
   double? _userLat;
   double? _userLng;
+  List<HotspotZone>? _cachedHotspots; // Cache hotspots for lazy loading
 
   @override
   void initState() {
@@ -83,6 +91,18 @@ class _AiScreenState extends State<AiScreen> {
     }
   }
 
+  /// Lazy load hotspots (cache them for session)
+  Future<List<HotspotZone>> _getHotspots() async {
+    if (_cachedHotspots != null) return _cachedHotspots!;
+    try {
+      _cachedHotspots = await HotspotApiService.getHotspots();
+      return _cachedHotspots!;
+    } catch (e) {
+      print('Error loading hotspots: $e');
+      return []; // Return empty list if error
+    }
+  }
+
   Future<void> _sendMessage(String text) async {
     // Add user message
     setState(() {
@@ -95,16 +115,54 @@ class _AiScreenState extends State<AiScreen> {
     _scrollToBottom();
 
     try {
+      // Check if this is a route home request and calculate it
+      SafeRouteHomeData? routeHomeData;
+      String messageForGemini = text; // May be modified if route home detected
+
+      if (_userLat != null && _userLng != null) {
+        final hotspots = await _getHotspots();
+        final routeResult =
+            await SafeRouteHomeService.detectAndCalculateRouteHome(
+              text,
+              LatLng(_userLat!, _userLng!),
+              hotspots,
+            );
+
+        if (routeResult.routeFound) {
+          routeHomeData = SafeRouteHomeData(
+            googleMapsUrl: routeResult.googleMapsUrl!,
+            dangerScore: routeResult.dangerScore!,
+            distance: routeResult.distance,
+            duration: routeResult.duration,
+            homeAddress: routeResult.homeAddress!,
+          );
+
+          // Modify message for Gemini to know route was calculated
+          final riskLevel = routeResult.dangerScore! < 0.2
+              ? "safe"
+              : routeResult.dangerScore! < 0.3
+              ? "moderately risky"
+              : "high danger";
+          messageForGemini =
+              'I have calculated the safest route home: ${routeResult.distance} away (${routeResult.duration}). The route passes through a $riskLevel area. Please provide safety tips for traveling this route to ${routeResult.homeAddress}.';
+        }
+      }
+
       // Call Gemini service with location context
       final reply = await GeminiChatService.sendMessage(
-        text,
+        messageForGemini,
         latitude: _userLat,
         longitude: _userLng,
       );
 
       setState(() {
         _messages.add(
-          ChatMessage(text: reply, isUser: false, timestamp: _getCurrentTime()),
+          ChatMessage(
+            text: reply,
+            isUser: false,
+            timestamp: _getCurrentTime(),
+            routeHomeData: routeHomeData,
+          ),
         );
         _isTyping = false;
       });
@@ -186,6 +244,7 @@ class _AiScreenState extends State<AiScreen> {
                 isUser: message.isUser,
                 timestamp: message.timestamp,
                 citationText: message.citationText,
+                routeHomeData: message.routeHomeData,
                 onCitationTap: () {
                   // TODO: Navigate to map with incident location
                 },

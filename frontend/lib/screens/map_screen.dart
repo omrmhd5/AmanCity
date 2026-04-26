@@ -83,6 +83,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   static const int _locationCacheDurationMinutes =
       60; // Cache location for 60 minutes
 
+  // Real-time location tracking
+  StreamSubscription<Position>? _locationStreamSubscription;
+  static const int _locationUpdateIntervalSeconds = 5; // Update every 5 seconds
+  static const int _locationDistanceFilterMeters =
+      10; // Only update if moved 10m+
+
   // Route/Navigation state
   Set<Polyline> _routePolylines = {};
   LatLng? _routeDestination;
@@ -113,6 +119,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     _loadIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
+    _startRealTimeLocationTracking(); // Start listening for location updates
     _loadPOIs();
     _loadHotspots();
   }
@@ -135,6 +142,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _mapController?.dispose();
+    _locationStreamSubscription?.cancel();
     super.dispose();
   }
 
@@ -147,6 +155,59 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _updateMapElements();
     } catch (e) {
       // Error loading incidents
+    }
+  }
+
+  /// Start real-time location tracking stream
+  void _startRealTimeLocationTracking() {
+    // Cancel any existing subscription
+    _locationStreamSubscription?.cancel();
+
+    try {
+      _locationStreamSubscription =
+          Geolocator.getPositionStream(
+            locationSettings: LocationSettings(
+              accuracy: LocationAccuracy.best,
+              distanceFilter:
+                  _locationDistanceFilterMeters, // Only update if moved 10m+
+              timeLimit: Duration(seconds: _locationUpdateIntervalSeconds),
+            ),
+          ).listen(
+            (Position position) {
+              final newLocation = LatLng(position.latitude, position.longitude);
+
+              setState(() {
+                _userLocation = newLocation;
+                _locationCachedTime = DateTime.now();
+              });
+
+              // Cache the new location
+              _cacheLocation(position);
+
+              // Update map elements to show new user marker position
+              _updateMapElements();
+            },
+            onError: (e) {
+              // Error from location stream - not critical
+            },
+          );
+    } catch (e) {
+      // Location permissions or service disabled - not critical
+    }
+  }
+
+  /// Cache location to SharedPreferences
+  Future<void> _cacheLocation(Position position) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('user_location_lat', position.latitude);
+      await prefs.setDouble('user_location_lng', position.longitude);
+      await prefs.setString(
+        'user_location_time',
+        DateTime.now().toIso8601String(),
+      );
+    } catch (e) {
+      // Failed to cache location
     }
   }
 
