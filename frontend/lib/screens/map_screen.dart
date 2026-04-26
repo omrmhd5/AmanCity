@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/app_colors.dart';
 import '../data/incident_types_config.dart';
+import '../utils/app_theme.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
@@ -24,6 +25,7 @@ import '../services/backend_api/places_api_service.dart';
 import '../services/backend_api/directions_service.dart';
 import '../services/hotspot_api_service.dart';
 import '../services/location_service.dart';
+import '../utils/safe_route_scorer.dart';
 import 'incident_detail_sheet.dart';
 
 class MapScreen extends StatefulWidget {
@@ -89,6 +91,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   String? _routeDistance;
   String? _routeDuration;
   Color? _routeColor;
+  double? _routeDangerScore;
   String? _routeIncidentType;
   String? _routeLocationText;
   bool _isNavigatingToIncident = false;
@@ -718,24 +721,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     });
 
     try {
-      final routeData = await DirectionsService.getRoute(
+      final routeData = await DirectionsService.getSafeRoute(
         _userLocation!,
         destination,
+        _hotspots,
       );
 
       final points = routeData['points'] as List<LatLng>;
+      final dangerScore = routeData['dangerScore'] as double;
+
+      // Get polyline color based on danger score
+      final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(dangerScore);
+      final polylineColor = dangerLevelInfo['color'] as Color;
 
       setState(() {
         _routePolylines = {
           Polyline(
             polylineId: const PolylineId('route'),
-            color: routeColor,
+            color: polylineColor,
             width: 6,
             points: points,
           ),
         };
         _routeDistance = routeData['distance'];
         _routeDuration = routeData['duration'];
+        _routeDangerScore = dangerScore;
         _isLoadingRoute = false;
       });
 
@@ -783,24 +793,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     });
 
     try {
-      final routeData = await DirectionsService.getRoute(
+      final routeData = await DirectionsService.getSafeRoute(
         _userLocation!,
         poi.position,
+        _hotspots,
       );
 
       final points = routeData['points'] as List<LatLng>;
+      final dangerScore = routeData['dangerScore'] as double;
+
+      // Get polyline color based on danger score
+      final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(dangerScore);
+      final polylineColor = dangerLevelInfo['color'] as Color;
 
       setState(() {
         _routePolylines = {
           Polyline(
             polylineId: const PolylineId('route'),
-            color: routeColor,
+            color: polylineColor,
             width: 6,
             points: points,
           ),
         };
         _routeDistance = routeData['distance'];
         _routeDuration = routeData['duration'];
+        _routeDangerScore = dangerScore;
         _isLoadingRoute = false;
       });
 
@@ -838,24 +855,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     });
 
     try {
-      final routeData = await DirectionsService.getRoute(
+      final routeData = await DirectionsService.getSafeRoute(
         _userLocation!,
         incident.position,
+        _hotspots,
       );
 
       final points = routeData['points'] as List<LatLng>;
+      final dangerScore = routeData['dangerScore'] as double;
+
+      // Get polyline color based on danger score
+      final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(dangerScore);
+      final polylineColor = dangerLevelInfo['color'] as Color;
 
       setState(() {
         _routePolylines = {
           Polyline(
             polylineId: const PolylineId('route'),
-            color: routeColor,
+            color: polylineColor,
             width: 6,
             points: points,
           ),
         };
         _routeDistance = routeData['distance'];
         _routeDuration = routeData['duration'];
+        _routeDangerScore = dangerScore;
         _isLoadingRoute = false;
       });
 
@@ -921,6 +945,54 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     final url =
         'https://www.google.com/maps/dir/?api=1&destination=${_routeDestination!.latitude},${_routeDestination!.longitude}&travelmode=driving';
+
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Unable to open Google Maps')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  /// Open the safe route in Google Maps with sampled waypoints
+  Future<void> _openSafeRouteInGoogleMaps() async {
+    if (_routeDestination == null || _routePolylines.isEmpty) return;
+
+    // Get the polyline points
+    final polyline = _routePolylines.first;
+    final points = polyline.points;
+
+    if (points.isEmpty) return;
+
+    // Sample waypoints from the polyline (every Nth point, max 8 intermediate waypoints)
+    final waypointCount = 8;
+    final sampleRate = (points.length / (waypointCount + 1)).ceil();
+    final waypoints = <String>[];
+
+    for (int i = sampleRate; i < points.length - 1; i += sampleRate) {
+      if (waypoints.length < waypointCount) {
+        waypoints.add('${points[i].latitude},${points[i].longitude}');
+      }
+    }
+
+    // Build Google Maps URL with origin, waypoints, and destination
+    String url =
+        'https://www.google.com/maps/dir/?api=1&origin=${_userLocation!.latitude},${_userLocation!.longitude}&destination=${_routeDestination!.latitude},${_routeDestination!.longitude}&travelmode=driving';
+
+    if (waypoints.isNotEmpty) {
+      url += '&waypoints=${waypoints.join('|')}';
+    }
 
     try {
       if (await canLaunchUrl(Uri.parse(url))) {
@@ -1188,7 +1260,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               incidentType: _routeIncidentType,
               locationText: _routeLocationText,
               isIncident: _isNavigatingToIncident,
+              dangerScore: _routeDangerScore,
               onNavigate: _openInGoogleMaps,
+              onNavigateSafeRoute: _openSafeRouteInGoogleMaps,
               onClose: _clearRoute,
             ),
           ),

@@ -40,11 +40,12 @@ router.get("/", async (req, res) => {
       });
     }
 
-    // Call Google Directions API
+    // Call Google Directions API with alternatives=true for safe route scoring
     const url = new URL("https://maps.googleapis.com/maps/api/directions/json");
     url.searchParams.append("origin", `${originLat},${originLng}`);
     url.searchParams.append("destination", `${destLat},${destLng}`);
     url.searchParams.append("mode", "driving");
+    url.searchParams.append("alternatives", "true"); // Get up to 3 alternative routes
     url.searchParams.append("key", GOOGLE_API_KEY);
 
     const response = await fetch(url.toString());
@@ -67,23 +68,45 @@ router.get("/", async (req, res) => {
     }
 
     // Extract route data
-    const route = data.routes[0];
-    const leg = route.legs[0];
+    const primaryRoute = data.routes[0];
+    const primaryLeg = primaryRoute.legs[0];
+
+    // Extract all routes for safe route scoring
+    const allRoutes = data.routes.map((route) => {
+      const leg = route.legs[0];
+      return {
+        polyline: route.overview_polyline.points,
+        distance: {
+          text: leg.distance.text,
+          value: leg.distance.value,
+        },
+        duration: {
+          text: leg.duration.text,
+          value: leg.duration.value,
+        },
+        startAddress: leg.start_address,
+        endAddress: leg.end_address,
+        bounds: route.bounds,
+      };
+    });
 
     res.status(200).json({
       success: true,
-      polyline: route.overview_polyline.points,
+      // Backwards compatibility: primary route at top level
+      polyline: primaryRoute.overview_polyline.points,
       distance: {
-        text: leg.distance.text,
-        value: leg.distance.value, // meters
+        text: primaryLeg.distance.text,
+        value: primaryLeg.distance.value,
       },
       duration: {
-        text: leg.duration.text,
-        value: leg.duration.value, // seconds
+        text: primaryLeg.duration.text,
+        value: primaryLeg.duration.value,
       },
-      startAddress: leg.start_address,
-      endAddress: leg.end_address,
-      bounds: route.bounds,
+      startAddress: primaryLeg.start_address,
+      endAddress: primaryLeg.end_address,
+      bounds: primaryRoute.bounds,
+      // All routes for safe route calculation
+      routes: allRoutes,
     });
   } catch (error) {
     res.status(500).json({

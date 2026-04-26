@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/safe_route_scorer.dart';
 
 class RouteInfoCard extends StatelessWidget {
   final String? destinationName;
@@ -9,10 +10,12 @@ class RouteInfoCard extends StatelessWidget {
   final bool isLoading;
   final Color? routeColor;
   final VoidCallback onNavigate;
+  final VoidCallback? onNavigateSafeRoute;
   final VoidCallback onClose;
   final String? incidentType;
   final String? locationText;
   final bool isIncident;
+  final double? dangerScore;
 
   const RouteInfoCard({
     Key? key,
@@ -22,10 +25,12 @@ class RouteInfoCard extends StatelessWidget {
     required this.isLoading,
     this.routeColor,
     required this.onNavigate,
+    this.onNavigateSafeRoute,
     required this.onClose,
     this.incidentType,
     this.locationText,
     this.isIncident = false,
+    this.dangerScore,
   }) : super(key: key);
 
   @override
@@ -161,29 +166,104 @@ class RouteInfoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Navigation button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: isLoading ? null : onNavigate,
-                icon: const Icon(Icons.navigation, size: 18),
-                label: Text(
-                  isLoading ? 'Loading route...' : 'Navigate in Google Maps',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+            // Danger badge (if danger score is available)
+            if (dangerScore != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color:
+                        SafeRouteScorer.getDangerLevelInfo(
+                              dangerScore!,
+                            )['color']
+                            as Color,
+                    width: 1.5,
                   ),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: routeColor ?? AppColors.secondary,
-                  disabledBackgroundColor: (routeColor ?? AppColors.secondary)
-                      .withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Text(
+                      SafeRouteScorer.getDangerLevelInfo(dangerScore!)['icon']
+                          as String,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      SafeRouteScorer.getDangerLevelInfo(dangerScore!)['label']
+                          as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color:
+                            SafeRouteScorer.getDangerLevelInfo(
+                                  dangerScore!,
+                                )['color']
+                                as Color,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 12),
+            ],
+            // Navigation buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: isLoading ? null : onNavigate,
+                    icon: const Icon(Icons.navigation, size: 18),
+                    label: Text(
+                      isLoading ? 'Loading...' : 'Navigate',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                        color: routeColor ?? AppColors.secondary,
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+                if (onNavigateSafeRoute != null) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: isLoading ? null : onNavigateSafeRoute,
+                      icon: const Icon(Icons.shield, size: 18),
+                      label: const Text(
+                        'Safe Route',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: routeColor ?? AppColors.secondary,
+                        disabledBackgroundColor:
+                            (routeColor ?? AppColors.secondary).withOpacity(
+                              0.5,
+                            ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),
