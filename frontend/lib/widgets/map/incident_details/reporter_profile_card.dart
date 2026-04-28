@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/date_time_utils.dart';
+import '../../../data/app_colors.dart';
 import '../../../models/map_incident.dart';
 import '../../shared/custom_text.dart';
 
@@ -21,6 +22,57 @@ class ReporterProfileCard extends StatelessWidget {
     this.timestamp,
     this.description,
   }) : super(key: key);
+
+  Widget _buildGrokAiReporter() {
+    return Row(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.secondary.withOpacity(0.4),
+              width: 1,
+            ),
+          ),
+          child: Icon(Icons.smart_toy, size: 28, color: AppColors.secondary),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                text: 'Grok AI',
+                size: 13,
+                weight: FontWeight.w700,
+                color: AppTheme.getPrimaryTextColor(),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: AppColors.secondary.withOpacity(0.3),
+                  ),
+                ),
+                child: CustomText(
+                  text: '🤖 OSINT — Detected from Twitter/X',
+                  size: 10,
+                  weight: FontWeight.w500,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,38 +170,41 @@ class ReporterProfileCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Reporter Profile
-          Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppTheme.getBorderColor(),
-                  borderRadius: BorderRadius.circular(12),
+          // Reporter Profile — Grok AI for OSINT, anonymous for human
+          if (incident.isOsint)
+            _buildGrokAiReporter()
+          else
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBorderColor(),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.person_outline,
+                    size: 28,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
                 ),
-                child: Icon(
-                  Icons.person_outline,
-                  size: 28,
-                  color: AppTheme.getSecondaryTextColor(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        text: reporterId,
+                        size: 13,
+                        weight: FontWeight.w700,
+                        color: AppTheme.getPrimaryTextColor(),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      text: reporterId,
-                      size: 13,
-                      weight: FontWeight.w700,
-                      color: AppTheme.getPrimaryTextColor(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

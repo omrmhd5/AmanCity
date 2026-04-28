@@ -20,6 +20,8 @@ class MapIncident {
   final String? addressText;
   final String? city;
   final double confidence;
+  final String source; // "Human" or "OSINT_Twitter"
+  final List<String> sourceUrls; // Twitter URLs for OSINT incidents
 
   MapIncident({
     required this.id,
@@ -32,7 +34,11 @@ class MapIncident {
     this.addressText,
     this.city,
     this.confidence = 0.0,
+    this.source = 'Human',
+    this.sourceUrls = const [],
   });
+
+  bool get isOsint => source == 'OSINT_Twitter';
 
   // Get color based on incident type
   Color get typeColor {

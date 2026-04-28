@@ -222,6 +222,10 @@ class IncidentApiService {
       }
     }
 
+    // Parse source info
+    final source = data['source'] as String? ?? 'Human';
+    final sourceUrls = List<String>.from(data['sourceUrls'] ?? []);
+
     return MapIncident(
       id: id,
       type: type,
@@ -233,6 +237,8 @@ class IncidentApiService {
       addressText: data['location']?['text'] as String?,
       city: data['location']?['city'] as String?,
       confidence: confidence,
+      source: source,
+      sourceUrls: sourceUrls,
     );
   }
 }

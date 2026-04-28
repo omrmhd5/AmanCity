@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
@@ -34,42 +35,49 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
   Widget build(BuildContext context) {
     // Use incident media if available
     final mediaList = widget.incident?.media ?? [];
+    final sourceUrls = widget.incident?.sourceUrls ?? [];
+    final isOsint = widget.incident?.isOsint ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                text: 'EVIDENCE FEED',
-                size: 11,
-                weight: FontWeight.w700,
-                color: AppTheme.getSecondaryTextColor(),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.getBackgroundColor(),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppTheme.getBorderColor(),
-                    width: 1,
-                  ),
-                ),
-                child: CustomText(
-                  text: '${mediaList.length} Items',
-                  size: 10,
-                  weight: FontWeight.w600,
+        // Evidence Feed Header (when media exists)
+        if (mediaList.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  text: 'EVIDENCE FEED',
+                  size: 11,
+                  weight: FontWeight.w700,
                   color: AppTheme.getSecondaryTextColor(),
                 ),
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBackgroundColor(),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: AppTheme.getBorderColor(),
+                      width: 1,
+                    ),
+                  ),
+                  child: CustomText(
+                    text: '${mediaList.length} Items',
+                    size: 10,
+                    weight: FontWeight.w600,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
+        if (mediaList.isNotEmpty) const SizedBox(height: 12),
         if (mediaList.isNotEmpty)
           // Carousel
           SizedBox(
@@ -86,7 +94,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
               ),
             ),
           )
-        else
+        else if (!isOsint)
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -134,8 +142,141 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
               ),
             ),
           ),
+
+        // Twitter source links for OSINT incidents
+        if (isOsint && sourceUrls.isNotEmpty) ...[
+          if (mediaList.isNotEmpty) const SizedBox(height: 16),
+          // Sources Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  text: 'SOURCES',
+                  size: 11,
+                  weight: FontWeight.w700,
+                  color: AppTheme.getSecondaryTextColor(),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBackgroundColor(),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: AppTheme.getBorderColor(),
+                      width: 1,
+                    ),
+                  ),
+                  child: CustomText(
+                    text: '${sourceUrls.length} Items',
+                    size: 10,
+                    weight: FontWeight.w600,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.getCardBackgroundColor(),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: sourceUrls
+                  .asMap()
+                  .entries
+                  .map(
+                    (entry) => Padding(
+                      padding: EdgeInsets.only(
+                        bottom: entry.key != sourceUrls.length - 1 ? 8 : 0,
+                      ),
+                      child: GestureDetector(
+                        onTap: () => _launchUrl(entry.value, context),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.link, size: 14, color: Colors.blue),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: CustomText(
+                                  text: 'Tweet #${entry.key + 1}',
+                                  size: 12,
+                                  weight: FontWeight.w500,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              Icon(
+                                Icons.open_in_new,
+                                size: 12,
+                                color: Colors.blue,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CustomText(
+                text: '🤖 Detected by Grok AI from Twitter/X',
+                size: 11,
+                weight: FontWeight.w500,
+                color: AppColors.secondary,
+              ),
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  Future<void> _launchUrl(String url, BuildContext context) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open tweet link'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildMediaItem(MediaItem media) {
