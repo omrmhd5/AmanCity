@@ -67,6 +67,14 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	
+	<!-- SOS: Flashlight strobe -->
+	<key>NSCameraUsageDescription</key>
+	<string>AmanCity uses the camera flash for emergency strobe signaling during SOS.</string>
+
+	<!-- SOS: Audio recording -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>AmanCity records audio during an active SOS alert to preserve evidence.</string>
+
 	<!-- Location permissions -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to your location to show nearby safety incidents and emergency services.</string>

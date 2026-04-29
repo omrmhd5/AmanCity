@@ -63,6 +63,18 @@ dependencies:
   # Path provider for accessing device directories
   path_provider: ^2.0.0
 
+  # SOS Feature: Flashlight strobe
+  torch_light: ^1.1.0
+
+  # SOS Feature: System alarm ringtone (no audio asset needed)
+  flutter_ringtone_player: ^4.0.0
+
+  # SOS Feature: Audio recording during emergency
+  record: ^6.0.0
+
+  # SOS Feature: Playback of SOS recordings in history
+  audioplayers: ^6.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

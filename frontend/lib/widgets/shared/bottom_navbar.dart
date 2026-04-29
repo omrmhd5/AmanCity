@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
-enum NavItem { map, report, home, ai, profile, news }
+enum NavItem { map, report, home, ai, sos, profile, news }
 
 class BottomNavBar extends StatelessWidget {
   final NavItem currentItem;

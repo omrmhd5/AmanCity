@@ -7,6 +7,7 @@ import '../utils/app_theme.dart';
 import 'map_screen.dart';
 import 'report_incident_screen.dart';
 import 'ai_screen.dart';
+import 'sos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   NavItem _currentNavItem = NavItem.home;
+  bool _sosActive = false;
 
   void _onNavItemTapped(NavItem item) {
     if (item == _currentNavItem) return;
@@ -50,10 +52,12 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(child: _buildContent()),
         ],
       ),
-      bottomNavigationBar: BottomNavBar(
-        currentItem: _currentNavItem,
-        onItemTapped: _onNavItemTapped,
-      ),
+      bottomNavigationBar: !_sosActive
+          ? BottomNavBar(
+              currentItem: _currentNavItem,
+              onItemTapped: _onNavItemTapped,
+            )
+          : null,
     );
   }
 
@@ -69,6 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildWelcomePage();
       case NavItem.ai:
         return AiScreen();
+      case NavItem.sos:
+        return SosScreen(
+          onBack: () => _onNavItemTapped(NavItem.home),
+          onActiveStateChanged: (isActive) {
+            setState(() => _sosActive = isActive);
+          },
+        );
       case NavItem.profile:
         return const ProfileScreen();
       case NavItem.news:
@@ -153,12 +164,6 @@ class _HomeScreenState extends State<HomeScreen> {
               title: 'Easy Reporting',
               description: 'Report incidents quickly with photos and location',
             ),
-            const SizedBox(height: 16),
-            _buildFeatureCard(
-              icon: Icons.sos,
-              title: 'SOS Emergency',
-              description: 'One-tap emergency alert to trusted contacts',
-            ),
             const SizedBox(height: 32),
             // Latest News Card
             GestureDetector(
@@ -224,6 +229,73 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       Icons.arrow_forward,
                       color: AppColors.secondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Emergency SOS Card
+            GestureDetector(
+              onTap: () => _onNavItemTapped(NavItem.sos),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.danger.withOpacity(0.1),
+                      const Color(0xFFEF4444).withOpacity(0.08),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.danger.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.danger.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.sos, color: AppColors.danger, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Emergency SOS',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.getPrimaryTextColor(),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Hold to activate emergency alert & audio recording',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: AppTheme.getSecondaryTextColor(),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: AppColors.danger,
                       size: 20,
                     ),
                   ],
