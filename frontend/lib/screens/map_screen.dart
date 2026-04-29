@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/app_colors.dart';
 import '../data/incident_types_config.dart';
-import '../utils/app_theme.dart';
 import '../widgets/map/map_filter_section.dart';
 import '../widgets/map/filter_options_sheet.dart';
 import '../widgets/map/poi_detail_sheet.dart';
@@ -101,6 +100,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   String? _routeIncidentType;
   String? _routeLocationText;
   bool _isNavigatingToIncident = false;
+  // Fastest alternative
+  bool _hasFastestAlternative = false;
+  String? _fastestDistance;
+  String? _fastestDuration;
+  double? _fastestDangerScore;
+  // Points for both routes (for live polyline swap on card tap)
+  List<LatLng>? _safestRoutePoints;
+  List<LatLng>? _fastestRoutePoints;
   List<Map<String, dynamic>> _searchResults = [];
   bool _showSearchResults = false;
 
@@ -790,25 +797,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       final points = routeData['points'] as List<LatLng>;
       final dangerScore = routeData['dangerScore'] as double;
-
-      // Get polyline color based on danger score
-      final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(dangerScore);
-      final polylineColor = dangerLevelInfo['color'] as Color;
+      final fastestPoints = routeData['fastestPoints'] as List<LatLng>?;
 
       setState(() {
-        _routePolylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            color: polylineColor,
-            width: 6,
-            points: points,
-          ),
-        };
         _routeDistance = routeData['distance'];
         _routeDuration = routeData['duration'];
         _routeDangerScore = dangerScore;
+        _hasFastestAlternative =
+            routeData['hasFastestAlternative'] as bool? ?? false;
+        _fastestDistance = routeData['fastestDistance'] as String?;
+        _fastestDuration = routeData['fastestDuration'] as String?;
+        _fastestDangerScore = routeData['fastestDangerScore'] as double?;
+        _safestRoutePoints = points;
+        _fastestRoutePoints = fastestPoints;
         _isLoadingRoute = false;
       });
+      _updateRoutePolylines(safestSelected: true);
 
       // Animate camera to show full route
       _animateCameraToRoute(points);
@@ -862,25 +866,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       final points = routeData['points'] as List<LatLng>;
       final dangerScore = routeData['dangerScore'] as double;
-
-      // Get polyline color based on danger score
-      final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(dangerScore);
-      final polylineColor = dangerLevelInfo['color'] as Color;
+      final fastestPoints = routeData['fastestPoints'] as List<LatLng>?;
 
       setState(() {
-        _routePolylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            color: polylineColor,
-            width: 6,
-            points: points,
-          ),
-        };
         _routeDistance = routeData['distance'];
         _routeDuration = routeData['duration'];
         _routeDangerScore = dangerScore;
+        _hasFastestAlternative =
+            routeData['hasFastestAlternative'] as bool? ?? false;
+        _fastestDistance = routeData['fastestDistance'] as String?;
+        _fastestDuration = routeData['fastestDuration'] as String?;
+        _fastestDangerScore = routeData['fastestDangerScore'] as double?;
+        _safestRoutePoints = points;
+        _fastestRoutePoints = fastestPoints;
         _isLoadingRoute = false;
       });
+      _updateRoutePolylines(safestSelected: true);
 
       // Animate camera to show full route
       _animateCameraToRoute(points);
@@ -924,25 +925,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       final points = routeData['points'] as List<LatLng>;
       final dangerScore = routeData['dangerScore'] as double;
-
-      // Get polyline color based on danger score
-      final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(dangerScore);
-      final polylineColor = dangerLevelInfo['color'] as Color;
+      final fastestPoints = routeData['fastestPoints'] as List<LatLng>?;
 
       setState(() {
-        _routePolylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            color: polylineColor,
-            width: 6,
-            points: points,
-          ),
-        };
         _routeDistance = routeData['distance'];
         _routeDuration = routeData['duration'];
         _routeDangerScore = dangerScore;
+        _hasFastestAlternative =
+            routeData['hasFastestAlternative'] as bool? ?? false;
+        _fastestDistance = routeData['fastestDistance'] as String?;
+        _fastestDuration = routeData['fastestDuration'] as String?;
+        _fastestDangerScore = routeData['fastestDangerScore'] as double?;
+        _safestRoutePoints = points;
+        _fastestRoutePoints = fastestPoints;
         _isLoadingRoute = false;
       });
+      _updateRoutePolylines(safestSelected: true);
 
       // Animate camera to show full route
       _animateCameraToRoute(points);
@@ -982,6 +980,50 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
   }
 
+  /// Rebuild polylines based on which route is selected
+  void _updateRoutePolylines({required bool safestSelected}) {
+    final safestColor =
+        SafeRouteScorer.getDangerLevelInfo(_routeDangerScore ?? 0)['color']
+            as Color;
+    final fastestColor = _fastestDangerScore != null
+        ? (SafeRouteScorer.getDangerLevelInfo(_fastestDangerScore!)['color']
+              as Color)
+        : const Color(0xFF3B82F6);
+
+    final polylines = <Polyline>{};
+
+    if (_safestRoutePoints != null) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('safest'),
+          color: safestSelected ? safestColor : safestColor.withOpacity(0.3),
+          width: safestSelected ? 6 : 4,
+          points: _safestRoutePoints!,
+        ),
+      );
+    }
+
+    if (_fastestRoutePoints != null) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('fastest'),
+          color: safestSelected ? fastestColor.withOpacity(0.3) : fastestColor,
+          width: safestSelected ? 4 : 6,
+          points: _fastestRoutePoints!,
+        ),
+      );
+    }
+
+    setState(() {
+      _routePolylines = polylines;
+    });
+  }
+
+  /// Called when user taps a route card
+  void _onRouteSelectionChanged(bool safestSelected) {
+    _updateRoutePolylines(safestSelected: safestSelected);
+  }
+
   /// Clear the current route
   void _clearRoute() {
     setState(() {
@@ -994,6 +1036,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _routeIncidentType = null;
       _routeLocationText = null;
       _isNavigatingToIncident = false;
+      _routeDangerScore = null;
+      _hasFastestAlternative = false;
+      _fastestDistance = null;
+      _fastestDuration = null;
+      _fastestDangerScore = null;
+      _safestRoutePoints = null;
+      _fastestRoutePoints = null;
       _searchResults = [];
       _showSearchResults = false;
     });
@@ -1322,6 +1371,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               locationText: _routeLocationText,
               isIncident: _isNavigatingToIncident,
               dangerScore: _routeDangerScore,
+              hasFastestAlternative: _hasFastestAlternative,
+              fastestDistance: _fastestDistance,
+              fastestDuration: _fastestDuration,
+              fastestDangerScore: _fastestDangerScore,
+              onRouteSelectionChanged: _onRouteSelectionChanged,
               onNavigate: _openInGoogleMaps,
               onNavigateSafeRoute: _openSafeRouteInGoogleMaps,
               onClose: _clearRoute,

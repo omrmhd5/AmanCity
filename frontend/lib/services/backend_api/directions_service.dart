@@ -108,19 +108,49 @@ class DirectionsService {
           final safestIndex = result['index'] as int;
           final dangerScore = result['dangerScore'] as double;
 
-          // Use the safest route data
-          final safestRouteData = routes[safestIndex];
+          // Use the safest route data (may be overridden below if scores are equal)
+          // ignore: unused_local_variable          final safestRouteData = routes[safestIndex];
+
+          // Fastest route is always index 0 (Google returns fastest first).
+          // Compute its score first so we can decide whether to expose it.
+          final fastestDangerScore = (safestIndex != 0 && routes.isNotEmpty)
+              ? SafeRouteScorer.scoreRoute(decodedRoutes[0], hotspots)
+              : null;
+          // Only show fastest as separate option when scores differ meaningfully (>1%).
+          final hasFastest =
+              fastestDangerScore != null &&
+              (fastestDangerScore - dangerScore).abs() > 0.01;
+
+          // When scores are the same (no separate card), use the fastest route's
+          // data as the primary — it's equally safe but shorter.
+          final useIndex = (!hasFastest && fastestDangerScore != null)
+              ? 0
+              : safestIndex;
+          final primaryRouteData = routes[useIndex];
+          final primaryScore = useIndex == safestIndex
+              ? dangerScore
+              : fastestDangerScore!;
 
           return {
-            'points': decodedRoutes[safestIndex],
-            'distance': safestRouteData['distance']['text'] ?? 'Unknown',
-            'distance_m': safestRouteData['distance']['value'] ?? 0,
-            'duration': safestRouteData['duration']['text'] ?? 'Unknown',
-            'duration_s': safestRouteData['duration']['value'] ?? 0,
-            'dangerScore': dangerScore,
-            'startAddress': safestRouteData['startAddress'] ?? '',
-            'endAddress': safestRouteData['endAddress'] ?? '',
+            'points': decodedRoutes[useIndex],
+            'distance': primaryRouteData['distance']['text'] ?? 'Unknown',
+            'distance_m': primaryRouteData['distance']['value'] ?? 0,
+            'duration': primaryRouteData['duration']['text'] ?? 'Unknown',
+            'duration_s': primaryRouteData['duration']['value'] ?? 0,
+            'dangerScore': primaryScore,
+            'startAddress': primaryRouteData['startAddress'] ?? '',
+            'endAddress': primaryRouteData['endAddress'] ?? '',
             'alternativeCount': routes.length,
+            // Fastest route alternative
+            'hasFastestAlternative': hasFastest,
+            'fastestPoints': hasFastest ? decodedRoutes[0] : null,
+            'fastestDistance': hasFastest
+                ? (routes[0]['distance']['text'] ?? 'Unknown')
+                : null,
+            'fastestDuration': hasFastest
+                ? (routes[0]['duration']['text'] ?? 'Unknown')
+                : null,
+            'fastestDangerScore': fastestDangerScore,
           };
         } else {
           throw Exception(data['message'] ?? 'Unable to get route');
