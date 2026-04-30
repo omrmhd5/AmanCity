@@ -34,10 +34,10 @@ class MapScreen extends StatefulWidget {
   final VoidCallback? onReportPressed;
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreen> createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
+class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   GoogleMapController? _mapController;
   String? selectedFilter;
 
@@ -85,7 +85,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   // Real-time location tracking
   StreamSubscription<Position>? _locationStreamSubscription;
-  static const int _locationUpdateIntervalSeconds = 5; // Update every 5 seconds
   static const int _locationDistanceFilterMeters =
       10; // Only update if moved 10m+
 
@@ -115,6 +114,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   // Tapped destination (long-press anywhere on map)
   LatLng? _tappedDestination;
 
+  /// Called after a new incident is reported — force-refreshes incidents and hotspots.
+  void refreshAfterReport() {
+    _loadIncidents();
+    _hotspotsCachedTime = null; // Invalidate hotspot cache
+    _loadHotspots();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -131,7 +137,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
     _startRealTimeLocationTracking(); // Start listening for location updates
-    _loadPOIs();
     _loadHotspots();
   }
 
@@ -142,8 +147,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _loadIncidents();
       // Only fetch new location if cache is old
       _refreshLocationIfNeeded();
-      // Refresh hotspots if cache expired
-      _hotspotsCachedTime = null;
+      // Reload hotspots only if cache has expired (don't invalidate manually)
       _loadHotspots();
       // Don't reload POIs - let cache handle it
     }
@@ -177,11 +181,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     try {
       _locationStreamSubscription =
           Geolocator.getPositionStream(
-            locationSettings: LocationSettings(
+            locationSettings: const LocationSettings(
               accuracy: LocationAccuracy.best,
               distanceFilter:
                   _locationDistanceFilterMeters, // Only update if moved 10m+
-              timeLimit: Duration(seconds: _locationUpdateIntervalSeconds),
             ),
           ).listen(
             (Position position) {

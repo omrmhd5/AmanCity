@@ -19,6 +19,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   NavItem _currentNavItem = NavItem.home;
   bool _sosActive = false;
+  final _mapKey = GlobalKey<MapScreenState>();
+
+  void _onIncidentReported() {
+    // Switch to map tab and force-refresh incidents + hotspots
+    setState(() => _currentNavItem = NavItem.map);
+    _mapKey.currentState?.refreshAfterReport();
+  }
 
   void _onNavItemTapped(NavItem item) {
     if (item == _currentNavItem) return;
@@ -61,30 +68,56 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildContent() {
-    switch (_currentNavItem) {
+  // Maps NavItem to its IndexedStack index (must match children order below)
+  int _navIndex(NavItem item) {
+    switch (item) {
       case NavItem.map:
-        return MapScreen(
-          onReportPressed: () => _onNavItemTapped(NavItem.report),
-        );
+        return 0;
       case NavItem.report:
-        return const ReportIncidentScreen();
+        return 1;
       case NavItem.home:
-        return _buildWelcomePage();
+        return 2;
       case NavItem.ai:
-        return AiScreen();
+        return 3;
       case NavItem.sos:
-        return SosScreen(
+        return 4;
+      case NavItem.profile:
+        return 5;
+      case NavItem.news:
+        return 6;
+    }
+  }
+
+  // IndexedStack keeps every screen alive in memory — no rebuild/reload on tab switch.
+  // Screens are built once on first HomeScreen mount, then toggled visible/hidden.
+  Widget _buildContent() {
+    return IndexedStack(
+      index: _navIndex(_currentNavItem),
+      children: [
+        // 0 — Map
+        MapScreen(
+          key: _mapKey,
+          onReportPressed: () => _onNavItemTapped(NavItem.report),
+        ),
+        // 1 — Report
+        ReportIncidentScreen(onReported: _onIncidentReported),
+        // 2 — Home / Welcome
+        _buildWelcomePage(),
+        // 3 — AI
+        AiScreen(),
+        // 4 — SOS
+        SosScreen(
           onBack: () => _onNavItemTapped(NavItem.home),
           onActiveStateChanged: (isActive) {
             setState(() => _sosActive = isActive);
           },
-        );
-      case NavItem.profile:
-        return const ProfileScreen();
-      case NavItem.news:
-        return NewsScreen(onBack: () => _onNavItemTapped(NavItem.home));
-    }
+        ),
+        // 5 — Profile
+        const ProfileScreen(),
+        // 6 — News
+        NewsScreen(onBack: () => _onNavItemTapped(NavItem.home)),
+      ],
+    );
   }
 
   Widget _buildWelcomePage() {

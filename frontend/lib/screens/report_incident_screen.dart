@@ -17,7 +17,9 @@ import '../widgets/report/prediction_result_dialog.dart';
 import '../widgets/report/location_selector.dart';
 
 class ReportIncidentScreen extends StatefulWidget {
-  const ReportIncidentScreen({Key? key}) : super(key: key);
+  const ReportIncidentScreen({Key? key, this.onReported}) : super(key: key);
+
+  final VoidCallback? onReported;
 
   @override
   State<ReportIncidentScreen> createState() => _ReportIncidentScreenState();
@@ -218,12 +220,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           _descriptionController.clear();
         });
 
-        // Navigate back to map to see new incident
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && Navigator.canPop(context)) {
-            Navigator.pop(context, true);
-          }
-        });
+        // Notify parent (switches to map + refreshes hotspots/incidents)
+        widget.onReported?.call();
       }
     } catch (e) {
       setState(() => _isSubmitting = false);
