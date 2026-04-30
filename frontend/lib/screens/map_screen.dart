@@ -19,6 +19,7 @@ import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
 import '../models/hotspot_zone.dart';
+import '../services/backend_api/geocoding_api_service.dart';
 import '../services/backend_api/incident_api_service.dart';
 import '../services/backend_api/places_api_service.dart';
 import '../services/backend_api/directions_service.dart';
@@ -110,6 +111,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<LatLng>? _fastestRoutePoints;
   List<Map<String, dynamic>> _searchResults = [];
   bool _showSearchResults = false;
+
+  // Tapped destination (long-press anywhere on map)
+  LatLng? _tappedDestination;
 
   @override
   void initState() {
@@ -480,6 +484,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           markerId: const MarkerId('user_location'),
           position: _userLocation!,
           icon: _getUserLocationMarker(),
+        ),
+      );
+    }
+
+    // Add tapped destination marker
+    if (_tappedDestination != null) {
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('tapped_destination'),
+          position: _tappedDestination!,
+          icon: _getTappedDestinationMarker(),
+          consumeTapEvents: true,
+          onTap: _clearRoute,
         ),
       );
     }
@@ -956,6 +973,95 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
   }
 
+  // ─── Long-press anywhere on map ────────────────────────────────────────────
+
+  void _onMapLongPressed(LatLng latLng) {
+    setState(() => _tappedDestination = latLng);
+    _updateMapElements();
+    _drawRouteToTappedLocation(latLng);
+  }
+
+  Future<void> _drawRouteToTappedLocation(LatLng destination) async {
+    if (_userLocation == null) return;
+
+    setState(() {
+      _isLoadingRoute = true;
+      _routeDestination = destination;
+      _routeDestinationName = 'Selected Location';
+      _routeIncidentType = 'Destination';
+      _routeLocationText =
+          '${destination.latitude.toStringAsFixed(5)}, ${destination.longitude.toStringAsFixed(5)}';
+      _routeColor = AppColors.secondary;
+      _isNavigatingToIncident = false;
+      _showSearchResults = false;
+    });
+
+    // Reverse geocode in parallel with route calculation
+    GeocodingService.reverseGeocode(
+      destination.latitude,
+      destination.longitude,
+    ).then((geo) {
+      final address = geo['text'];
+      if (address != null && address.isNotEmpty && mounted) {
+        setState(() => _routeLocationText = address);
+      }
+    });
+
+    try {
+      final routeData = await DirectionsService.getSafeRoute(
+        _userLocation!,
+        destination,
+        _hotspots,
+      );
+
+      final points = routeData['points'] as List<LatLng>;
+      final dangerScore = routeData['dangerScore'] as double;
+      final fastestPoints = routeData['fastestPoints'] as List<LatLng>?;
+
+      setState(() {
+        _routeDistance = routeData['distance'];
+        _routeDuration = routeData['duration'];
+        _routeDangerScore = dangerScore;
+        _hasFastestAlternative =
+            routeData['hasFastestAlternative'] as bool? ?? false;
+        _fastestDistance = routeData['fastestDistance'] as String?;
+        _fastestDuration = routeData['fastestDuration'] as String?;
+        _fastestDangerScore = routeData['fastestDangerScore'] as double?;
+        _safestRoutePoints = points;
+        _fastestRoutePoints = fastestPoints;
+        _isLoadingRoute = false;
+      });
+      _updateRoutePolylines(safestSelected: true);
+      _animateCameraToRoute(points);
+      _updateMapElements();
+    } catch (e) {
+      setState(() {
+        _isLoadingRoute = false;
+        _tappedDestination = null;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to calculate route: $e')),
+        );
+      }
+    }
+  }
+
+  BitmapDescriptor _getTappedDestinationMarker() {
+    const cacheKey = 'tapped_destination';
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+    _createAndCacheMarkerIcon(
+      cacheKey,
+      Icons.location_pin,
+      Colors.white,
+      AppColors.secondary,
+      markerSize: 100.0,
+    );
+    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+  }
+
   /// Animate camera to show full route
   void _animateCameraToRoute(List<LatLng> points) {
     if (points.isEmpty) return;
@@ -1045,6 +1151,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _fastestRoutePoints = null;
       _searchResults = [];
       _showSearchResults = false;
+      _tappedDestination = null;
     });
     _updateMapElements();
   }
@@ -1250,6 +1357,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             compassEnabled: true,
             trafficEnabled: false,
             buildingsEnabled: true,
+            onLongPress: _onMapLongPressed,
           )
         else
           Container(
