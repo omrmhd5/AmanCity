@@ -111,17 +111,17 @@ class AppColors {
     {
       "featureType": "poi.park",
       "elementType": "geometry",
-      "stylers": [{"color": "#125555"}]
+      "stylers": [{"color": "#1a6b6b"}]
     },
     {
       "featureType": "poi.park",
       "elementType": "geometry.fill",
-      "stylers": [{"color": "#145959"}]
+      "stylers": [{"color": "#1d7a7a"}]
     },
     {
       "featureType": "poi.park",
       "elementType": "labels.text.fill",
-      "stylers": [{"color": "#5aad8d"}]
+      "stylers": [{"color": "#2e7d5e"}]
     },
     {
       "featureType": "poi.park",
