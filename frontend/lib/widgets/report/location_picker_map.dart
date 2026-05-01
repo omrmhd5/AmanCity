@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
-import '../../services/backend_api/geocoding_api_service.dart';
-import '../../services/backend_api/places_api_service.dart';
+import '../../services/geocoding_api_service.dart';
+import '../../services/places_api_service.dart';
+import '../../services/location_stream_service.dart';
 import '../map/search_results_dropdown.dart';
 
 class LocationPickerMap extends StatefulWidget {
@@ -31,6 +33,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   bool _isLoading = true;
   String? _geoLocationText;
   String? _geoLocationCity;
+  StreamSubscription<Position>? _locationStreamSubscription;
 
   // Search state
   final searchController = TextEditingController();
@@ -50,11 +53,14 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     setState(() => _isLoading = false);
     // Load fresh user location in background (won't block UI)
     _getUserLocationInBackground();
+    // Start following location in real-time
+    _startFollowingLocation();
   }
 
   @override
   void dispose() {
     searchController.dispose();
+    _locationStreamSubscription?.cancel();
     super.dispose();
   }
 
@@ -90,6 +96,31 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       }
     } catch (e) {
       // Error getting location or timeout, silently fail - keep initial location
+    }
+  }
+
+  /// Start following user location in real-time
+  void _startFollowingLocation() {
+    _locationStreamSubscription?.cancel();
+    try {
+      _locationStreamSubscription =
+          LocationStreamService.startLocationTracking(
+                onLocationUpdate: (newLocation) {
+                  if (mounted) {
+                    setState(() => _selectedLocation = newLocation);
+                    _updateMarker();
+                    _updateLocationPreview();
+                    // Auto-animate camera to follow
+                    _mapController.animateCamera(
+                      CameraUpdate.newLatLngZoom(newLocation, 15.0),
+                    );
+                  }
+                },
+                distanceFilterMeters: 10,
+              )
+              as StreamSubscription<Position>?;
+    } catch (e) {
+      // Location tracking failed, continue with one-time location
     }
   }
 

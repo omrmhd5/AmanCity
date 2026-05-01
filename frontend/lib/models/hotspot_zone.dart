@@ -92,6 +92,19 @@ class HotspotZone {
     }
   }
 
+  /// Serialize to JSON for SharedPreferences persistence
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'center': {'latitude': center.latitude, 'longitude': center.longitude},
+    'radiusKm': radiusKm,
+    'radiusMeters': radiusMeters,
+    'riskScore': riskScore,
+    'incidentCount': incidentCount,
+    'avgConfidence': avgConfidence,
+    'updatedAt': updatedAt.toIso8601String(),
+    'incidentTypes': incidentTypes,
+  };
+
   /// Generate smart warning message based on incident types
   String get smartWarningMessage {
     // Filter out "Unknown" and empty types

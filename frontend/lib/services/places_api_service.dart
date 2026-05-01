@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../models/emergency_poi.dart';
-import '../../config/app_config.dart';
+import '../models/emergency_poi.dart';
+import '../config/app_config.dart';
 
 /// Service for fetching nearby places (hospitals, police stations, fire stations)
 /// from backend which proxies Google Places API

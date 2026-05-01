@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,9 +9,10 @@ import '../data/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../models/report_incident_model.dart' hide LatLng;
 import '../models/prediction_result_model.dart';
-import '../services/backend_api/prediction_api_service.dart';
-import '../services/backend_api/incident_api_service.dart';
-import '../services/backend_api/geocoding_api_service.dart';
+import '../services/prediction_api_service.dart';
+import '../services/incident_api_service.dart';
+import '../services/geocoding_api_service.dart';
+import '../services/location_stream_service.dart';
 import '../widgets/report/location_context_card.dart';
 import '../widgets/report/evidence_type_selector.dart';
 import '../widgets/report/prediction_result_dialog.dart';
@@ -37,17 +39,42 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   bool _isPickingFile = false;
   String? _geoLocationText;
   String? _geoLocationCity;
+  StreamSubscription<Position>? _locationStreamSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadUserLocationFromCache();
+    _startFollowingLocation(); // Track location as user moves
+  }
+
+  /// Start following user location in real-time
+  void _startFollowingLocation() {
+    _locationStreamSubscription?.cancel();
+    try {
+      _locationStreamSubscription =
+          LocationStreamService.startLocationTracking(
+                onLocationUpdate: (newLocation) {
+                  setState(() {
+                    _currentLocation = newLocation;
+                    _selectedLocation =
+                        newLocation; // Report location updates with user
+                  });
+                  _updateLocationPreview(newLocation);
+                },
+                distanceFilterMeters: 10,
+              )
+              as StreamSubscription<Position>?;
+    } catch (e) {
+      // Location tracking failed, continue with cached location
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _locationStreamSubscription?.cancel();
     super.dispose();
   }
 

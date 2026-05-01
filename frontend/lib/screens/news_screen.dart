@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/osint_incident.dart';
-import '../services/backend_api/osint_api_service.dart';
+import '../services/osint_api_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/news/news_header.dart';
 import '../widgets/news/news_feed_card.dart';

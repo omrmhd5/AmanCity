@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../config/app_config.dart';
+import '../config/app_config.dart';
 
 class GeminiChatService {
   static const String _endpoint = '${AppConfig.backendUrl}/chat/send';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/app_theme.dart';
-import '../services/backend_api/gemini_chat_service.dart';
+import '../services/gemini_chat_service.dart';
 import '../services/hotspot_api_service.dart';
 import '../services/safe_route_home_service.dart';
 import '../widgets/ai_screen/ai_chat_header.dart';

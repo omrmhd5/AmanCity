@@ -2,9 +2,9 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../config/app_config.dart';
-import '../../models/map_incident.dart';
-import '../../data/incident_types_config.dart';
+import '../config/app_config.dart';
+import '../models/map_incident.dart';
+import '../data/incident_types_config.dart';
 
 /// Model for incident creation response
 class IncidentResponse {

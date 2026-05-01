@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -19,12 +20,13 @@ import '../models/map_incident.dart';
 import '../models/emergency_poi.dart';
 import '../models/danger_zone.dart';
 import '../models/hotspot_zone.dart';
-import '../services/backend_api/geocoding_api_service.dart';
-import '../services/backend_api/incident_api_service.dart';
-import '../services/backend_api/places_api_service.dart';
-import '../services/backend_api/directions_service.dart';
+import '../services/geocoding_api_service.dart';
+import '../services/incident_api_service.dart';
+import '../services/places_api_service.dart';
+import '../services/directions_service.dart';
 import '../services/hotspot_api_service.dart';
 import '../services/location_service.dart';
+import '../services/location_stream_service.dart';
 import '../utils/safe_route_scorer.dart';
 import 'incident_detail_sheet.dart';
 
@@ -42,8 +44,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   String? selectedFilter;
 
   // Map data
-  final Set<Marker> _markers = {};
-  final Set<Circle> _circles = {};
+  Set<Marker> _markers = {};
+  Set<Circle> _circles = {};
   List<MapIncident> _incidents = [];
   List<EmergencyPOI> _pois = [];
   List<DangerZone> _dangerZones = [];
@@ -51,8 +53,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   // Hotspot settings
   bool _showHotspots = true;
-  DateTime? _hotspotsCachedTime;
-  static const int _hotspotsCacheDurationMinutes = 10;
 
   // POI filtering
   // 'all', 'hospital', 'police', 'fire', or pipe-separated like 'hospital|police'
@@ -114,10 +114,23 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   // Tapped destination (long-press anywhere on map)
   LatLng? _tappedDestination;
 
-  /// Called after a new incident is reported — force-refreshes incidents and hotspots.
+  // ─── In-flight guards (prevent concurrent duplicate requests) ──────────────
+  bool _isLoadingIncidents = false;
+  bool _isLoadingPOIs = false;
+  bool _isLoadingHotspots = false;
+
+  // ─── Auto-refresh polling timers ───────────────────────────────────────────
+  Timer? _incidentPollTimer;
+  Timer? _hotspotPollTimer;
+  static const Duration _incidentPollInterval = Duration(seconds: 30);
+  static const Duration _hotspotPollInterval = Duration(seconds: 60);
+
+  // ─── Debounce: collapse rapid _updateMapElements calls into one frame ──────
+  bool _mapUpdateScheduled = false;
+
+  /// Called after a new incident is reported — immediately fetches fresh incidents and hotspots.
   void refreshAfterReport() {
     _loadIncidents();
-    _hotspotsCachedTime = null; // Invalidate hotspot cache
     _loadHotspots();
   }
 
@@ -137,7 +150,9 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
     _startRealTimeLocationTracking(); // Start listening for location updates
-    _loadHotspots();
+    _loadPersistedHotspots(); // Show last-known hotspots instantly
+    _loadHotspots(); // Fetch fresh hotspots in background
+    _startPolling(); // Auto-refresh every 30s (incidents) / 60s (hotspots)
   }
 
   @override
@@ -153,23 +168,43 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
   }
 
+  void _startPolling() {
+    _incidentPollTimer?.cancel();
+    _hotspotPollTimer?.cancel();
+    _incidentPollTimer = Timer.periodic(
+      _incidentPollInterval,
+      (_) => _loadIncidents(),
+    );
+    _hotspotPollTimer = Timer.periodic(
+      _hotspotPollInterval,
+      (_) => _loadHotspots(),
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _mapController?.dispose();
     _locationStreamSubscription?.cancel();
+    _incidentPollTimer?.cancel();
+    _hotspotPollTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _loadIncidents() async {
+    // Skip if already in-flight
+    if (_isLoadingIncidents) return;
+
+    _isLoadingIncidents = true;
     try {
       final incidents = await IncidentApiService.getIncidents();
-      setState(() {
-        _incidents = incidents;
-      });
-      _updateMapElements();
+      if (!mounted) return;
+      setState(() => _incidents = incidents);
+      _scheduleMapUpdate();
     } catch (e) {
       // Error loading incidents
+    } finally {
+      _isLoadingIncidents = false;
     }
   }
 
@@ -179,32 +214,30 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _locationStreamSubscription?.cancel();
 
     try {
-      _locationStreamSubscription =
-          Geolocator.getPositionStream(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.best,
-              distanceFilter:
-                  _locationDistanceFilterMeters, // Only update if moved 10m+
+      _locationStreamSubscription = LocationStreamService.startLocationTracking(
+        onLocationUpdate: (newLocation) {
+          setState(() {
+            _userLocation = newLocation;
+            _locationCachedTime = DateTime.now();
+          });
+          _cacheLocation(
+            Position(
+              latitude: newLocation.latitude,
+              longitude: newLocation.longitude,
+              timestamp: DateTime.now(),
+              accuracy: 0,
+              altitude: 0,
+              heading: 0,
+              speed: 0,
+              speedAccuracy: 0,
+              headingAccuracy: 0,
+              altitudeAccuracy: 0,
             ),
-          ).listen(
-            (Position position) {
-              final newLocation = LatLng(position.latitude, position.longitude);
-
-              setState(() {
-                _userLocation = newLocation;
-                _locationCachedTime = DateTime.now();
-              });
-
-              // Cache the new location
-              _cacheLocation(position);
-
-              // Update map elements to show new user marker position
-              _updateMapElements();
-            },
-            onError: (e) {
-              // Error from location stream - not critical
-            },
           );
+          _scheduleMapUpdate();
+        },
+        distanceFilterMeters: _locationDistanceFilterMeters,
+      );
     } catch (e) {
       // Location permissions or service disabled - not critical
     }
@@ -350,80 +383,118 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadPOIs() async {
-    // Check cache validity
+    // Skip if already in-flight
+    if (_isLoadingPOIs) return;
+    // Skip if cache is still fresh
     if (_poisCachedTime != null) {
       final age = DateTime.now().difference(_poisCachedTime!);
-      if (age.inMinutes < _poiCacheDurationMinutes) {
-        return;
-      }
+      if (age.inMinutes < _poiCacheDurationMinutes) return;
     }
-
     // Don't load if no location
-    if (_userLocation == null) {
-      return;
-    }
-
-    // Don't load if no filters selected
+    if (_userLocation == null) return;
+    // No filters → clear and skip fetch
     if (_selectedPoiFilters.isEmpty) {
-      setState(() {
-        _pois = [];
-      });
-      _updateMapElements();
+      setState(() => _pois = []);
+      _scheduleMapUpdate();
       return;
     }
 
-    final initialLocation = _userLocation!;
-
+    _isLoadingPOIs = true;
+    final locationSnapshot = _userLocation!;
     try {
       final pois = await PlacesApiService.getNearbyPlaces(
-        initialLocation,
+        locationSnapshot,
         type: 'all',
         radiusKm: _radiusKm,
       );
-
+      if (!mounted) return;
       setState(() {
         _pois = pois;
         _poisCachedTime = DateTime.now();
       });
-
-      _updateMapElements();
+      _scheduleMapUpdate();
     } catch (e) {
       // Error loading POIs
+    } finally {
+      _isLoadingPOIs = false;
     }
   }
 
   Future<void> _loadHotspots() async {
-    // Check cache validity
-    if (_hotspotsCachedTime != null) {
-      final age = DateTime.now().difference(_hotspotsCachedTime!);
-      if (age.inMinutes < _hotspotsCacheDurationMinutes) {
-        return;
-      }
-    }
+    // Skip if already in-flight
+    if (_isLoadingHotspots) return;
+    if (!_showHotspots) return;
 
-    // Don't load if hotspots are disabled
-    if (!_showHotspots) {
-      return;
-    }
-
+    _isLoadingHotspots = true;
     try {
       final hotspots = await HotspotApiService.getHotspots();
-
-      setState(() {
-        _hotspots = hotspots;
-        _hotspotsCachedTime = DateTime.now();
-      });
-
-      _updateMapElements();
+      if (!mounted) return;
+      setState(() => _hotspots = hotspots);
+      _scheduleMapUpdate();
+      _persistHotspots(hotspots); // Fire-and-forget persistence
     } catch (e) {
-      // Error loading hotspots
-      // Hotspots are optional UI enhancement
+      // Hotspots are optional — silently ignore errors
+    } finally {
+      _isLoadingHotspots = false;
     }
   }
 
+  // ─── Hotspot SharedPreferences persistence ──────────────────────────────────
+
+  static const String _hotspotsPrefsKey = 'cached_hotspots';
+  static const String _hotspotsPrefsTimeKey = 'cached_hotspots_time';
+
+  Future<void> _persistHotspots(List<HotspotZone> hotspots) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonEncode(hotspots.map((h) => h.toJson()).toList());
+      await prefs.setString(_hotspotsPrefsKey, json);
+      await prefs.setString(
+        _hotspotsPrefsTimeKey,
+        DateTime.now().toIso8601String(),
+      );
+    } catch (_) {}
+  }
+
+  /// Load persisted hotspots on cold start — shown instantly while fetch runs.
+  Future<void> _loadPersistedHotspots() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_hotspotsPrefsKey);
+      final timeStr = prefs.getString(_hotspotsPrefsTimeKey);
+      if (json == null || timeStr == null) return;
+
+      // Only use persisted data if it's less than 24 hours old
+      final age = DateTime.now().difference(DateTime.parse(timeStr));
+      if (age.inHours >= 24) return;
+
+      final list = (jsonDecode(json) as List)
+          .map((e) => HotspotZone.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _hotspots = list;
+        // Don't set _hotspotsCachedTime here — still fetch fresh data in background
+      });
+      _scheduleMapUpdate();
+    } catch (_) {}
+  }
+
+  /// Schedules a map element rebuild, collapsing rapid successive calls into
+  /// a single microtask so multiple loader completions produce one rebuild.
+  void _scheduleMapUpdate() {
+    if (_mapUpdateScheduled) return;
+    _mapUpdateScheduled = true;
+    Future.microtask(() {
+      _mapUpdateScheduled = false;
+      if (mounted) _updateMapElements();
+    });
+  }
+
   void _updateMapElements() {
-    _markers.clear();
-    _circles.clear();
+    final newMarkers = <Marker>{};
+    final newCircles = <Circle>{};
 
     // Filter incidents by selected types (if filters are applied)
     List<MapIncident> visibleIncidents = _incidents.where((incident) {
@@ -435,7 +506,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     // Add incident markers with custom icons
     for (var incident in visibleIncidents) {
-      _markers.add(
+      newMarkers.add(
         Marker(
           markerId: MarkerId(incident.id),
           position: incident.position,
@@ -468,7 +539,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }).toList();
 
       for (var poi in visiblePOIs) {
-        _markers.add(
+        newMarkers.add(
           Marker(
             markerId: MarkerId('poi_${poi.id}'),
             position: poi.position,
@@ -482,7 +553,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     // Add user location marker if available
     if (_userLocation != null) {
-      _markers.add(
+      newMarkers.add(
         Marker(
           markerId: const MarkerId('user_location'),
           position: _userLocation!,
@@ -493,7 +564,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     // Add tapped destination marker
     if (_tappedDestination != null) {
-      _markers.add(
+      newMarkers.add(
         Marker(
           markerId: const MarkerId('tapped_destination'),
           position: _tappedDestination!,
@@ -506,7 +577,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     // Add danger zones as circles
     for (var zone in _dangerZones) {
-      _circles.add(
+      newCircles.add(
         Circle(
           circleId: CircleId(zone.id),
           center: zone.center,
@@ -522,7 +593,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (_showHotspots) {
       for (var hotspot in _hotspots) {
         // Add circle for hotspot
-        _circles.add(
+        newCircles.add(
           Circle(
             circleId: CircleId('hotspot_${hotspot.id}'),
             center: hotspot.center,
@@ -534,7 +605,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         );
 
         // Add marker at hotspot center for interactivity
-        _markers.add(
+        newMarkers.add(
           Marker(
             markerId: MarkerId('hotspot_marker_${hotspot.id}'),
             position: hotspot.center,
@@ -550,7 +621,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
 
-    setState(() {});
+    setState(() {
+      _markers = newMarkers;
+      _circles = newCircles;
+    });
   }
 
   /// Creates a custom map marker icon with incident type icon
