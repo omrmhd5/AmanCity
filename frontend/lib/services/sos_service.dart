@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,6 +30,7 @@ class SosService {
   String? _currentRecordingPath;
   int _recordingStartMs = 0;
   final FlutterRingtonePlayer _ringtonePlayer = FlutterRingtonePlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   // ─── Flashlight strobe ──────────────────────────────────────────────────────
 
@@ -65,11 +67,26 @@ class SosService {
 
   Future<void> startSiren() async {
     try {
-      await _ringtonePlayer.playAlarm(looping: true, volume: 1.0);
+      await _audioPlayer.stop();
+      await _audioPlayer.release();
     } catch (_) {}
+
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.play(AssetSource('sos_sound.mp3'), volume: 1.0);
+    } catch (e) {
+      print('Failed to play custom SOS sound: $e');
+      // Fallback to system ringtone if custom audio fails
+      try {
+        await _ringtonePlayer.playAlarm(looping: true, volume: 1.0);
+      } catch (_) {}
+    }
   }
 
   Future<void> stopSiren() async {
+    try {
+      await _audioPlayer.stop();
+    } catch (_) {}
     try {
       await _ringtonePlayer.stop();
     } catch (_) {}
