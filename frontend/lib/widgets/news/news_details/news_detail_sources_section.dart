@@ -97,10 +97,11 @@ class NewsDetailSourcesSection extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: CustomText(
-                                  text: 'Tweet #${entry.key + 1}',
+                                  text: entry.value,
                                   size: 12,
                                   weight: FontWeight.w500,
                                   color: Colors.blue,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Icon(
