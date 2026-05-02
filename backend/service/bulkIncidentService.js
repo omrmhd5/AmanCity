@@ -225,7 +225,10 @@ class BulkIncidentService {
       .populate("type")
       .populate({
         path: "incidentIds",
-        populate: { path: "type" },
+        populate: [
+          { path: "type" },
+          { path: "reportedBy", select: "name username" },
+        ],
       });
   }
 }

@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../data/app_colors.dart';
 import '../../models/bulk_incident.dart';
+import '../../models/map_incident.dart';
 import '../../services/bulk_incident_api_service.dart';
 import '../../utils/app_theme.dart';
+import 'incident_detail_sheet.dart';
 
 class BulkIncidentDetailSheet extends StatefulWidget {
   final BulkIncident bulk;
@@ -257,7 +260,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
         itemCount: mediaUrls.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final url = '${AppConfig.fileServerUrl}/${mediaUrls[index]}';
+          final url = _resolveMediaUrl(mediaUrls[index]);
           return ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Image.network(
@@ -281,16 +284,23 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
     );
   }
 
+  /// Converts a stored relative path (e.g. "uploads/Fire/img.jpg") to a full URL.
+  /// Mirrors the logic in evidence_feed_section.dart.
+  String _resolveMediaUrl(String storedPath) {
+    if (storedPath.startsWith('http')) return storedPath;
+    String filePath = storedPath;
+    if (filePath.startsWith('uploads/')) {
+      filePath = filePath.substring(8); // strip "uploads/"
+    }
+    final encoded = filePath.split('/').map(Uri.encodeComponent).join('/');
+    return '${AppConfig.fileServerUrl}/$encoded';
+  }
+
   Widget _buildSourceUrls(List<String> urls) {
     return Column(
       children: urls.map((url) {
         return GestureDetector(
-          onTap: () async {
-            final uri = Uri.tryParse(url);
-            if (uri != null && await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
+          onTap: () => _launchSourceUrl(url),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -324,6 +334,27 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
     );
   }
 
+  Future<void> _launchSourceUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open link'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildReportsSection(List<BulkSubIncident> reports) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,98 +380,221 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
         ),
         if (_reportsExpanded) ...[
           const SizedBox(height: 10),
-          ...reports.map((r) => _buildReportCard(r)).toList(),
+          ...reports
+              .map(
+                (r) =>
+                    _buildReportCard(r, parentBulk: _fullBulk ?? widget.bulk),
+              )
+              .toList(),
         ],
       ],
     );
   }
 
-  Widget _buildReportCard(BulkSubIncident report) {
+  Widget _buildReportCard(
+    BulkSubIncident report, {
+    required BulkIncident parentBulk,
+  }) {
     final isOsint = report.isOsint;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppTheme.getCardBackgroundColor(),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.getBorderColor()),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                isOsint ? Icons.radar : Icons.person_outline,
-                size: 14,
-                color: isOsint ? const Color(0xFF7C3AED) : AppColors.secondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                isOsint
-                    ? 'OSINT · ${_timeAgo(report.timestamp)}'
-                    : 'Human · ${_timeAgo(report.timestamp)}',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () => _openSubIncidentDetail(report, parentBulk),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.getCardBackgroundColor(),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.getBorderColor()),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isOsint ? Icons.radar : Icons.person_outline,
+                  size: 14,
                   color: isOsint
                       ? const Color(0xFF7C3AED)
                       : AppColors.secondary,
                 ),
-              ),
-              const Spacer(),
+                const SizedBox(width: 6),
+                Text(
+                  isOsint
+                      ? 'OSINT · ${_timeAgo(report.timestamp)}'
+                      : 'Human · ${_timeAgo(report.timestamp)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isOsint
+                        ? const Color(0xFF7C3AED)
+                        : AppColors.secondary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${(report.confidence * 100).round()}%',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
+                ),
+              ],
+            ),
+            // Title
+            if (report.title != null && report.title!.isNotEmpty) ...[
+              const SizedBox(height: 5),
               Text(
-                '${(report.confidence * 100).round()}%',
+                report.title!,
                 style: TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.getSecondaryTextColor(),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.getPrimaryTextColor(),
                 ),
               ),
             ],
-          ),
-          if (report.description != null && report.description!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              report.description!,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppTheme.getSecondaryTextColor(),
+            // Reporter (Human only)
+            if (!isOsint && report.reportedByName != null) ...[
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  Icon(
+                    Icons.person,
+                    size: 11,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Reported by ${report.reportedByName}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.getSecondaryTextColor(),
+                    ),
+                  ),
+                ],
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          if (report.media.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 70,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: report.media.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 6),
-                itemBuilder: (context, i) {
-                  final url =
-                      '${AppConfig.fileServerUrl}/${report.media[i].url}';
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      url,
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+            ],
+            if (report.description != null &&
+                report.description!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                report.description!,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.getSecondaryTextColor(),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            if (report.media.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 70,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: report.media.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (context, i) {
+                    final url = _resolveMediaUrl(report.media[i].url);
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        url,
                         width: 70,
                         height: 70,
-                        color: AppTheme.getBorderColor(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 70,
+                          height: 70,
+                          color: AppTheme.getBorderColor(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+            if (report.sourceUrls.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ...report.sourceUrls.map((sourceUrl) {
+                return GestureDetector(
+                  onTap: () => _launchSourceUrl(sourceUrl),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7C3AED).withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF7C3AED).withOpacity(0.2),
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.link,
+                          size: 14,
+                          color: Color(0xFF7C3AED),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            sourceUrl,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF7C3AED),
+                              decoration: TextDecoration.underline,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
           ],
-        ],
+        ),
       ),
+    );
+  }
+
+  void _openSubIncidentDetail(BulkSubIncident sub, BulkIncident parentBulk) {
+    final incident = MapIncident(
+      id: sub.id,
+      type: parentBulk.type,
+      position: parentBulk.center,
+      title: sub.title ?? parentBulk.type,
+      description: sub.description ?? '',
+      timestamp: sub.timestamp,
+      media: sub.media,
+      addressText: parentBulk.locationText,
+      city: parentBulk.city,
+      confidence: sub.confidence,
+      source: sub.source,
+      sourceUrls: sub.sourceUrls,
+      isMerged: true,
+      bulkIncidentId: parentBulk.id,
+    );
+
+    final diff = DateTime.now().difference(sub.timestamp);
+    final timeAgo = diff.inMinutes < 60
+        ? '${diff.inMinutes}m ago'
+        : diff.inHours < 24
+        ? '${diff.inHours}h ago'
+        : '${diff.inDays}d ago';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          IncidentDetailScreen(incident: incident, timeAgo: timeAgo),
     );
   }
 }

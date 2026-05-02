@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/osint_incident.dart';
 import '../utils/app_theme.dart';
 import '../widgets/news/news_details/news_detail_header.dart';
@@ -70,7 +71,15 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet> {
                   // Confidence Section
                   NewsDetailConfidenceSection(incident: widget.incident),
 
+                  // OSINT Source URLs (clickable links)
+                  if (widget.incident.sourceUrls != null &&
+                      widget.incident.sourceUrls!.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    _buildSourceUrlsSection(widget.incident.sourceUrls!),
+                  ],
+
                   // Sources Section (includes footer)
+                  const SizedBox(height: 20),
                   NewsDetailSourcesSection(incident: widget.incident),
                   const SizedBox(height: 12),
                 ],
@@ -79,6 +88,77 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSourceUrlsSection(List<String> sourceUrls) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'SOURCES',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.getSecondaryTextColor(),
+              letterSpacing: 1.0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: sourceUrls.map((url) {
+              return GestureDetector(
+                onTap: () async {
+                  final uri = Uri.tryParse(url);
+                  if (uri != null && await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withOpacity(0.07),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF7C3AED).withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.link,
+                        size: 16,
+                        color: Color(0xFF7C3AED),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          url,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF7C3AED),
+                            decoration: TextDecoration.underline,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -14,6 +14,7 @@ class BulkSubIncident {
   final List<MediaItem> media;
   final List<String> sourceUrls;
   final double confidence;
+  final String? reportedByName;
 
   BulkSubIncident({
     required this.id,
@@ -24,6 +25,7 @@ class BulkSubIncident {
     this.media = const [],
     this.sourceUrls = const [],
     this.confidence = 0.0,
+    this.reportedByName,
   });
 
   bool get isOsint => source == 'OSINT_Twitter';
@@ -46,9 +48,22 @@ class BulkSubIncident {
       }
     }
 
+    // OSINT incidents store their score in osintConfidence; fall back to confidence
     double confidence = 0.0;
-    final confVal = json['confidence'];
-    if (confVal is num) confidence = confVal.toDouble();
+    final osintConf = json['osintConfidence'];
+    final conf = json['confidence'];
+    if (osintConf is num) {
+      confidence = osintConf.toDouble();
+    } else if (conf is num) {
+      confidence = conf.toDouble();
+    }
+
+    // reportedBy may be populated as object with name/username
+    String? reportedByName;
+    final rb = json['reportedBy'];
+    if (rb is Map<String, dynamic>) {
+      reportedByName = rb['name'] as String? ?? rb['username'] as String?;
+    }
 
     return BulkSubIncident(
       id: json['_id'] as String? ?? '',
@@ -61,6 +76,7 @@ class BulkSubIncident {
       media: mediaList,
       sourceUrls: List<String>.from(json['sourceUrls'] ?? []),
       confidence: confidence,
+      reportedByName: reportedByName,
     );
   }
 }
