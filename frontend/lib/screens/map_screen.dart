@@ -28,7 +28,10 @@ import '../services/hotspot_api_service.dart';
 import '../services/location_service.dart';
 import '../services/location_stream_service.dart';
 import '../utils/safe_route_scorer.dart';
+import '../models/bulk_incident.dart';
+import '../services/bulk_incident_api_service.dart';
 import 'incident_detail_sheet.dart';
+import 'bulk_incident_detail_sheet.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);
@@ -50,6 +53,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<EmergencyPOI> _pois = [];
   List<DangerZone> _dangerZones = [];
   List<HotspotZone> _hotspots = [];
+  List<BulkIncident> _bulkIncidents = [];
+  bool _isLoadingBulkIncidents = false;
 
   // Hotspot settings
   bool _showHotspots = true;
@@ -132,6 +137,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void refreshAfterReport() {
     _loadIncidents();
     _loadHotspots();
+    _loadBulkIncidents();
   }
 
   @override
@@ -148,6 +154,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         .toSet();
 
     _loadIncidents();
+    _loadBulkIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
     _startRealTimeLocationTracking(); // Start listening for location updates
     _loadPersistedHotspots(); // Show last-known hotspots instantly
@@ -160,6 +167,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Refresh incidents when app comes back to foreground
       _loadIncidents();
+      _loadBulkIncidents();
       // Only fetch new location if cache is old
       _refreshLocationIfNeeded();
       // Reload hotspots only if cache has expired (don't invalidate manually)
@@ -171,10 +179,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void _startPolling() {
     _incidentPollTimer?.cancel();
     _hotspotPollTimer?.cancel();
-    _incidentPollTimer = Timer.periodic(
-      _incidentPollInterval,
-      (_) => _loadIncidents(),
-    );
+    _incidentPollTimer = Timer.periodic(_incidentPollInterval, (_) {
+      _loadIncidents();
+      _loadBulkIncidents();
+    });
     _hotspotPollTimer = Timer.periodic(
       _hotspotPollInterval,
       (_) => _loadHotspots(),
@@ -205,6 +213,21 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       // Error loading incidents
     } finally {
       _isLoadingIncidents = false;
+    }
+  }
+
+  Future<void> _loadBulkIncidents() async {
+    if (_isLoadingBulkIncidents) return;
+    _isLoadingBulkIncidents = true;
+    try {
+      final bulks = await BulkIncidentApiService.getBulkIncidents();
+      if (!mounted) return;
+      setState(() => _bulkIncidents = bulks);
+      _scheduleMapUpdate();
+    } catch (_) {
+      // Bulk incidents are optional
+    } finally {
+      _isLoadingBulkIncidents = false;
     }
   }
 
@@ -497,14 +520,16 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final newCircles = <Circle>{};
 
     // Filter incidents by selected types (if filters are applied)
+    // Only show individual incidents that are NOT merged into a BulkIncident
     List<MapIncident> visibleIncidents = _incidents.where((incident) {
+      if (incident.isMerged) return false;
       if (_selectedIncidentTypes.isEmpty) {
         return true; // Show all if no filters selected
       }
       return _selectedIncidentTypes.contains(incident.type);
     }).toList();
 
-    // Add incident markers with custom icons
+    // Add individual incident markers
     for (var incident in visibleIncidents) {
       newMarkers.add(
         Marker(
@@ -513,6 +538,22 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           icon: _getCustomIncidentMarker(incident),
           consumeTapEvents: true,
           onTap: () => _onIncidentTapped(incident),
+        ),
+      );
+    }
+
+    // Add bulk incident markers (aggregated groups)
+    for (final bulk in _bulkIncidents) {
+      if (_selectedIncidentTypes.isNotEmpty &&
+          !_selectedIncidentTypes.contains(bulk.type))
+        continue;
+      newMarkers.add(
+        Marker(
+          markerId: MarkerId('bulk_${bulk.id}'),
+          position: bulk.center,
+          icon: _getCustomBulkMarker(bulk),
+          consumeTapEvents: true,
+          onTap: () => _onBulkIncidentTapped(bulk),
         ),
       );
     }
@@ -1342,6 +1383,125 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.transparent,
       builder: (context) => HotspotDetailSheet(hotspot: hotspot),
     );
+  }
+
+  void _onBulkIncidentTapped(BulkIncident bulk) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BulkIncidentDetailSheet(bulk: bulk),
+    );
+  }
+
+  /// Renders a bulk incident marker: same type icon but with an ×N count badge
+  BitmapDescriptor _getCustomBulkMarker(BulkIncident bulk) {
+    final cacheKey = 'bulk_${bulk.type}_${bulk.count}';
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+    _createAndCacheBulkMarkerIcon(cacheKey, bulk);
+    return BitmapDescriptor.defaultMarkerWithHue(
+      _getHueFromColor(bulk.typeColor),
+    );
+  }
+
+  Future<void> _createAndCacheBulkMarkerIcon(
+    String cacheKey,
+    BulkIncident bulk,
+  ) async {
+    try {
+      final pictureRecorder = ui.PictureRecorder();
+      final canvas = Canvas(pictureRecorder);
+      const size = 120.0;
+      final color = bulk.typeColor;
+
+      // Shadow
+      canvas.drawCircle(
+        const Offset(size / 2, size / 2 + 2),
+        size / 2,
+        Paint()
+          ..color = Colors.black.withOpacity(0.3)
+          ..style = PaintingStyle.fill,
+      );
+
+      // Background circle
+      canvas.drawCircle(
+        const Offset(size / 2, size / 2),
+        size / 2,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill,
+      );
+
+      // Type icon (slightly smaller to leave room for badge)
+      final iconPainter = TextPainter(textDirection: TextDirection.ltr);
+      iconPainter.text = TextSpan(
+        text: String.fromCharCode(bulk.typeIcon.codePoint),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: size * 0.38,
+          fontFamily: bulk.typeIcon.fontFamily,
+        ),
+      );
+      iconPainter.layout();
+      iconPainter.paint(
+        canvas,
+        Offset(
+          (size / 2) - (iconPainter.width / 2),
+          (size / 2) - (iconPainter.height / 2),
+        ),
+      );
+
+      // Count badge: white circle, bottom-right corner
+      const badgeRadius = 24.0;
+      const badgeCx = size - badgeRadius * 0.8;
+      const badgeCy = size - badgeRadius * 0.8;
+      canvas.drawCircle(
+        const Offset(badgeCx, badgeCy),
+        badgeRadius,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        const Offset(badgeCx, badgeCy),
+        badgeRadius,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+
+      // Badge text (count)
+      final badgePainter = TextPainter(textDirection: TextDirection.ltr);
+      badgePainter.text = TextSpan(
+        text: '×${bulk.count}',
+        style: TextStyle(
+          color: color,
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+        ),
+      );
+      badgePainter.layout();
+      badgePainter.paint(
+        canvas,
+        Offset(
+          badgeCx - badgePainter.width / 2,
+          badgeCy - badgePainter.height / 2,
+        ),
+      );
+
+      final picture = pictureRecorder.endRecording();
+      final image = await picture.toImage(size.toInt(), size.toInt());
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final descriptor = BitmapDescriptor.fromBytes(
+        bytes!.buffer.asUint8List(),
+      );
+
+      _markerIconCache[cacheKey] = descriptor;
+      if (mounted) _updateMapElements();
+    } catch (_) {}
   }
 
   String _getTimeAgo(DateTime timestamp) {

@@ -27,6 +27,7 @@ app.use(
 
 // Routes
 app.use("/api/incidents", require("./routes/incidents"));
+app.use("/api/bulk-incidents", require("./routes/bulkIncidents"));
 app.use("/api/predict", require("./routes/predict"));
 app.use("/api/places", require("./routes/places"));
 app.use("/api/geocode", require("./routes/geocode"));

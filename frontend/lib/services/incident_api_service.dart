@@ -225,6 +225,8 @@ class IncidentApiService {
     // Parse source info
     final source = data['source'] as String? ?? 'Human';
     final sourceUrls = List<String>.from(data['sourceUrls'] ?? []);
+    final isMerged = data['isMerged'] as bool? ?? false;
+    final bulkIncidentId = data['bulkIncidentId'] as String?;
 
     return MapIncident(
       id: id,
@@ -239,6 +241,8 @@ class IncidentApiService {
       confidence: confidence,
       source: source,
       sourceUrls: sourceUrls,
+      isMerged: isMerged,
+      bulkIncidentId: bulkIncidentId,
     );
   }
 }

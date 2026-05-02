@@ -1,6 +1,7 @@
 const { runGrokScan } = require("../service/osintService");
 const GeocodingService = require("../service/geocodingService");
 const IncidentService = require("../service/incidentService");
+const BulkIncidentService = require("../service/bulkIncidentService");
 const IncidentType = require("../model/IncidentType");
 
 /**
@@ -69,11 +70,13 @@ async function scanOsint(req, res) {
       continue;
     }
 
-    // Deduplicate: same type + within 500m + last 30 min
+    // Deduplicate: skip only if same sourceUrl is already in an existing bulk's sourceUrls
+    // Otherwise, save and attempt merge (absorb into BulkIncident)
     const isDuplicate = await IncidentService.checkDuplicate(
       incidentTypeDoc._id,
       geo.latitude,
       geo.longitude,
+      raw.source_urls || [],
     );
     if (isDuplicate) {
       console.log(`🔁 Duplicate skipped: ${raw.title}`);
@@ -102,6 +105,9 @@ async function scanOsint(req, res) {
 
       savedIncidents.push(incident);
       summary.saved++;
+
+      // Attempt merge into BulkIncident (non-blocking, errors swallowed)
+      _attemptOsintMerge(incident).catch(() => {});
 
       const precisionTag = raw.location_precision === "VAGUE" ? " [VAGUE]" : "";
       console.log(`💾 Saved: ${raw.title}${precisionTag} (${geo.text})`);
@@ -165,3 +171,43 @@ async function getOsintIncidents(req, res) {
 }
 
 module.exports = { scanOsint, getOsintIncidents };
+
+/**
+ * Attempt to merge an OSINT incident into an existing BulkIncident or
+ * pair it with a nearby standalone incident to create one.
+ * Non-blocking — caller must handle errors.
+ */
+async function _attemptOsintMerge(incident) {
+  const lat = incident.location.latitude;
+  const lng = incident.location.longitude;
+  const typeId = incident.type._id || incident.type;
+
+  const existingBulk = await BulkIncidentService.findMatchingBulk(
+    typeId,
+    lat,
+    lng,
+  );
+  if (existingBulk) {
+    await BulkIncidentService.addToBulk(existingBulk._id, incident);
+    console.log(
+      `🔗 OSINT incident ${incident._id} merged into BulkIncident ${existingBulk._id}`,
+    );
+    return;
+  }
+
+  const standaloneMatch = await BulkIncidentService.findStandaloneMatch(
+    typeId,
+    lat,
+    lng,
+    incident._id,
+  );
+  if (standaloneMatch) {
+    const bulk = await BulkIncidentService.createBulk(
+      standaloneMatch,
+      incident,
+    );
+    console.log(
+      `🆕 BulkIncident ${bulk._id} created from OSINT + existing incident`,
+    );
+  }
+}

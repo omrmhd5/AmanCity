@@ -79,6 +79,17 @@ const incidentSchema = new mongoose.Schema(
       enum: ["EXACT", "VAGUE"],
       default: undefined,
     },
+
+    // ─── BulkIncident merging ──────────────────────────────────────────────────
+    isMerged: {
+      type: Boolean,
+      default: false,
+    },
+    bulkIncidentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BulkIncident",
+      default: undefined,
+    },
   },
   { timestamps: true },
 );
@@ -87,6 +98,7 @@ const incidentSchema = new mongoose.Schema(
 incidentSchema.index({ "location.latitude": 1, "location.longitude": 1 });
 incidentSchema.index({ timestamp: -1 });
 incidentSchema.index({ type: 1 });
+incidentSchema.index({ bulkIncidentId: 1 }, { sparse: true });
 
 module.exports =
   mongoose.models.Incident || mongoose.model("Incident", incidentSchema);

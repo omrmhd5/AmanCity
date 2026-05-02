@@ -3,6 +3,7 @@ const FileService = require("../service/fileService");
 const GeocodingService = require("../service/geocodingService");
 const IncidentType = require("../model/IncidentType");
 const HotspotController = require("./hotspotController");
+const BulkIncidentService = require("../service/bulkIncidentService");
 
 class IncidentController {
   /**
@@ -147,8 +148,10 @@ class IncidentController {
       };
 
       // Trigger async hotspot recalculation (non-blocking)
-      // This updates the hotspot predictions based on the new incident
       HotspotController.triggerAsyncRecalculation();
+
+      // Attempt merge into BulkIncident (non-blocking, errors swallowed)
+      _attemptMerge(incident).catch(() => {});
 
       res.status(201).json({
         message: "Incident created successfully",
@@ -334,6 +337,49 @@ class IncidentController {
           error.message || "Unable to delete the report. Please try again.",
       });
     }
+  }
+}
+
+/**
+ * Async best-effort merge: checks if the new incident belongs in an existing
+ * BulkIncident or should form a new one with a nearby standalone incident.
+ * Never throws — errors are swallowed so incident creation always succeeds.
+ * @param {Incident} incident - populated mongoose document
+ */
+async function _attemptMerge(incident) {
+  const lat = incident.location.latitude;
+  const lng = incident.location.longitude;
+  const typeId = incident.type._id || incident.type;
+
+  // 1. Does a matching BulkIncident already exist?
+  const existingBulk = await BulkIncidentService.findMatchingBulk(
+    typeId,
+    lat,
+    lng,
+  );
+  if (existingBulk) {
+    await BulkIncidentService.addToBulk(existingBulk._id, incident);
+    console.log(
+      `🔗 Incident ${incident._id} merged into BulkIncident ${existingBulk._id}`,
+    );
+    return;
+  }
+
+  // 2. Is there a standalone incident nearby we can pair with?
+  const standaloneMatch = await BulkIncidentService.findStandaloneMatch(
+    typeId,
+    lat,
+    lng,
+    incident._id,
+  );
+  if (standaloneMatch) {
+    const bulk = await BulkIncidentService.createBulk(
+      standaloneMatch,
+      incident,
+    );
+    console.log(
+      `🆕 BulkIncident ${bulk._id} created from incidents ${standaloneMatch._id} + ${incident._id}`,
+    );
   }
 }
 

@@ -61,17 +61,28 @@ class IncidentService {
   }
 
   /**
-   * Check if an OSINT incident already exists nearby (deduplication)
-   * Matches same type, within ~500m, in the last 30 minutes
+   * Check if an OSINT incident is a true duplicate (same tweet URL already saved).
+   * Falls back to proximity check if no sourceUrls provided.
    * @param {ObjectId} typeId
    * @param {number} lat
    * @param {number} lng
+   * @param {string[]} sourceUrls - tweet URLs from Grok
    * @returns {Promise<boolean>}
    */
-  static async checkDuplicate(typeId, lat, lng) {
+  static async checkDuplicate(typeId, lat, lng, sourceUrls = []) {
     const DEGREE_OFFSET = 0.0045; // ~500m
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
 
+    // If we have source URLs, check for exact tweet URL match first (true duplicate)
+    if (sourceUrls.length > 0) {
+      const urlMatch = await Incident.findOne({
+        source: "OSINT_Twitter",
+        sourceUrls: { $in: sourceUrls },
+      });
+      if (urlMatch) return true;
+    }
+
+    // Proximity fallback: same type + same source + within 500m + last 30 min
     const existing = await Incident.findOne({
       type: typeId,
       source: "OSINT_Twitter",
@@ -95,6 +106,12 @@ class IncidentService {
   static async getIncidents(filters = {}) {
     try {
       const query = {};
+
+      // By default exclude incidents already absorbed into a BulkIncident
+      // Pass includesMerged=true to override (e.g. for admin views)
+      if (!filters.includeMerged) {
+        query.isMerged = { $ne: true };
+      }
 
       // Filter by type
       if (filters.type) {
