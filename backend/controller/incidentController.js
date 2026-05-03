@@ -153,6 +153,10 @@ class IncidentController {
       // Attempt merge into BulkIncident (non-blocking, errors swallowed)
       _attemptMerge(incident).catch(() => {});
 
+      // Notify nearby users via FCM (non-blocking)
+      const { notifyNearbyUsers } = require("../service/notificationService");
+      notifyNearbyUsers(incident).catch(() => {});
+
       res.status(201).json({
         message: "Incident created successfully",
         data: responseData,

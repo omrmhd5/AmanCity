@@ -26,6 +26,7 @@ app.use(
 );
 
 // Routes
+app.use("/api/users", require("./routes/users"));
 app.use("/api/incidents", require("./routes/incidents"));
 app.use("/api/bulk-incidents", require("./routes/bulkIncidents"));
 app.use("/api/predict", require("./routes/predict"));

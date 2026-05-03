@@ -6,7 +6,7 @@ import '../shared/custom_gesture_detector.dart';
 import '../../data/app_colors.dart';
 
 class LoginForm extends StatefulWidget {
-  final VoidCallback onLoginPressed;
+  final void Function(String email, String password) onLoginPressed;
   final bool isLoading;
 
   const LoginForm({
@@ -106,7 +106,10 @@ class _LoginFormState extends State<LoginForm> {
         // Login Button
         CustomButton(
           text: 'Log In',
-          onPressed: widget.onLoginPressed,
+          onPressed: () => widget.onLoginPressed(
+            _identityController.text.trim(),
+            _passwordController.text,
+          ),
           isLoading: widget.isLoading,
           icon: Icons.arrow_forward,
         ),

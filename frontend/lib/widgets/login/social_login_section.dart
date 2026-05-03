@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_gesture_detector.dart';
 import '../../data/app_colors.dart';
@@ -61,10 +62,10 @@ class SocialLoginSection extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.language,
-                        color: AppTheme.getPrimaryTextColor(),
-                        size: 20,
+                      SvgPicture.asset(
+                        'assets/logos/google-color.svg',
+                        width: 20,
+                        height: 20,
                       ),
                       const SizedBox(width: 8),
                       CustomText(

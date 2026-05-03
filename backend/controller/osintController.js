@@ -109,6 +109,10 @@ async function scanOsint(req, res) {
       // Attempt merge into BulkIncident (non-blocking, errors swallowed)
       _attemptOsintMerge(incident).catch(() => {});
 
+      // Notify nearby users via FCM (non-blocking)
+      const { notifyNearbyUsers } = require("../service/notificationService");
+      notifyNearbyUsers(incident).catch(() => {});
+
       const precisionTag = raw.location_precision === "VAGUE" ? " [VAGUE]" : "";
       console.log(`💾 Saved: ${raw.title}${precisionTag} (${geo.text})`);
     } catch (err) {
