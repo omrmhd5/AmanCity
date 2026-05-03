@@ -8,6 +8,9 @@ yarn.lock
 # Environment variables
 .env
 .env.local
+
+# Firebase Admin SDK service account - DO NOT COMMIT
+firebase-service-account.json
 .env.development.local
 .env.test.local
 .env.production.local

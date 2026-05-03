@@ -10,6 +10,9 @@ GeneratedPluginRegistrant.java
 # Sensitive API credentials - DO NOT COMMIT
 app/src/main/AndroidManifest.xml
 
+# Firebase config - DO NOT COMMIT
+app/google-services.json
+
 # Remember to never publicly share your keystore.
 # See https://flutter.dev/to/reference-keystore
 key.properties
