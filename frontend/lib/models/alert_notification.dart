@@ -8,6 +8,7 @@ class AlertNotification {
   final DateTime timestamp;
   final double? distanceKm;
   final String? incidentId;
+  final String? incidentType;
   bool isRead;
 
   AlertNotification({
@@ -18,6 +19,7 @@ class AlertNotification {
     required this.timestamp,
     this.distanceKm,
     this.incidentId,
+    this.incidentType,
     this.isRead = false,
   });
 
@@ -29,6 +31,7 @@ class AlertNotification {
     'timestamp': timestamp.toIso8601String(),
     'distanceKm': distanceKm,
     'incidentId': incidentId,
+    'incidentType': incidentType,
     'isRead': isRead,
   };
 
@@ -46,6 +49,7 @@ class AlertNotification {
             ? (json['distanceKm'] as num).toDouble()
             : null,
         incidentId: json['incidentId'] as String?,
+        incidentType: json['incidentType'] as String?,
         isRead: json['isRead'] as bool? ?? false,
       );
 }

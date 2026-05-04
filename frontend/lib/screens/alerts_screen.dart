@@ -3,6 +3,7 @@ import '../models/alert_notification.dart';
 import '../services/notification_service.dart';
 import '../data/app_colors.dart';
 import '../utils/app_theme.dart';
+import '../data/incident_types_config.dart';
 
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({Key? key}) : super(key: key);
@@ -232,6 +233,35 @@ class _AlertCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
+                      // Incident type badge (if available)
+                      if (alert.incidentType != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: stripeColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: stripeColor.withOpacity(0.3),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              IncidentTypesConfig.getByKey(
+                                alert.incidentType!,
+                              ).displayName,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: stripeColor,
+                              ),
+                            ),
+                          ),
+                        ),
                       Text(
                         alert.body,
                         style: TextStyle(
@@ -239,7 +269,7 @@ class _AlertCard extends StatelessWidget {
                           color: AppTheme.getSecondaryTextColor(),
                           height: 1.4,
                         ),
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
@@ -274,6 +304,12 @@ class _AlertCard extends StatelessWidget {
   }
 
   Color _stripeColor() {
+    // For nearby incidents, use the incident type config color
+    if (alert.alertType == AlertType.nearbyIncident &&
+        alert.incidentType != null) {
+      return IncidentTypesConfig.getByKey(alert.incidentType!).color;
+    }
+
     switch (alert.alertType) {
       case AlertType.nearbyIncident:
         return Colors.red.shade600;
@@ -285,6 +321,12 @@ class _AlertCard extends StatelessWidget {
   }
 
   IconData _icon() {
+    // For nearby incidents, use the incident type config icon
+    if (alert.alertType == AlertType.nearbyIncident &&
+        alert.incidentType != null) {
+      return IncidentTypesConfig.getByKey(alert.incidentType!).icon;
+    }
+
     switch (alert.alertType) {
       case AlertType.nearbyIncident:
         return Icons.warning_amber_rounded;

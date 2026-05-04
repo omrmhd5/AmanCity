@@ -80,16 +80,29 @@ async function notifyNearbyUsers(incident) {
 
   if (!nearbyUsers.length) return;
 
-  // incident.type is a MongoDB ObjectId — use incident.title for display
+  // incident.type is a MongoDB ObjectId — populate it to get the type name
+  let incidentTypeName = "Incident";
+  if (incident.type) {
+    // If already populated, use it; otherwise type is an ObjectId
+    if (typeof incident.type === "object" && incident.type.type) {
+      incidentTypeName = incident.type.type;
+    }
+  }
+
   const incidentTitle = incident.title || "Incident";
   const locationText = incident.location.text || "your area";
 
+  // Calculate approximate distance from incident to each user (in km)
+  // For now, we'll use a generic message; distance could be personalized per user later
+  const distanceMsg = "within 2km";
+
   await sendPushToUsers(
     nearbyUsers,
-    `⚠️ ${incidentTitle} reported nearby`,
-    `A ${incidentTitle.toLowerCase()} was reported near ${locationText}. Stay alert.`,
+    `${incidentTitle} · ${incidentTypeName} Alert ⚠️`,
+    `Reported near ${distanceMsg} and ${locationText}. Stay alert.`,
     {
       incidentId: String(incident._id),
+      incidentType: incidentTypeName,
       type: "nearbyIncident",
       lat: String(lat),
       lng: String(lng),

@@ -76,6 +76,7 @@ class NotificationService {
           title: n.title ?? 'Alert',
           body: n.body ?? '',
           payload: message.data['incidentId'],
+          incidentType: message.data['incidentType'],
         );
       }
     });
@@ -123,6 +124,7 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
+    String? incidentType,
   }) {
     _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -190,6 +192,7 @@ class NotificationService {
           ? double.tryParse(message.data['distanceKm'].toString())
           : null,
       incidentId: message.data['incidentId'],
+      incidentType: message.data['incidentType'],
     );
     final list = [alert, ...alerts.value];
     if (list.length > _maxAlerts) list.removeLast();

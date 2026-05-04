@@ -25,9 +25,10 @@ router.get("/debug-fcm", async (req, res) => {
   }
   await sendPushToUsers(
     users,
-    "🔔 Test Notification",
-    "FCM pipeline is working!",
+    "Test Alert · Test Alert ⚠️",
+    "Reported near within 2km and test location. Stay alert.",
     {
+      incidentType: "Test",
       type: "system",
     },
   );
