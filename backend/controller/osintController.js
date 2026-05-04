@@ -3,6 +3,7 @@ const GeocodingService = require("../service/geocodingService");
 const IncidentService = require("../service/incidentService");
 const BulkIncidentService = require("../service/bulkIncidentService");
 const IncidentType = require("../model/IncidentType");
+const { notifyNearbyUsers } = require("../service/notificationService");
 
 /**
  * POST /api/osint/scan
@@ -110,8 +111,9 @@ async function scanOsint(req, res) {
       _attemptOsintMerge(incident).catch(() => {});
 
       // Notify nearby users via FCM (non-blocking)
-      const { notifyNearbyUsers } = require("../service/notificationService");
-      notifyNearbyUsers(incident).catch(() => {});
+      notifyNearbyUsers(incident).catch((err) =>
+        console.error("[FCM] osintController:", err.message),
+      );
 
       const precisionTag = raw.location_precision === "VAGUE" ? " [VAGUE]" : "";
       console.log(`💾 Saved: ${raw.title}${precisionTag} (${geo.text})`);

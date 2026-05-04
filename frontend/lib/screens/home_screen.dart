@@ -8,6 +8,8 @@ import 'map_screen.dart';
 import 'report_incident_screen.dart';
 import 'ai_screen.dart';
 import 'sos_screen.dart';
+import 'alerts_screen.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -128,26 +130,101 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Welcome Icon
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.secondary.withOpacity(0.3),
-                    blurRadius: 16,
-                    spreadRadius: 4,
+            // Shield + Bell icon row
+            Stack(
+              children: [
+                // Shield Icon (centered)
+                Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withOpacity(0.3),
+                          blurRadius: 16,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.shield_outlined,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.shield_outlined,
-                color: Colors.white,
-                size: 40,
-              ),
+                ),
+                // Bell Icon (top-right)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: NotificationService.instance.unreadCount,
+                      builder: (context, count, _) {
+                        return GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AlertsScreen(),
+                            ),
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.getCardBackgroundColor(),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppTheme.getBorderColor(),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  count > 0
+                                      ? Icons.notifications_active
+                                      : Icons.notifications_outlined,
+                                  color: count > 0
+                                      ? AppColors.secondary
+                                      : AppTheme.getSecondaryTextColor(),
+                                  size: 26,
+                                ),
+                              ),
+                              if (count > 0)
+                                Positioned(
+                                  top: -4,
+                                  right: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.danger,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      count > 99 ? '99+' : '$count',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             // Welcome Text

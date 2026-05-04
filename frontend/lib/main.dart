@@ -8,11 +8,15 @@ import 'screens/home_screen.dart';
 import 'data/app_colors.dart';
 import 'utils/navigation_service.dart' as navigation;
 import 'routes/app_routes.dart';
+import 'services/notification_service.dart';
+import 'services/user_location_sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await Firebase.initializeApp();
+  await NotificationService.instance.init();
+  UserLocationSyncService.instance.start();
   runApp(const MyApp());
 }
 
@@ -51,6 +55,8 @@ class _AuthGate extends StatelessWidget {
           );
         }
         if (snapshot.hasData) {
+          // Push the FCM token to the backend each time the user is authenticated
+          NotificationService.instance.updateFcmToken();
           return const HomeScreen();
         }
         return const LoginScreen();

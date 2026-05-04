@@ -18,7 +18,7 @@ async function updateFcmToken(firebaseUid, fcmToken) {
   return User.findOneAndUpdate(
     { firebaseUid },
     { $set: { fcmToken } },
-    { new: true },
+    { new: true, upsert: true },
   );
 }
 
@@ -36,7 +36,7 @@ async function updateLocation(firebaseUid, lat, lng) {
         },
       },
     },
-    { new: true },
+    { new: true, upsert: true },
   );
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 import '../widgets/profile/map_theme_selector.dart';
 import '../widgets/profile/home_location_selector.dart';
+import '../widgets/profile/logout_section.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -41,6 +42,8 @@ class ProfileScreen extends StatelessWidget {
           // Home Location Selector Widget
           const HomeLocationSelector(),
           const SizedBox(height: 32),
+          // Logout Section
+          const LogoutSection(),
         ],
       ),
     );

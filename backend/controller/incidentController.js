@@ -4,6 +4,7 @@ const GeocodingService = require("../service/geocodingService");
 const IncidentType = require("../model/IncidentType");
 const HotspotController = require("./hotspotController");
 const BulkIncidentService = require("../service/bulkIncidentService");
+const { notifyNearbyUsers } = require("../service/notificationService");
 
 class IncidentController {
   /**
@@ -154,8 +155,9 @@ class IncidentController {
       _attemptMerge(incident).catch(() => {});
 
       // Notify nearby users via FCM (non-blocking)
-      const { notifyNearbyUsers } = require("../service/notificationService");
-      notifyNearbyUsers(incident).catch(() => {});
+      notifyNearbyUsers(incident).catch((err) =>
+        console.error("[FCM] incidentController:", err.message),
+      );
 
       res.status(201).json({
         message: "Incident created successfully",

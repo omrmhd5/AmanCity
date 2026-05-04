@@ -60,20 +60,37 @@ async function sendPushToUsers(users, title, body, data = {}) {
  * Find users within 2km of an incident and push a notification to them.
  */
 async function notifyNearbyUsers(incident) {
-  const [lng, lat] = incident.location.coordinates;
+  // Incident model stores flat latitude/longitude (NOT GeoJSON coordinates)
+  const lat = incident.location?.latitude;
+  const lng = incident.location?.longitude;
+
+  if (lat === undefined || lng === undefined) {
+    console.warn(
+      "[FCM] notifyNearbyUsers: incident missing lat/lng",
+      incident._id,
+    );
+    return;
+  }
+
+  console.log(`[FCM] Searching for users within 2km of lat=${lat}, lng=${lng}`);
   const nearbyUsers = await findUsersNear(lat, lng, 2);
+  console.log(
+    `[FCM] Found ${nearbyUsers.length} nearby user(s) with FCM tokens`,
+  );
+
   if (!nearbyUsers.length) return;
 
-  const incidentType = incident.type || "Incident";
-  const locationText = incident.locationText || "your area";
+  // incident.type is a MongoDB ObjectId — use incident.title for display
+  const incidentTitle = incident.title || "Incident";
+  const locationText = incident.location.text || "your area";
 
   await sendPushToUsers(
     nearbyUsers,
-    `⚠️ ${incidentType} reported nearby`,
-    `A ${incidentType.toLowerCase()} was reported near ${locationText}. Stay alert.`,
+    `⚠️ ${incidentTitle} reported nearby`,
+    `A ${incidentTitle.toLowerCase()} was reported near ${locationText}. Stay alert.`,
     {
       incidentId: String(incident._id),
-      type: incidentType,
+      type: "nearbyIncident",
       lat: String(lat),
       lng: String(lng),
     },
