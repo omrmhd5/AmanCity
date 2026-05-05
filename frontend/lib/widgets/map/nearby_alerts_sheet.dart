@@ -3,13 +3,19 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../utils/app_theme.dart';
 import '../../data/incident_types_config.dart';
 import '../../models/map_incident.dart';
+import '../../models/bulk_incident.dart';
+import '../../services/location_service.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_search_bar.dart';
 import 'nearby_alert_card.dart';
+import 'nearby_bulk_alert_card.dart';
 import '../../screens/incident_detail_sheet.dart';
+import '../../screens/bulk_incident_detail_sheet.dart';
 
 class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
+  final List<BulkIncident> bulkIncidents;
+  final LatLng? userLocation;
   final Function(ScrollController)? onScrollControllerReady;
   final Function(VoidCallback)? onSheetReady;
   final Future<void> Function(MapIncident)? onIncidentTapped;
@@ -17,6 +23,8 @@ class NearbyAlertsSheet extends StatefulWidget {
   const NearbyAlertsSheet({
     Key? key,
     required this.alerts,
+    this.bulkIncidents = const [],
+    this.userLocation,
     this.onScrollControllerReady,
     this.onSheetReady,
     this.onIncidentTapped,
@@ -64,8 +72,30 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
     }
   }
 
-  List<Map<String, dynamic>> _getFilteredAlerts() {
-    return widget.alerts.where((alert) {
+  List<dynamic> _getAllAlertsWithin10km() {
+    // Get all individual incidents
+    final allIndividual = widget.alerts.toList();
+
+    // Get all bulk incidents within 10km
+    final allBulksWithin10km = widget.bulkIncidents.where((bulk) {
+      if (widget.userLocation != null) {
+        final distanceKm = LocationService.calculateDistance(
+          lat1: widget.userLocation!.latitude,
+          lng1: widget.userLocation!.longitude,
+          lat2: bulk.center.latitude,
+          lng2: bulk.center.longitude,
+        );
+        return distanceKm <= 10.0;
+      }
+      return true;
+    }).toList();
+
+    return [...allIndividual, ...allBulksWithin10km];
+  }
+
+  List<dynamic> _getFilteredAlerts() {
+    // Filter individual incidents
+    final filteredIndividual = widget.alerts.where((alert) {
       final matchesSearch =
           _searchQuery.isEmpty ||
           alert['title'].toLowerCase().contains(_searchQuery.toLowerCase());
@@ -76,6 +106,90 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
 
       return matchesSearch && matchesFilter;
     }).toList();
+
+    // Filter bulk incidents (only within 10km + search/type filters)
+    final filteredBulks = widget.bulkIncidents.where((bulk) {
+      // Filter by distance (10km range)
+      if (widget.userLocation != null) {
+        final distanceKm = LocationService.calculateDistance(
+          lat1: widget.userLocation!.latitude,
+          lng1: widget.userLocation!.longitude,
+          lat2: bulk.center.latitude,
+          lng2: bulk.center.longitude,
+        );
+        if (distanceKm > 10.0) return false;
+      }
+
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          bulk.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (bulk.locationText?.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ) ??
+              false);
+
+      final matchesFilter =
+          _selectedFilter == null ||
+          bulk.type.toLowerCase() == _selectedFilter!.toLowerCase();
+
+      return matchesSearch && matchesFilter;
+    }).toList();
+
+    // Combine both lists
+    final combined = [...filteredIndividual, ...filteredBulks];
+
+    // Sort by distance
+    combined.sort((a, b) {
+      if (widget.userLocation == null) return 0;
+
+      // Get distance for item a
+      double distanceA = 999.0;
+      if (a is BulkIncident) {
+        distanceA = LocationService.calculateDistance(
+          lat1: widget.userLocation!.latitude,
+          lng1: widget.userLocation!.longitude,
+          lat2: a.center.latitude,
+          lng2: a.center.longitude,
+        );
+      } else if (a is Map) {
+        // For individual incidents, recalculate from position if available
+        if (a['incident'] != null) {
+          final incident = a['incident'] as MapIncident;
+          distanceA = LocationService.calculateDistance(
+            lat1: widget.userLocation!.latitude,
+            lng1: widget.userLocation!.longitude,
+            lat2: incident.position.latitude,
+            lng2: incident.position.longitude,
+          );
+        }
+      }
+
+      // Get distance for item b
+      double distanceB = 999.0;
+      if (b is BulkIncident) {
+        distanceB = LocationService.calculateDistance(
+          lat1: widget.userLocation!.latitude,
+          lng1: widget.userLocation!.longitude,
+          lat2: b.center.latitude,
+          lng2: b.center.longitude,
+        );
+      } else if (b is Map) {
+        // For individual incidents, recalculate from position if available
+        if (b['incident'] != null) {
+          final incident = b['incident'] as MapIncident;
+          distanceB = LocationService.calculateDistance(
+            lat1: widget.userLocation!.latitude,
+            lng1: widget.userLocation!.longitude,
+            lat2: incident.position.latitude,
+            lng2: incident.position.longitude,
+          );
+        }
+      }
+
+      return distanceA.compareTo(distanceB);
+    });
+
+    return combined;
   }
 
   MapIncident _alertToIncident(Map<String, dynamic> alert) {
@@ -109,6 +223,19 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
     );
   }
 
+  String _getTimeAgo(DateTime timestamp) {
+    final difference = DateTime.now().difference(timestamp);
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${difference.inDays}d ago';
+    }
+  }
+
   void _showIncidentDetails(Map<String, dynamic> alert) {
     final incident = _alertToIncident(alert);
     showModalBottomSheet<void>(
@@ -121,6 +248,17 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
           timeAgo: alert['timeAgo'] as String,
           onNavigate: widget.onIncidentTapped,
         );
+      },
+    );
+  }
+
+  void _showBulkDetails(BulkIncident bulk) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return BulkIncidentDetailSheet(bulk: bulk);
       },
     );
   }
@@ -196,7 +334,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                   const SizedBox(height: 2),
                                   CustomText(
                                     text:
-                                        '${_getFilteredAlerts().length} of ${widget.alerts.length} incidents',
+                                        '${_getFilteredAlerts().length} of ${_getAllAlertsWithin10km().length} within 10km',
                                     size: 11,
                                     weight: FontWeight.w400,
                                     color: AppTheme.getSecondaryTextColor(),
@@ -404,26 +542,72 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                 children: List.generate(
                                   _getFilteredAlerts().length,
                                   (index) {
-                                    final alert = _getFilteredAlerts()[index];
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 12,
-                                      ),
-                                      child: NearbyAlertCard(
-                                        incidentType: alert['type'],
-                                        title: alert['title'],
-                                        timeAgo: alert['timeAgo'],
-                                        distance: alert['distance'],
-                                        borderColor: alert['color'],
-                                        icon: alert['icon'],
-                                        confidence: alert['confidence'] ?? 0.0,
-                                        locationText:
-                                            alert['location']?['text']
-                                                as String?,
-                                        onTap: () =>
-                                            _showIncidentDetails(alert),
-                                      ),
-                                    );
+                                    final item = _getFilteredAlerts()[index];
+                                    final isBulk = item is BulkIncident;
+
+                                    if (isBulk) {
+                                      final bulk = item as BulkIncident;
+                                      final distanceKm =
+                                          widget.userLocation != null
+                                          ? LocationService.calculateDistance(
+                                              lat1:
+                                                  widget.userLocation!.latitude,
+                                              lng1: widget
+                                                  .userLocation!
+                                                  .longitude,
+                                              lat2: bulk.center.latitude,
+                                              lng2: bulk.center.longitude,
+                                            )
+                                          : 0.0;
+
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: NearbyBulkAlertCard(
+                                          incidentType: bulk.type,
+                                          count: bulk.count,
+                                          timeAgo: _getTimeAgo(
+                                            bulk.lastUpdatedAt,
+                                          ),
+                                          distance:
+                                              LocationService.formatDistance(
+                                                distanceKm,
+                                              ) +
+                                              ' away',
+                                          borderColor: bulk.typeColor,
+                                          icon: bulk.typeIcon,
+                                          avgConfidence: bulk.avgConfidence,
+                                          locationText: bulk.locationText,
+                                          hasHumanReports: bulk.hasHumanReports,
+                                          hasOsintReports: bulk.hasOsintReports,
+                                          onTap: () => _showBulkDetails(bulk),
+                                        ),
+                                      );
+                                    } else {
+                                      final alert =
+                                          item as Map<String, dynamic>;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: NearbyAlertCard(
+                                          incidentType: alert['type'],
+                                          title: alert['title'],
+                                          timeAgo: alert['timeAgo'],
+                                          distance: alert['distance'],
+                                          borderColor: alert['color'],
+                                          icon: alert['icon'],
+                                          confidence:
+                                              alert['confidence'] ?? 0.0,
+                                          locationText:
+                                              alert['location']?['text']
+                                                  as String?,
+                                          onTap: () =>
+                                              _showIncidentDetails(alert),
+                                        ),
+                                      );
+                                    }
                                   },
                                 ),
                               ),

@@ -1832,6 +1832,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     return NearbyAlertsSheet(
       alerts: nearbyAlerts,
+      bulkIncidents: _bulkIncidents,
+      userLocation: _userLocation,
       onScrollControllerReady: (controller) {
         // Scroll controller callback
       },
