@@ -71,7 +71,7 @@ class IncidentService {
    */
   static async checkDuplicate(typeId, lat, lng, sourceUrls = []) {
     const DEGREE_OFFSET = 0.0045; // ~500m
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
     // If we have source URLs, check for exact tweet URL match first (true duplicate)
     if (sourceUrls.length > 0) {
@@ -82,11 +82,11 @@ class IncidentService {
       if (urlMatch) return true;
     }
 
-    // Proximity fallback: same type + same source + within 500m + last 30 min
+    // Proximity fallback: same type + same source + within 500m + last 1 hour
     const existing = await Incident.findOne({
       type: typeId,
       source: "OSINT_Twitter",
-      timestamp: { $gte: thirtyMinutesAgo },
+      timestamp: { $gte: oneHourAgo },
       "location.latitude": {
         $gte: lat - DEGREE_OFFSET,
         $lte: lat + DEGREE_OFFSET,

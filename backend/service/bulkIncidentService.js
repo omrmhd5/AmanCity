@@ -4,8 +4,8 @@ const Incident = require("../model/Incident");
 // 2km in degrees (~1 degree latitude = 111 km)
 const DEGREE_OFFSET = 2 / 111; // ≈ 0.018°
 
-// 6-hour merge window
-const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+// 2-hour merge window
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
 class BulkIncidentService {
   /**
@@ -17,11 +17,11 @@ class BulkIncidentService {
    * @returns {Promise<BulkIncident|null>}
    */
   static async findMatchingBulk(typeId, lat, lng) {
-    const sixHoursAgo = new Date(Date.now() - SIX_HOURS_MS);
+    const twoHoursAgo = new Date(Date.now() - TWO_HOURS_MS);
 
     return BulkIncident.findOne({
       type: typeId,
-      lastUpdatedAt: { $gte: sixHoursAgo },
+      lastUpdatedAt: { $gte: twoHoursAgo },
       "center.latitude": {
         $gte: lat - DEGREE_OFFSET,
         $lte: lat + DEGREE_OFFSET,
@@ -43,14 +43,14 @@ class BulkIncidentService {
    * @returns {Promise<Incident|null>}
    */
   static async findStandaloneMatch(typeId, lat, lng, excludeId) {
-    const sixHoursAgo = new Date(Date.now() - SIX_HOURS_MS);
+    const twoHoursAgo = new Date(Date.now() - TWO_HOURS_MS);
 
     return Incident.findOne({
       _id: { $ne: excludeId },
       type: typeId,
       isMerged: false,
       bulkIncidentId: { $exists: false },
-      timestamp: { $gte: sixHoursAgo },
+      timestamp: { $gte: twoHoursAgo },
       "location.latitude": {
         $gte: lat - DEGREE_OFFSET,
         $lte: lat + DEGREE_OFFSET,

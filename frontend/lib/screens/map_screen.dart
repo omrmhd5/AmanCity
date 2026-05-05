@@ -1413,7 +1413,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     try {
       final pictureRecorder = ui.PictureRecorder();
       final canvas = Canvas(pictureRecorder);
-      const size = 120.0;
+      const size = 130.0;
       final color = bulk.typeColor;
 
       // Shadow
@@ -1440,7 +1440,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         text: String.fromCharCode(bulk.typeIcon.codePoint),
         style: TextStyle(
           color: Colors.white,
-          fontSize: size * 0.38,
+          fontSize: size * 0.48,
           fontFamily: bulk.typeIcon.fontFamily,
         ),
       );
@@ -1454,7 +1454,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       );
 
       // Count badge: white circle, bottom-right corner
-      const badgeRadius = 24.0;
+      const badgeRadius = 30.0;
       const badgeCx = size - badgeRadius * 0.8;
       const badgeCy = size - badgeRadius * 0.8;
       canvas.drawCircle(
@@ -1479,7 +1479,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         text: '×${bulk.count}',
         style: TextStyle(
           color: color,
-          fontSize: 16,
+          fontSize: 27,
           fontWeight: FontWeight.w800,
         ),
       );

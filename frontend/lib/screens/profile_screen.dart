@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
+import '../widgets/profile/profile_header.dart';
 import '../widgets/profile/map_theme_selector.dart';
 import '../widgets/profile/home_location_selector.dart';
 import '../widgets/profile/logout_section.dart';
@@ -11,14 +12,10 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
-      appBar: AppBar(
-        backgroundColor: AppTheme.getBackgroundColor(),
-        title: const Text('Settings'),
-        centerTitle: true,
-        elevation: 0,
-      ),
       body: ListView(
         children: [
+          // Page Header
+          const ProfileHeader(),
           // Settings Section Title
           Padding(
             padding: const EdgeInsets.all(16.0),
