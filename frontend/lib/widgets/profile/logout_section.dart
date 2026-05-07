@@ -9,6 +9,8 @@ class LogoutSection extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.9),
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.getCardBackgroundColor(),
         title: Text(
