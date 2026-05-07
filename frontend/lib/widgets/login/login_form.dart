@@ -4,6 +4,7 @@ import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_gesture_detector.dart';
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class LoginForm extends StatefulWidget {
   final void Function(String email, String password) onLoginPressed;
@@ -43,18 +44,18 @@ class _LoginFormState extends State<LoginForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Welcome message
-        const CustomText(
+        CustomText(
           text: 'Welcome Back',
           size: 24,
           weight: FontWeight.w600,
-          color: AppColors.darkText,
+          color: AppTheme.getPrimaryTextColor(),
         ),
         const SizedBox(height: 4),
-        const CustomText(
+        CustomText(
           text: 'Please sign in to continue.',
           size: 13,
           weight: FontWeight.w400,
-          color: AppColors.slateGray,
+          color: AppTheme.getSecondaryTextColor(),
         ),
         const SizedBox(height: 24),
         // Phone/Email Input

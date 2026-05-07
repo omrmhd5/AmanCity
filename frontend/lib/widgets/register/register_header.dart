@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../shared/custom_text.dart';
-import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
 class RegisterHeader extends StatelessWidget {
@@ -13,26 +12,13 @@ class RegisterHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppTheme.currentMode == AppThemeMode.dark
-                  ? Colors.white.withOpacity(0.1)
-                  : AppColors.softGray,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppTheme.currentMode == AppThemeMode.dark
-                    ? Colors.white.withOpacity(0.1)
-                    : AppColors.softGray,
-              ),
-            ),
-            child: Icon(
-              Icons.security,
-              color: AppTheme.currentMode == AppThemeMode.dark
-                  ? AppColors.white
-                  : AppColors.primary,
-              size: 24,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              'assets/logos/AmanCity_Logo_Only.png',
+              width: 48,
+              height: 48,
+              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(height: 16),

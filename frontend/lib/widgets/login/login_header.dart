@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../shared/custom_text.dart';
-import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
 class LoginHeader extends StatelessWidget {
@@ -13,11 +12,14 @@ class LoginHeader extends StatelessWidget {
       child: Column(
         children: [
           // App Logo
-          Image.asset(
-            'assets/logos/AmanCity_Logo_Only.png',
-            width: 80,
-            height: 80,
-            fit: BoxFit.contain,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: Image.asset(
+              'assets/logos/AmanCity_Logo_Only.png',
+              width: 80,
+              height: 80,
+              fit: BoxFit.contain,
+            ),
           ),
           const SizedBox(height: 16),
           // App Title
@@ -25,9 +27,7 @@ class LoginHeader extends StatelessWidget {
             text: 'AmanCity',
             size: 32,
             weight: FontWeight.w700,
-            color: AppTheme.currentMode == AppThemeMode.dark
-                ? Colors.white
-                : AppColors.primary,
+            color: AppTheme.getPrimaryTextColor(),
           ),
           const SizedBox(height: 8),
           // Tagline

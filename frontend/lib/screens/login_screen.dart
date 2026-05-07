@@ -58,50 +58,23 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
-      body: Stack(
-        children: [
-          // Background gradient
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 400,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppTheme.getGradientStartColor(),
-                    Colors.transparent,
-                  ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                const LoginHeader(),
+                LoginForm(onLoginPressed: _handleLogin, isLoading: _isLoading),
+                SocialLoginSection(
+                  onGooglePressed: _handleGoogleLogin,
+                  onApplePressed: () {},
                 ),
-              ),
+                SignUpLinkSection(),
+              ],
             ),
           ),
-          // Main content
-          SafeArea(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    const LoginHeader(),
-                    LoginForm(
-                      onLoginPressed: _handleLogin,
-                      isLoading: _isLoading,
-                    ),
-                    SocialLoginSection(
-                      onGooglePressed: _handleGoogleLogin,
-                      onApplePressed: () {},
-                    ),
-                    SignUpLinkSection(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
