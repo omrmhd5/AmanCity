@@ -66,41 +66,28 @@ class _LoginFormState extends State<LoginForm> {
         ),
         const SizedBox(height: 20),
         // Password Input
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const CustomText(
-                  text: 'Password',
-                  size: 14,
-                  weight: FontWeight.w500,
-                  color: AppColors.darkText,
-                ),
-                CustomGestureDetector(
-                  onTap: () {
-                    // Handle forgot password
-                  },
-                  enableScale: false,
-                  child: const CustomText(
-                    text: 'Forgot Password?',
-                    size: 13,
-                    weight: FontWeight.w500,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
         CustomTextField(
-          label: '',
+          label: 'Password',
           placeholder: '•••••••••',
           prefixIcon: Icons.lock,
           isPassword: true,
           controller: _passwordController,
+        ),
+        const SizedBox(height: 12),
+        CustomGestureDetector(
+          onTap: () {
+            // Handle forgot password
+          },
+          enableScale: false,
+          child: const Align(
+            alignment: Alignment.centerRight,
+            child: CustomText(
+              text: 'Forgot Password?',
+              size: 13,
+              weight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
+          ),
         ),
         const SizedBox(height: 24),
         // Login Button

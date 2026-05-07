@@ -29,7 +29,12 @@ class AuthService {
         email: email.trim(),
         password: password,
       );
-      return cred.user;
+      final user = cred.user!;
+      if (!user.emailVerified) {
+        await _auth.signOut();
+        throw 'Please verify your email before logging in. Check your inbox for a verification link.';
+      }
+      return user;
     } on FirebaseAuthException catch (e) {
       throw _friendlyErrorMessage(e.code);
     }
@@ -49,6 +54,8 @@ class AuthService {
       final user = cred.user!;
       await user.updateDisplayName(name.trim());
       await _syncUserToBackend(user, name: name.trim(), phone: phone.trim());
+      await user.sendEmailVerification();
+      await _auth.signOut(); // counteract Firebase's auto-login after signup
       return user;
     } on FirebaseAuthException catch (e) {
       throw _friendlyErrorMessage(e.code);

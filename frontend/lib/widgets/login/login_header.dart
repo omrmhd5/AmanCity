@@ -12,28 +12,12 @@ class LoginHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       child: Column(
         children: [
-          // Shield Icon
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.shield,
-              color: AppTheme.currentMode == AppThemeMode.dark
-                  ? AppColors.primary
-                  : AppColors.white,
-              size: 32,
-            ),
+          // App Logo
+          Image.asset(
+            'assets/logos/AmanCity_Logo_Only.png',
+            width: 80,
+            height: 80,
+            fit: BoxFit.contain,
           ),
           const SizedBox(height: 16),
           // App Title

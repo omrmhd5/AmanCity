@@ -3,9 +3,13 @@ import '../services/auth_service.dart';
 import '../widgets/register/register_header.dart';
 import '../widgets/register/personal_identity_section.dart';
 import '../widgets/register/terms_checkbox.dart';
-import '../widgets/register/register_footer.dart';
+import '../widgets/shared/custom_button.dart';
+import '../widgets/shared/custom_text.dart';
+import '../widgets/shared/custom_gesture_detector.dart';
 import '../widgets/shared/custom_text_field.dart';
 import '../utils/app_theme.dart';
+import '../data/app_colors.dart';
+import '../utils/navigation_service.dart' as navigation;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -19,6 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  late TextEditingController _confirmPasswordController;
   bool _agreeToTerms = false;
   bool _isLoading = false;
 
@@ -29,6 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
   }
 
   @override
@@ -37,6 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -51,7 +58,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_fullNameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
       _showError('Please fill in all fields.');
       return;
     }
@@ -63,6 +71,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showError('Password must be at least 6 characters.');
       return;
     }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showError('Passwords do not match.');
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
@@ -72,7 +84,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      // _AuthGate will automatically navigate to HomeScreen on success
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Account created! A verification link has been sent to your email. Please verify before logging in.',
+          ),
+          backgroundColor: Colors.green.shade700,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+      navigation.Navigator.goBack();
     } catch (e) {
       _showError(e.toString());
     } finally {
@@ -99,57 +121,110 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
           SafeArea(
-            child: Column(
-              children: [
-                const RegisterHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        children: [
-                          PersonalIdentitySection(
-                            fullNameController: _fullNameController,
-                            phoneController: _phoneController,
-                            selectedCity: null,
-                            onCityChanged: (_) {},
-                          ),
-                          const SizedBox(height: 20),
-                          // Email field
-                          CustomTextField(
-                            label: 'Email',
-                            placeholder: 'example@email.com',
-                            prefixIcon: Icons.email_outlined,
-                            controller: _emailController,
-                          ),
-                          const SizedBox(height: 20),
-                          // Password field
-                          CustomTextField(
-                            label: 'Password',
-                            placeholder: '•••••••••',
-                            prefixIcon: Icons.lock_outline,
-                            isPassword: true,
-                            controller: _passwordController,
-                          ),
-                          const SizedBox(height: 24),
-                          TermsCheckBox(
-                            isChecked: _agreeToTerms,
-                            onChanged: (bool newValue) {
-                              setState(() => _agreeToTerms = newValue);
-                            },
-                          ),
-                          const SizedBox(height: 80),
-                        ],
-                      ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const RegisterHeader(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        PersonalIdentitySection(
+                          fullNameController: _fullNameController,
+                          phoneController: _phoneController,
+                          selectedCity: null,
+                          onCityChanged: (_) {},
+                        ),
+                        const SizedBox(height: 20),
+                        // Email field
+                        CustomTextField(
+                          label: 'Email',
+                          placeholder: 'example@email.com',
+                          prefixIcon: Icons.email_outlined,
+                          controller: _emailController,
+                        ),
+                        const SizedBox(height: 20),
+                        // Password field
+                        CustomTextField(
+                          label: 'Password',
+                          placeholder: '•••••••••',
+                          prefixIcon: Icons.lock_outline,
+                          isPassword: true,
+                          controller: _passwordController,
+                        ),
+                        const SizedBox(height: 20),
+                        // Confirm Password field
+                        CustomTextField(
+                          label: 'Confirm Password',
+                          placeholder: '•••••••••',
+                          prefixIcon: Icons.lock_outline,
+                          isPassword: true,
+                          controller: _confirmPasswordController,
+                        ),
+                        const SizedBox(height: 24),
+                        TermsCheckBox(
+                          isChecked: _agreeToTerms,
+                          onChanged: (bool newValue) {
+                            setState(() => _agreeToTerms = newValue);
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  // Register footer as scrollable content
+                  Container(
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      16,
+                      24,
+                      MediaQuery.of(context).padding.bottom + 16,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomButton(
+                          text: 'REGISTER ACCOUNT',
+                          onPressed: _handleRegister,
+                          isLoading: _isLoading,
+                          backgroundColor:
+                              AppTheme.currentMode == AppThemeMode.dark
+                              ? AppColors.secondary
+                              : AppColors.primary,
+                          textColor: AppColors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomText(
+                              text: 'Already have an account? ',
+                              size: 13,
+                              weight: FontWeight.w400,
+                              color: AppTheme.getSecondaryTextColor(),
+                            ),
+                            CustomGestureDetector(
+                              onTap: () {
+                                navigation.Navigator.goBack();
+                              },
+                              enableScale: false,
+                              child: CustomText(
+                                text: 'Login',
+                                size: 13,
+                                weight: FontWeight.w600,
+                                color: AppTheme.currentMode == AppThemeMode.dark
+                                    ? AppColors.secondary
+                                    : AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          RegisterFooter(
-            onRegisterPressed: _handleRegister,
-            isLoading: _isLoading,
           ),
         ],
       ),
