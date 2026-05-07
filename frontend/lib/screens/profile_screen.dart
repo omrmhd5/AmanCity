@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 import '../utils/app_theme.dart';
-import '../widgets/profile/profile_header.dart';
-import '../widgets/profile/map_theme_selector.dart';
-import '../widgets/profile/home_location_selector.dart';
-import '../widgets/profile/logout_section.dart';
+import '../widgets/profile/profile_card.dart';
+import '../widgets/profile/profile_menu_section.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -12,36 +12,50 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
-      body: ListView(
-        children: [
-          // Page Header
-          const ProfileHeader(),
-          // Settings Section Title
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Map Appearance',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+      body: StreamBuilder<User?>(
+        stream: AuthService.instance.authStateChanges,
+        builder: (context, snapshot) {
+          final user = snapshot.data;
+
+          return ListView(
+            children: [
+              // Top Navigation Bar
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: Text(
+                  'Profile',
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.getPrimaryTextColor(),
                   ),
                 ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-          // Map Theme Selector Widget
-          const MapThemeSelector(),
-          const SizedBox(height: 24),
-          // Home Location Selector Widget
-          const HomeLocationSelector(),
-          const SizedBox(height: 32),
-          // Logout Section
-          const LogoutSection(),
-        ],
+              ),
+
+              // Profile Card with User Info
+              ProfileCard(user: user),
+
+              // Settings Menu (Appearance, Location, Sign Out)
+              const ProfileMenuSection(),
+
+              // Version Info
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0, top: 32.0),
+                child: Center(
+                  child: Text(
+                    'Version 1.0.0 • Build 1',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.getSecondaryTextColor(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

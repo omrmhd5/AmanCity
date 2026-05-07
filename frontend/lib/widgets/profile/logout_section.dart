@@ -4,7 +4,9 @@ import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
 
 class LogoutSection extends StatelessWidget {
-  const LogoutSection({Key? key}) : super(key: key);
+  final bool isCompact;
+
+  const LogoutSection({Key? key, this.isCompact = false}) : super(key: key);
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -47,7 +49,6 @@ class LogoutSection extends StatelessWidget {
   Future<void> _performLogout(BuildContext context) async {
     try {
       await AuthService.instance.signOut();
-      // _AuthGate in main.dart will automatically show LoginScreen
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,6 +62,72 @@ class LogoutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isCompact) {
+      return _buildCompactTile(context);
+    } else {
+      return _buildFullTile(context);
+    }
+  }
+
+  Widget _buildCompactTile(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showLogoutDialog(context),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.getCardBackgroundColor(),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.logout, color: AppColors.danger, size: 22),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.getPrimaryTextColor(),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Log out of your account',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.getSecondaryTextColor(),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullTile(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
       child: Column(

@@ -4,7 +4,9 @@ import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
 class MapThemeSelector extends StatefulWidget {
-  const MapThemeSelector({Key? key}) : super(key: key);
+  final bool isCompact;
+
+  const MapThemeSelector({Key? key, this.isCompact = false}) : super(key: key);
 
   @override
   State<MapThemeSelector> createState() => _MapThemeSelectorState();
@@ -35,7 +37,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
       _mapStylePreference = style;
     });
 
-    // Show feedback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -56,6 +57,82 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
       );
     }
 
+    if (widget.isCompact) {
+      return _buildCompactTile();
+    } else {
+      return _buildFullTile();
+    }
+  }
+
+  Widget _buildCompactTile() {
+    return GestureDetector(
+      onTap: () => _setMapStylePreference(
+        _mapStylePreference == 'dark' ? 'light' : 'dark',
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.getCardBackgroundColor(),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _mapStylePreference == 'dark'
+                      ? Icons.dark_mode
+                      : Icons.wb_sunny,
+                  color: const Color(0xFF6366F1),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Map Theme',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.getPrimaryTextColor(),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _mapStylePreference == 'dark'
+                          ? 'Dark mode'
+                          : 'Light mode',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.getSecondaryTextColor(),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullTile() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       padding: const EdgeInsets.all(16.0),
@@ -67,7 +144,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -93,10 +169,8 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
             ],
           ),
           const SizedBox(height: 16),
-          // Toggle Buttons
           _buildToggleButtons(),
           const SizedBox(height: 12),
-          // Footer Info
           Text(
             'This preference applies to both the main map and location picker',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -109,7 +183,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
     );
   }
 
-  /// Build the segmented control style toggle buttons
   Widget _buildToggleButtons() {
     return Container(
       decoration: BoxDecoration(
@@ -119,7 +192,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
       ),
       child: Row(
         children: [
-          // Light Button
           Expanded(
             child: _buildThemeButton(
               label: 'Light',
@@ -129,7 +201,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
               isLeft: true,
             ),
           ),
-          // Dark Button
           Expanded(
             child: _buildThemeButton(
               label: 'Dark',
@@ -144,7 +215,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
     );
   }
 
-  /// Build individual theme button with selection indicator
   Widget _buildThemeButton({
     required String label,
     required IconData icon,
@@ -174,7 +244,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Main content
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -197,7 +266,6 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                   ),
                 ],
               ),
-              // Selection indicator badge
               if (isSelected)
                 Positioned(
                   top: 0,

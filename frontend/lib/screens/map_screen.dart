@@ -130,6 +130,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   static const Duration _incidentPollInterval = Duration(seconds: 30);
   static const Duration _hotspotPollInterval = Duration(seconds: 60);
 
+  // ─── Map theme preference listener ─────────────────────────────────────────
+  Timer? _themePreferenceListener;
+  String? _lastMapStylePreference;
+
   // ─── Debounce: collapse rapid _updateMapElements calls into one frame ──────
   bool _mapUpdateScheduled = false;
 
@@ -160,6 +164,29 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadPersistedHotspots(); // Show last-known hotspots instantly
     _loadHotspots(); // Fetch fresh hotspots in background
     _startPolling(); // Auto-refresh every 30s (incidents) / 60s (hotspots)
+    _startThemePreferenceListener(); // Listen for map theme changes
+  }
+
+  /// Listen for map theme preference changes and rebuild map when changed
+  void _startThemePreferenceListener() {
+    _themePreferenceListener?.cancel();
+    _themePreferenceListener = Timer.periodic(Duration(milliseconds: 500), (
+      _,
+    ) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final currentPreference =
+            prefs.getString('map_style_preference') ?? 'dark';
+        if (_lastMapStylePreference != currentPreference) {
+          _lastMapStylePreference = currentPreference;
+          if (mounted) {
+            _setMapStyle();
+          }
+        }
+      } catch (e) {
+        // Silently ignore preference check errors
+      }
+    });
   }
 
   @override
@@ -196,6 +223,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _locationStreamSubscription?.cancel();
     _incidentPollTimer?.cancel();
     _hotspotPollTimer?.cancel();
+    _themePreferenceListener?.cancel();
     super.dispose();
   }
 

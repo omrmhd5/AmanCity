@@ -7,7 +7,10 @@ import '../../utils/app_theme.dart';
 import '../report/location_picker_map.dart';
 
 class HomeLocationSelector extends StatefulWidget {
-  const HomeLocationSelector({Key? key}) : super(key: key);
+  final bool isCompact;
+
+  const HomeLocationSelector({Key? key, this.isCompact = false})
+    : super(key: key);
 
   @override
   State<HomeLocationSelector> createState() => _HomeLocationSelectorState();
@@ -124,7 +127,6 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
 
   /// Open map picker to set/edit home location
   Future<void> _openMapPicker() async {
-    // Get current location as initial
     LatLng? initialLocation = _homeLocation;
 
     if (initialLocation == null) {
@@ -132,7 +134,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
         final permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied ||
             permission == LocationPermission.deniedForever) {
-          initialLocation = const LatLng(30.0444, 31.2357); // Cairo center
+          initialLocation = const LatLng(30.0444, 31.2357);
         } else {
           final position = await Geolocator.getCurrentPosition().timeout(
             const Duration(seconds: 5),
@@ -140,13 +142,12 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
           initialLocation = LatLng(position.latitude, position.longitude);
         }
       } catch (e) {
-        initialLocation = const LatLng(30.0444, 31.2357); // Fallback to Cairo
+        initialLocation = const LatLng(30.0444, 31.2357);
       }
     }
 
     if (!mounted) return;
 
-    // Track address/city during preview, but don't save yet
     String? pendingAddress;
     String? pendingCity;
 
@@ -156,11 +157,9 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
         builder: (context) => LocationPickerMap(
           initialLocation: initialLocation,
           onLocationSelected: (selectedLocation) {
-            // ONLY save when user presses Confirm Location
             _saveHomeLocation(selectedLocation, pendingAddress, pendingCity);
           },
           onAddressUpdated: (address, city) {
-            // Update pending values but don't save yet
             pendingAddress = address;
             pendingCity = city;
           },
@@ -171,12 +170,91 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isCompact) {
+      return _buildCompactTile();
+    } else {
+      return _buildFullTile();
+    }
+  }
+
+  Widget _buildCompactTile() {
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: _openMapPicker,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.getCardBackgroundColor(),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF14B8A6).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.location_on,
+                  color: const Color(0xFF14B8A6),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Home Location',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.getPrimaryTextColor(),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _homeLocation != null
+                          ? (_homeAddress ?? _homeCity ?? 'Location set')
+                          : 'Set your home location',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.getSecondaryTextColor(),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullTile() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Title
           Text(
             'Home Location',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -185,8 +263,6 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
             ),
           ),
           const SizedBox(height: 12),
-
-          // Home location card
           if (_isLoading)
             Center(
               child: CircularProgressIndicator(

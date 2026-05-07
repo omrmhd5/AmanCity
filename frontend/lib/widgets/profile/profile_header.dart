@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../utils/app_theme.dart';
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({Key? key}) : super(key: key);
+  final User? user;
+
+  const ProfileHeader({Key? key, this.user}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header title
           Text(
             'Profile',
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -19,14 +21,15 @@ class ProfileHeader extends StatelessWidget {
               color: AppTheme.getPrimaryTextColor(),
             ),
           ),
-          const SizedBox(height: 8),
-          // Subtitle
-          Text(
-            'Manage your account and preferences',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.getSecondaryTextColor(),
+          if (user?.email != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              user!.email!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.getSecondaryTextColor(),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
