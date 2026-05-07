@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../config/app_config.dart';
 import '../models/map_incident.dart';
 import '../data/incident_types_config.dart';
+import '../services/auth_service.dart';
 
 /// Model for incident creation response
 class IncidentResponse {
@@ -63,6 +64,12 @@ class IncidentApiService {
     try {
       // Create multipart request
       final request = http.MultipartRequest('POST', Uri.parse(incidentsUrl));
+
+      // Add authentication header if user is logged in
+      final idToken = await AuthService.instance.getIdToken();
+      if (idToken != null) {
+        request.headers['Authorization'] = 'Bearer $idToken';
+      }
 
       // Add file
       final bytes = await photo.readAsBytes();
@@ -228,6 +235,13 @@ class IncidentApiService {
     final isMerged = data['isMerged'] as bool? ?? false;
     final bulkIncidentId = data['bulkIncidentId'] as String?;
 
+    // Parse reported by name (from populated user object)
+    String? reportedByName;
+    if (data['reportedBy'] is Map<String, dynamic>) {
+      final reportedBy = data['reportedBy'] as Map<String, dynamic>;
+      reportedByName = reportedBy['name'] as String?;
+    }
+
     return MapIncident(
       id: id,
       type: type,
@@ -243,6 +257,7 @@ class IncidentApiService {
       sourceUrls: sourceUrls,
       isMerged: isMerged,
       bulkIncidentId: bulkIncidentId,
+      reportedByName: reportedByName,
     );
   }
 }

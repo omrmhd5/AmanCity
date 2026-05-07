@@ -1,11 +1,17 @@
 const express = require("express");
 const upload = require("../middleware/uploadMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 const IncidentController = require("../controller/incidentController");
 
 const router = express.Router();
 
-// Create incident with file upload
-router.post("/", upload.single("file"), IncidentController.createIncident);
+// Create incident with file upload (authenticated)
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("file"),
+  IncidentController.createIncident,
+);
 
 // Get all incidents
 router.get("/", IncidentController.getIncidents);

@@ -422,7 +422,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
                 Text(
                   isOsint
                       ? 'OSINT · ${_timeAgo(report.timestamp)}'
-                      : 'Human · ${_timeAgo(report.timestamp)}',
+                      : '${report.reportedByName ?? 'Anonymous'} · ${_timeAgo(report.timestamp)}',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

@@ -17,7 +17,7 @@ class ReporterProfileCard extends StatelessWidget {
     Key? key,
     required this.incident,
     required this.timeAgo,
-    this.reporterId = 'Anon #442',
+    this.reporterId = 'Anonymous',
     this.karma = 4.8,
     this.timestamp,
     this.description,

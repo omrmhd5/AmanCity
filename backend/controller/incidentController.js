@@ -14,14 +14,7 @@ class IncidentController {
    */
   static async createIncident(req, res) {
     try {
-      const {
-        title,
-        description,
-        className,
-        location,
-        confidence,
-        reportedBy,
-      } = req.body;
+      const { title, description, className, location, confidence } = req.body;
 
       // Validation
       if (!title || !className || !location) {
@@ -131,7 +124,7 @@ class IncidentController {
         location: parsedLocation,
         confidence: parseFloat(confidence) || 0.5,
         media: mediaArray,
-        reportedBy,
+        reportedBy: req.user?._id, // Set from authenticated user (server-side, trusted)
         timestamp: new Date(),
       };
 
@@ -146,6 +139,7 @@ class IncidentController {
         confidence: incident.confidence,
         timestamp: incident.timestamp,
         media: incident.media,
+        reportedBy: incident.reportedBy, // Include populated user object
       };
 
       // Trigger async hotspot recalculation (non-blocking)

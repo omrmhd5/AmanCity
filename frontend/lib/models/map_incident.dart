@@ -24,6 +24,7 @@ class MapIncident {
   final List<String> sourceUrls; // Twitter URLs for OSINT incidents
   final bool isMerged; // true if absorbed into a BulkIncident
   final String? bulkIncidentId; // ref to BulkIncident if isMerged
+  final String? reportedByName; // Name of the reporter (if populated)
 
   MapIncident({
     required this.id,
@@ -40,6 +41,7 @@ class MapIncident {
     this.sourceUrls = const [],
     this.isMerged = false,
     this.bulkIncidentId,
+    this.reportedByName,
   });
 
   bool get isOsint => source == 'OSINT_Twitter';

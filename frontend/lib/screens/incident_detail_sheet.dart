@@ -87,6 +87,7 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
                     ReporterProfileCard(
                       incident: widget.incident,
                       timeAgo: widget.timeAgo,
+                      reporterId: widget.incident.reportedByName ?? 'Anonymous',
                       timestamp: widget.incident.timestamp,
                       description: widget.incident.description,
                     ),
