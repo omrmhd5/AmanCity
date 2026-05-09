@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/register/register_header.dart';
-import '../widgets/register/personal_identity_section.dart';
-import '../widgets/register/terms_checkbox.dart';
-import '../widgets/shared/custom_button.dart';
-import '../widgets/shared/custom_text.dart';
-import '../widgets/shared/custom_gesture_detector.dart';
-import '../widgets/shared/custom_text_field.dart';
+import '../widgets/register/register_step_indicator.dart';
+import '../widgets/register/steps/step_name.dart';
+import '../widgets/register/steps/step_email.dart';
+import '../widgets/register/steps/step_phone.dart';
+import '../widgets/register/steps/step_password.dart';
+import '../widgets/register/steps/step_success.dart';
 import '../utils/app_theme.dart';
-import '../data/app_colors.dart';
 import '../utils/navigation_service.dart' as navigation;
 
 class RegisterScreen extends StatefulWidget {
@@ -19,29 +18,34 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final PageController _pageController = PageController();
+  int _currentStep = 0;
+  bool _isSuccess = false;
+  bool _isLoading = false;
+
   late TextEditingController _fullNameController;
-  late TextEditingController _phoneController;
   late TextEditingController _emailController;
+  late TextEditingController _phoneController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
   bool _agreeToTerms = false;
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _fullNameController = TextEditingController();
-    _phoneController = TextEditingController();
     _emailController = TextEditingController();
+    _phoneController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
   }
 
   @override
   void dispose() {
+    _pageController.dispose();
     _fullNameController.dispose();
-    _phoneController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -54,17 +58,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<void> _handleRegister() async {
-    if (_fullNameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty) {
-      _showError('Please fill in all fields.');
+  void _goToNext() {
+    final next = _currentStep + 1;
+    setState(() => _currentStep = next);
+    _pageController.animateToPage(
+      next,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _goBack() {
+    if (_currentStep == 0) {
+      navigation.Navigator.goBack();
       return;
     }
-    if (!_agreeToTerms) {
-      _showError('Please accept the terms and conditions.');
+    final prev = _currentStep - 1;
+    setState(() => _currentStep = prev);
+    _pageController.animateToPage(
+      prev,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onNextName() {
+    if (_fullNameController.text.trim().isEmpty) {
+      _showError('Please enter your full name.');
+      return;
+    }
+    _goToNext();
+  }
+
+  void _onNextEmail() {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showError('Please enter your email address.');
+      return;
+    }
+    if (!email.contains('@') || !email.contains('.')) {
+      _showError('Please enter a valid email address.');
+      return;
+    }
+    _goToNext();
+  }
+
+  void _onNextPhone() {
+    if (_phoneController.text.trim().isEmpty) {
+      _showError('Please enter your phone number.');
+      return;
+    }
+    _goToNext();
+  }
+
+  Future<void> _handleRegister() async {
+    if (_passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      _showError('Please enter and confirm your password.');
       return;
     }
     if (_passwordController.text.length < 6) {
@@ -75,26 +125,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showError('Passwords do not match.');
       return;
     }
+    if (!_agreeToTerms) {
+      _showError('Please accept the terms and conditions.');
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
       await AuthService.instance.signUpWithEmail(
-        name: _fullNameController.text,
-        phone: _phoneController.text,
-        email: _emailController.text,
+        name: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Account created! A verification link has been sent to your email. Please verify before logging in.',
-          ),
-          backgroundColor: Colors.green.shade700,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-      navigation.Navigator.goBack();
+      setState(() => _isSuccess = true);
     } catch (e) {
       _showError(e.toString());
     } finally {
@@ -106,127 +151,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppTheme.getBackgroundColor(),
-                  AppTheme.getBackgroundColor().withOpacity(0.95),
-                ],
-              ),
-            ),
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
+      body: SafeArea(
+        child: _isSuccess
+            ? Column(
                 children: [
-                  const RegisterHeader(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      children: [
-                        PersonalIdentitySection(
-                          fullNameController: _fullNameController,
-                          phoneController: _phoneController,
-                          selectedCity: null,
-                          onCityChanged: (_) {},
-                        ),
-                        const SizedBox(height: 20),
-                        // Email field
-                        CustomTextField(
-                          label: 'Email',
-                          placeholder: 'example@email.com',
-                          prefixIcon: Icons.email_outlined,
-                          controller: _emailController,
-                        ),
-                        const SizedBox(height: 20),
-                        // Password field
-                        CustomTextField(
-                          label: 'Password',
-                          placeholder: '•••••••••',
-                          prefixIcon: Icons.lock_outline,
-                          isPassword: true,
-                          controller: _passwordController,
-                        ),
-                        const SizedBox(height: 20),
-                        // Confirm Password field
-                        CustomTextField(
-                          label: 'Confirm Password',
-                          placeholder: '•••••••••',
-                          prefixIcon: Icons.lock_outline,
-                          isPassword: true,
-                          controller: _confirmPasswordController,
-                        ),
-                        const SizedBox(height: 24),
-                        TermsCheckBox(
-                          isChecked: _agreeToTerms,
-                          onChanged: (bool newValue) {
-                            setState(() => _agreeToTerms = newValue);
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                  RegisterHeader(
+                    onBackPressed: () => navigation.Navigator.goBack(),
+                  ),
+                  Expanded(
+                    child: StepSuccess(
+                      email: _emailController.text.trim(),
+                      onGoToLogin: () => navigation.Navigator.goBack(),
                     ),
                   ),
-                  // Register footer as scrollable content
-                  Container(
-                    padding: EdgeInsets.fromLTRB(
-                      24,
-                      16,
-                      24,
-                      MediaQuery.of(context).padding.bottom + 16,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                ],
+              )
+            : Column(
+                children: [
+                  RegisterHeader(onBackPressed: _goBack),
+                  const SizedBox(height: 4),
+                  RegisterStepIndicator(currentStep: _currentStep),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        CustomButton(
-                          text: 'REGISTER ACCOUNT',
-                          onPressed: _handleRegister,
-                          isLoading: _isLoading,
-                          backgroundColor:
-                              AppTheme.currentMode == AppThemeMode.dark
-                              ? AppColors.secondary
-                              : AppColors.primary,
-                          textColor: AppColors.white,
+                        SingleChildScrollView(
+                          child: StepName(
+                            controller: _fullNameController,
+                            onNext: _onNextName,
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CustomText(
-                              text: 'Already have an account? ',
-                              size: 13,
-                              weight: FontWeight.w400,
-                              color: AppTheme.getSecondaryTextColor(),
-                            ),
-                            CustomGestureDetector(
-                              onTap: () {
-                                navigation.Navigator.goBack();
-                              },
-                              enableScale: false,
-                              child: CustomText(
-                                text: 'Login',
-                                size: 13,
-                                weight: FontWeight.w600,
-                                color: AppTheme.currentMode == AppThemeMode.dark
-                                    ? AppColors.secondary
-                                    : AppColors.primary,
-                              ),
-                            ),
-                          ],
+                        SingleChildScrollView(
+                          child: StepEmail(
+                            controller: _emailController,
+                            onNext: _onNextEmail,
+                            onBack: _goBack,
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: StepPhone(
+                            controller: _phoneController,
+                            onNext: _onNextPhone,
+                            onBack: _goBack,
+                          ),
+                        ),
+                        StepPassword(
+                          passwordController: _passwordController,
+                          confirmPasswordController: _confirmPasswordController,
+                          agreeToTerms: _agreeToTerms,
+                          onTermsChanged: (val) =>
+                              setState(() => _agreeToTerms = val),
+                          onRegister: _handleRegister,
+                          onBack: _goBack,
+                          isLoading: _isLoading,
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
       ),
     );
   }
