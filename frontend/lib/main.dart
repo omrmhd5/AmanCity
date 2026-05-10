@@ -142,6 +142,13 @@ class AuthGate extends StatelessWidget {
           );
         }
         if (snapshot.hasData) {
+          final user = snapshot.data!;
+          // Block unverified email users — sign them out silently
+          if (!user.emailVerified &&
+              user.providerData.any((p) => p.providerId == 'password')) {
+            FirebaseAuth.instance.signOut();
+            return const LoginScreen();
+          }
           // Push the FCM token to the backend each time the user is authenticated
           NotificationService.instance.updateFcmToken();
           return const HomeScreen();

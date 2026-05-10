@@ -1,8 +1,8 @@
 const BulkIncident = require("../model/BulkIncident");
 const Incident = require("../model/Incident");
 
-// 2km in degrees (~1 degree latitude = 111 km)
-const DEGREE_OFFSET = 2 / 111; // ≈ 0.018°
+// 500 meters in degrees (~1 degree latitude = 111 km)
+const DEGREE_OFFSET = 0.5 / 111; // ≈ 0.0045°
 
 // 2-hour merge window
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
@@ -10,7 +10,7 @@ const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 class BulkIncidentService {
   /**
    * Find an existing BulkIncident that a new incident should merge into.
-   * Criteria: same type, center within 2km, lastUpdatedAt within 6 hours.
+   * Criteria: same type, center within 500m, lastUpdatedAt within 2 hours.
    * @param {ObjectId} typeId
    * @param {number} lat
    * @param {number} lng
@@ -35,7 +35,7 @@ class BulkIncidentService {
 
   /**
    * Find a standalone incident (not yet merged) that could pair with a new one.
-   * Used when no BulkIncident exists yet but two singles match.
+   * Used when no BulkIncident exists yet but two singles match within 500m.
    * @param {ObjectId} typeId
    * @param {number} lat
    * @param {number} lng
