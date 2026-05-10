@@ -88,6 +88,9 @@ dependencies:
   # Network / connectivity detection
   connectivity_plus: ^6.1.1
 
+  # Video playback for evidence feed
+  video_player: ^2.9.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -149,8 +149,6 @@ async function getOsintIncidents(req, res) {
       50, // limit to 50 incidents
     );
 
-    console.log(`✅ Fetched ${incidents.length} OSINT_Twitter incidents`);
-
     return res.status(200).json({
       message: "OSINT incidents retrieved successfully.",
       count: incidents.length,

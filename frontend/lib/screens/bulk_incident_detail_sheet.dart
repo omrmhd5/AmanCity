@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../data/app_colors.dart';
@@ -8,6 +7,7 @@ import '../../models/bulk_incident.dart';
 import '../../models/map_incident.dart';
 import '../../services/bulk_incident_api_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/shared/video_player_dialog.dart';
 import 'incident_detail_sheet.dart';
 
 class BulkIncidentDetailSheet extends StatefulWidget {
@@ -261,20 +261,79 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final url = _resolveMediaUrl(mediaUrls[index]);
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              url,
-              width: 130,
-              height: 130,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+          final isVideo =
+              url.toLowerCase().endsWith('.mp4') ||
+              url.toLowerCase().endsWith('.mov') ||
+              url.toLowerCase().endsWith('.avi') ||
+              url.toLowerCase().endsWith('.mkv');
+
+          if (isVideo) {
+            return GestureDetector(
+              onTap: () => _showVideoPlayerForReport(url),
+              child: Container(
                 width: 130,
                 height: 130,
-                color: AppTheme.getBorderColor(),
-                child: Icon(
-                  Icons.broken_image_outlined,
-                  color: AppTheme.getSecondaryTextColor(),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.grey[900],
+                  border: Border.all(
+                    color: AppTheme.getBorderColor(),
+                    width: 1,
+                  ),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.play_circle_fill,
+                      size: 50,
+                      color: const Color(0xFF00B3A4),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00B3A4),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'VIDEO',
+                          style: const TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return GestureDetector(
+            onTap: () => _showImageViewer(url),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                url,
+                width: 130,
+                height: 130,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 130,
+                  height: 130,
+                  color: AppTheme.getBorderColor(),
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
                 ),
               ),
             ),
@@ -497,17 +556,73 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
                   separatorBuilder: (_, __) => const SizedBox(width: 6),
                   itemBuilder: (context, i) {
                     final url = _resolveMediaUrl(report.media[i].url);
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        url,
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                    final isVideo =
+                        report.media[i].mediaType.toUpperCase() == 'VIDEO';
+
+                    if (isVideo) {
+                      return GestureDetector(
+                        onTap: () => _showVideoPlayerForReport(url),
+                        child: Container(
                           width: 70,
                           height: 70,
-                          color: AppTheme.getBorderColor(),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[900],
+                            border: Border.all(
+                              color: AppTheme.getBorderColor(),
+                              width: 1,
+                            ),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.play_circle_fill,
+                                size: 30,
+                                color: const Color(0xFF00B3A4),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00B3A4),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                  child: const Text(
+                                    'VID',
+                                    style: TextStyle(
+                                      fontSize: 6,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return GestureDetector(
+                      onTap: () => _showImageViewer(url),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          url,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 70,
+                            height: 70,
+                            color: AppTheme.getBorderColor(),
+                          ),
                         ),
                       ),
                     );
@@ -559,6 +674,79 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
               }).toList(),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showVideoPlayerForReport(String videoUrl) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black,
+      builder: (_) => VideoPlayerDialog(videoUrl: videoUrl),
+    );
+  }
+
+  void _showImageViewer(String imageUrl) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            color: Colors.black87,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Center(
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.image_not_supported,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Failed to load image',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.close, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

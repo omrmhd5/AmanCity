@@ -5,6 +5,7 @@ import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
 import '../../../models/map_incident.dart';
 import '../../shared/custom_text.dart';
+import '../../shared/video_player_dialog.dart';
 
 class EvidenceFeedSection extends StatefulWidget {
   final MapIncident? incident;
@@ -281,6 +282,8 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
   }
 
   Widget _buildMediaItem(MediaItem media) {
+    final isVideo = media.mediaType.toUpperCase() == 'VIDEO';
+
     // Properly encode the URL path segments to handle spaces and special characters
     late String mediaUrl;
     if (media.url.startsWith('http')) {
@@ -300,10 +303,12 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
       mediaUrl = '${AppConfig.fileServerUrl}/${encodedSegments.join('/')}';
     }
 
-    final isVideo = media.mediaType.toUpperCase() == 'VIDEO';
-
+    // For videos, just show play icon thumbnail
     if (isVideo) {
-      return _buildVideoItem(mediaUrl);
+      return GestureDetector(
+        onTap: () => _showVideoPlayer(mediaUrl),
+        child: _buildVideoThumbnail(),
+      );
     }
 
     return GestureDetector(
@@ -442,130 +447,66 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
     );
   }
 
-  Widget _buildVideoItem(String videoUrl) {
-    return GestureDetector(
-      onTap: () => _showVideoPlayer(videoUrl),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          color: Colors.grey[900],
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          alignment: Alignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Center(
-                child: Icon(
-                  Icons.play_circle_fill,
-                  size: 80,
-                  color: AppColors.secondary,
-                ),
+  Widget _buildVideoThumbnail() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        color: Colors.grey[900],
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        alignment: Alignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Center(
+              child: Icon(
+                Icons.play_circle_fill,
+                size: 80,
+                color: AppColors.secondary,
               ),
             ),
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: CustomText(
-                  text: 'VIDEO',
-                  size: 10,
-                  weight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: CustomText(
+                text: 'VIDEO',
+                size: 10,
+                weight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _openVideoFromThumbnail(String videoUrl) {
+    _showVideoPlayer(videoUrl);
   }
 
   void _showVideoPlayer(String videoUrl) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: AppTheme.getCardBackgroundColor(),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.video_library, size: 48, color: AppColors.secondary),
-              const SizedBox(height: 16),
-              CustomText(
-                text: 'Video Available',
-                size: 16,
-                weight: FontWeight.w600,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 12),
-              CustomText(
-                text:
-                    'Video playback is being improved. You can view this video at:',
-                size: 12,
-                weight: FontWeight.w400,
-                color: AppTheme.getSecondaryTextColor(),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.getBackgroundColor(),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.getBorderColor()),
-                ),
-                child: SelectableText(
-                  videoUrl,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AppColors.secondary,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: CustomText(
-                    text: 'Close',
-                    size: 14,
-                    weight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      barrierColor: Colors.black,
+      builder: (_) => VideoPlayerDialog(videoUrl: videoUrl),
     );
   }
 }
