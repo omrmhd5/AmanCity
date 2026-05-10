@@ -168,6 +168,10 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   }
 
   Future<void> _onEvidenceTypeSelected(EvidenceType type) async {
+    // Show source picker bottom sheet
+    final source = await _showSourcePicker(type);
+    if (source == null) return; // user dismissed
+
     setState(() => _isPickingFile = true);
 
     try {
@@ -175,9 +179,16 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       XFile? pickedFile;
 
       if (type == EvidenceType.photo) {
-        pickedFile = await picker.pickImage(source: ImageSource.gallery);
+        pickedFile = await picker.pickImage(
+          source: source,
+          preferredCameraDevice: CameraDevice.rear,
+          imageQuality: 90,
+        );
       } else if (type == EvidenceType.video) {
-        pickedFile = await picker.pickVideo(source: ImageSource.gallery);
+        pickedFile = await picker.pickVideo(
+          source: source,
+          preferredCameraDevice: CameraDevice.rear,
+        );
       }
 
       if (pickedFile != null) {
@@ -197,6 +208,96 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       );
       setState(() => _isPickingFile = false);
     }
+  }
+
+  Future<ImageSource?> _showSourcePicker(EvidenceType type) async {
+    final isPhoto = type == EvidenceType.photo;
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: AppTheme.getBackgroundColor(),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppTheme.getBorderColor(),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              isPhoto ? 'Select Photo' : 'Select Video',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.getPrimaryTextColor(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: _sourceOption(
+                    icon: isPhoto ? Icons.camera_alt : Icons.videocam,
+                    label: 'Camera',
+                    onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _sourceOption(
+                    icon: isPhoto ? Icons.photo_library : Icons.video_library,
+                    label: 'Gallery',
+                    onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sourceOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppColors.secondary, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.getPrimaryTextColor(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _createIncidentFromPrediction(

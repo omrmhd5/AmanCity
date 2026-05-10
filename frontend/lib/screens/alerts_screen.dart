@@ -108,6 +108,8 @@ class AlertsScreen extends StatelessWidget {
   void _confirmClear(BuildContext context) {
     showDialog(
       context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.9),
       builder: (_) => AlertDialog(
         backgroundColor: AppTheme.getCardBackgroundColor(),
         title: Text(
