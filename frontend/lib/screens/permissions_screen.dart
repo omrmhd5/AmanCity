@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/app_colors.dart';
+import '../services/connectivity_service.dart';
 import '../main.dart';
 
 // ─── Permission item model ────────────────────────────────────────────────────
@@ -94,6 +95,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   @override
   void initState() {
     super.initState();
+    // Bypass connectivity checks — permissions screen doesn't need the backend.
+    ConnectivityService.instance.setBypass(true);
     _checkExistingPermissions();
   }
 
@@ -182,6 +185,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_complete', true);
     if (!mounted) return;
+    // Re-enable connectivity checks now that we're entering the main app.
+    ConnectivityService.instance.setBypass(false);
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AuthGate()),
       (route) => false,

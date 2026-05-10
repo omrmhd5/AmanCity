@@ -14,6 +14,8 @@ import 'utils/navigation_service.dart' as navigation;
 import 'routes/app_routes.dart';
 import 'services/notification_service.dart';
 import 'services/user_location_sync_service.dart';
+import 'services/connectivity_service.dart';
+import 'widgets/connectivity_wrapper.dart';
 
 /// Permissions that must be granted before using the app.
 const _requiredPermissions = [
@@ -31,6 +33,7 @@ void main() async {
   await Firebase.initializeApp();
   await NotificationService.instance.init();
   UserLocationSyncService.instance.start();
+  ConnectivityService.instance.init();
   runApp(const MyApp());
 }
 
@@ -49,6 +52,8 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigation.Navigator.navigatorKey,
       home: const _StartGate(),
       onGenerateRoute: AppRoutes.generateRoute,
+      builder: (context, child) =>
+          ConnectivityWrapper(child: child ?? const SizedBox.shrink()),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/app_colors.dart';
+import '../services/connectivity_service.dart';
 import 'permissions_screen.dart';
 
 // ─── Data models ────────────────────────────────────────────────────────────
@@ -42,6 +43,13 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Bypass connectivity checks — onboarding doesn't need the backend.
+    ConnectivityService.instance.setBypass(true);
+  }
 
   static final _pages = [
     const _PageData(

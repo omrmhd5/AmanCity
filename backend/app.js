@@ -25,6 +25,9 @@ app.use(
   }),
 );
 
+// Health check — used by Flutter app for server reachability detection
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+
 // Routes
 app.use("/api/users", require("./routes/users"));
 app.use("/api/incidents", require("./routes/incidents"));
