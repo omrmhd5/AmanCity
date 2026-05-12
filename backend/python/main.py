@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -6,6 +7,7 @@ import shutil
 from pathlib import Path
 from typing import Optional, Dict, Any
 from inference import DualModelInference
+from scripts.ai_detection import check_media as check_ai_media
 
 # Initialize FastAPI app
 app = FastAPI(title="AmanCity YOLO Inference Server", version="1.0.0")
@@ -90,6 +92,20 @@ async def predict(file: UploadFile = File(...)):
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        # ── AI-generated media gate ───────────────────────────────────────────
+        # Runs BEFORE YOLO models. Aborts immediately if the file is synthetic.
+        ai_check = check_ai_media(str(temp_path), media_type)
+        if ai_check["is_ai"]:
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "error":   "ai_generated_media",
+                    "message": "This media appears to be AI-generated and cannot be used for reporting. Please upload real media.",
+                    "ai_score": ai_check["score"],
+                }
+            )
+        # ─────────────────────────────────────────────────────────────────────
 
         # Run dual-model inference
         result = dual_model.predict_from_media(str(temp_path), media_type)

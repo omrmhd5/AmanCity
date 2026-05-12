@@ -16,6 +16,12 @@ class PredictController {
         req.file.originalname,
       );
 
+      // Proxy AI-detection 422 response directly to Flutter
+      if (prediction?._statusCode === 422) {
+        const { _statusCode, ...payload } = prediction;
+        return res.status(422).json(payload);
+      }
+
       res.status(200).json({
         message: "Prediction successful",
         data: prediction,

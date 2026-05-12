@@ -52,6 +52,18 @@ class PredictionApiService {
         } else {
           throw Exception('Invalid response format: missing data field');
         }
+      } else if (response.statusCode == 422) {
+        // AI-generated media detected — return a result the dialog can render
+        try {
+          final errorJson = jsonDecode(response.body);
+          // 422 response is sent directly without wrapping in "detail"
+          if (errorJson is Map && errorJson['error'] == 'ai_generated_media') {
+            return PredictionResult.fromJson(
+              Map<String, dynamic>.from(errorJson),
+            );
+          }
+        } catch (_) {}
+        throw Exception('Unable to process this media. Please try again.');
       } else {
         // Try to extract error message from JSON response
         try {

@@ -41,6 +41,10 @@ class YOLOService {
 
       return response.data;
     } catch (error) {
+      // Pass AI-detection 422 straight through to the controller
+      if (error.response?.status === 422) {
+        return { _statusCode: 422, ...error.response.data };
+      }
       // Handle specific error cases
       if (error.code === "ECONNREFUSED") {
         throw new Error(

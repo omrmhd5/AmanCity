@@ -13,6 +13,10 @@ class PredictionResult {
   final bool noIncident;
   final String? noIncidentReason;
 
+  // AI-generated media fields
+  final bool isAiGenerated;
+  final int? aiScore;
+
   PredictionResult({
     required this.classId,
     required this.className,
@@ -22,10 +26,23 @@ class PredictionResult {
     this.alternatives,
     this.noIncident = false,
     this.noIncidentReason,
+    this.isAiGenerated = false,
+    this.aiScore,
   });
 
   /// Factory constructor to create instance from JSON
   factory PredictionResult.fromJson(Map<String, dynamic> json) {
+    // Handle AI-generated media response
+    if (json['error'] == 'ai_generated_media') {
+      return PredictionResult(
+        classId: 0,
+        className: '',
+        confidence: 0.0,
+        isAiGenerated: true,
+        aiScore: json['ai_score'] as int?,
+      );
+    }
+
     // Handle no incident response
     if (json['no_incident'] == true) {
       return PredictionResult(
