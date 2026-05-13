@@ -10,7 +10,7 @@ import '../shared/custom_search_bar.dart';
 import 'nearby_alert_card.dart';
 import 'nearby_bulk_alert_card.dart';
 import '../../screens/incident_detail_sheet.dart';
-import '../../screens/bulk_incident_detail_sheet.dart';
+import 'bulk_incident_detail_sheet.dart';
 
 class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
