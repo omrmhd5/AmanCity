@@ -57,16 +57,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Main content
-          SafeArea(child: _buildContent()),
+          // Main content — padded so nothing hides behind the floating navbar
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 85),
+              child: _buildContent(),
+            ),
+          ),
+          // Floating navbar — true overlay, zero background behind it
+          if (!_sosActive)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: BottomNavBar(
+                currentItem: _currentNavItem,
+                onItemTapped: _onNavItemTapped,
+              ),
+            ),
         ],
       ),
-      bottomNavigationBar: !_sosActive
-          ? BottomNavBar(
-              currentItem: _currentNavItem,
-              onItemTapped: _onNavItemTapped,
-            )
-          : null,
     );
   }
 
