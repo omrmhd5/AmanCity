@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -27,9 +26,11 @@ import '../../services/map/directions_service.dart';
 import '../../services/map/hotspot_api_service.dart';
 import '../../services/map/location_service.dart';
 import '../../services/map/location_stream_service.dart';
+import '../../services/map/marker_icon_service.dart';
 import '../../utils/safe_route_scorer.dart';
 import '../../models/incidents/bulk_incident.dart';
 import '../../services/incidents/bulk_incident_api_service.dart';
+import '../../widgets/map/map_action_buttons.dart';
 import '../incidents/incident_detail_sheet.dart';
 import '../incidents/bulk_incident_detail_sheet.dart';
 
@@ -80,8 +81,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   late CameraPosition _initialCameraPosition;
   bool _locationLoaded = false;
 
-  // Cache for custom marker icons
-  final Map<String, BitmapDescriptor> _markerIconCache = {};
+  // Custom marker icon service (canvas rendering + caching)
+  late final MarkerIconService _markerIcons;
 
   // Location cache
   DateTime? _locationCachedTime;
@@ -148,6 +149,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _markerIcons = MarkerIconService(onIconReady: _scheduleMapUpdate);
     // Initialize with all POI types selected by default
     _selectedPoiFilters = {'hospital', 'police', 'fire'};
     _updatePoiFilter();
@@ -563,7 +565,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         Marker(
           markerId: MarkerId(incident.id),
           position: incident.position,
-          icon: _getCustomIncidentMarker(incident),
+          icon: _markerIcons.getIncidentMarker(incident),
           consumeTapEvents: true,
           onTap: () => _onIncidentTapped(incident),
         ),
@@ -579,7 +581,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         Marker(
           markerId: MarkerId('bulk_${bulk.id}'),
           position: bulk.center,
-          icon: _getCustomBulkMarker(bulk),
+          icon: _markerIcons.getBulkMarker(bulk),
           consumeTapEvents: true,
           onTap: () => _onBulkIncidentTapped(bulk),
         ),
@@ -612,7 +614,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           Marker(
             markerId: MarkerId('poi_${poi.id}'),
             position: poi.position,
-            icon: _getCustomPOIMarker(poi),
+            icon: _markerIcons.getPOIMarker(poi),
             consumeTapEvents: true,
             onTap: () => _onPOITapped(poi),
           ),
@@ -626,7 +628,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         Marker(
           markerId: const MarkerId('user_location'),
           position: _userLocation!,
-          icon: _getUserLocationMarker(),
+          icon: _markerIcons.getUserLocationMarker(),
         ),
       );
     }
@@ -637,7 +639,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         Marker(
           markerId: const MarkerId('tapped_destination'),
           position: _tappedDestination!,
-          icon: _getTappedDestinationMarker(),
+          icon: _markerIcons.getTappedDestinationMarker(),
           consumeTapEvents: true,
           onTap: _clearRoute,
         ),
@@ -678,7 +680,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           Marker(
             markerId: MarkerId('hotspot_marker_${hotspot.id}'),
             position: hotspot.center,
-            icon: _getHotspotMarker(hotspot),
+            icon: _markerIcons.getHotspotMarker(hotspot),
             consumeTapEvents: true,
             onTap: () => _onHotspotTapped(hotspot),
             infoWindow: InfoWindow(
@@ -694,187 +696,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _markers = newMarkers;
       _circles = newCircles;
     });
-  }
-
-  /// Creates a custom map marker icon with incident type icon
-  BitmapDescriptor _getCustomIncidentMarker(MapIncident incident) {
-    // Check cache first
-    final cacheKey = '${incident.type}_${incident.typeColor.value}';
-    if (_markerIconCache.containsKey(cacheKey)) {
-      return _markerIconCache[cacheKey]!;
-    }
-
-    // Create new icon (will be cached after rendering)
-    final iconData = incident.typeIcon;
-    final iconColor = Colors.white;
-    final backgroundColor = incident.typeColor;
-
-    // We'll create the icon asynchronously and store in cache (medium size for incidents)
-    _createAndCacheMarkerIcon(
-      cacheKey,
-      iconData,
-      iconColor,
-      backgroundColor,
-      markerSize: 110.0,
-    );
-
-    return BitmapDescriptor.defaultMarkerWithHue(
-      _getHueFromColor(backgroundColor),
-    );
-  }
-
-  /// Creates a custom map marker icon with POI type icon
-  BitmapDescriptor _getCustomPOIMarker(EmergencyPOI poi) {
-    // Check cache first
-    final cacheKey = 'poi_${poi.type}_${poi.markerColor.value}';
-    if (_markerIconCache.containsKey(cacheKey)) {
-      return _markerIconCache[cacheKey]!;
-    }
-
-    // Create new icon (will be cached after rendering)
-    final iconData = poi.icon;
-    final iconColor = Colors.white;
-    final backgroundColor = poi.markerColor;
-
-    // We'll create the icon asynchronously and store in cache (smaller size for POI)
-    _createAndCacheMarkerIcon(
-      cacheKey,
-      iconData,
-      iconColor,
-      backgroundColor,
-      markerSize: 80.0,
-    );
-
-    return BitmapDescriptor.defaultMarkerWithHue(
-      _getHueFromColor(backgroundColor),
-    );
-  }
-
-  /// Renders an icon to a bitmap and caches it
-  Future<void> _createAndCacheMarkerIcon(
-    String cacheKey,
-    IconData iconData,
-    Color iconColor,
-    Color backgroundColor, {
-    double markerSize = 120.0,
-  }) async {
-    try {
-      final pictureRecorder = ui.PictureRecorder();
-      final canvas = Canvas(pictureRecorder);
-      final size = markerSize;
-
-      // Draw circular background with shadow
-      final paint = Paint()
-        ..color = backgroundColor
-        ..style = PaintingStyle.fill;
-
-      final shadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.3)
-        ..style = PaintingStyle.fill;
-
-      // Draw shadow
-      canvas.drawCircle(Offset(size / 2, size / 2 + 2), size / 2, shadowPaint);
-
-      // Draw background circle
-      canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint);
-
-      // Draw icon
-      final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-      textPainter.text = TextSpan(
-        text: String.fromCharCode(iconData.codePoint),
-        style: TextStyle(
-          color: iconColor,
-          fontSize: markerSize * 0.45,
-          fontFamily: iconData.fontFamily,
-        ),
-      );
-
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(
-          (size / 2) - (textPainter.width / 2),
-          (size / 2) - (textPainter.height / 2),
-        ),
-      );
-
-      final picture = pictureRecorder.endRecording();
-      final image = await picture.toImage(size.toInt(), size.toInt());
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-
-      final bitmapDescriptor = BitmapDescriptor.fromBytes(
-        bytes!.buffer.asUint8List(),
-      );
-
-      // Cache the result
-      _markerIconCache[cacheKey] = bitmapDescriptor;
-
-      // Rebuild markers with cached icon
-      if (mounted) {
-        _updateMapElements();
-      }
-    } catch (e) {
-      // Error creating marker icon
-    }
-  }
-
-  /// Creates a custom marker for user's current location
-  BitmapDescriptor _getUserLocationMarker() {
-    const cacheKey = 'user_location';
-    if (_markerIconCache.containsKey(cacheKey)) {
-      return _markerIconCache[cacheKey]!;
-    }
-
-    // Create user location marker with my_location icon in cyan/teal
-    const userColor = Color(0xFF06B6D4); // Cyan
-    const iconData = Icons.my_location;
-    const iconColor = Colors.white;
-
-    _createAndCacheMarkerIcon(cacheKey, iconData, iconColor, userColor);
-
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
-  }
-
-  /// Creates a hotspot marker icon (warning/alert style)
-  BitmapDescriptor _getHotspotMarker(HotspotZone hotspot) {
-    final cacheKey = 'hotspot_${hotspot.riskScore.toStringAsFixed(2)}';
-    if (_markerIconCache.containsKey(cacheKey)) {
-      return _markerIconCache[cacheKey]!;
-    }
-
-    // Use warning icon for hotspots
-    const iconData = Icons.warning_amber;
-    const iconColor = Colors.white;
-    final backgroundColor = hotspot.riskColor;
-
-    _createAndCacheMarkerIcon(
-      cacheKey,
-      iconData,
-      iconColor,
-      backgroundColor,
-      markerSize: 90.0,
-    );
-
-    return BitmapDescriptor.defaultMarkerWithHue(
-      _getHueFromColor(backgroundColor),
-    );
-  }
-
-  double _getHueFromColor(Color color) {
-    if (color == AppColors.danger || color.value == Colors.red.value) {
-      return BitmapDescriptor.hueRed;
-    } else if (color.value == Colors.amber.value ||
-        color.value == Colors.orange.value) {
-      return BitmapDescriptor.hueOrange;
-    } else if (color.value == Colors.green.value) {
-      return BitmapDescriptor.hueGreen;
-    } else if (color == AppColors.secondary) {
-      return BitmapDescriptor.hueCyan;
-    } else if (color.value == Colors.blue.value) {
-      return BitmapDescriptor.hueBlue;
-    }
-    return BitmapDescriptor.hueRed;
   }
 
   /// Search for nearby places matching the search query
@@ -1193,21 +1014,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
   }
 
-  BitmapDescriptor _getTappedDestinationMarker() {
-    const cacheKey = 'tapped_destination';
-    if (_markerIconCache.containsKey(cacheKey)) {
-      return _markerIconCache[cacheKey]!;
-    }
-    _createAndCacheMarkerIcon(
-      cacheKey,
-      Icons.location_pin,
-      Colors.white,
-      AppColors.secondary,
-      markerSize: 100.0,
-    );
-    return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
-  }
-
   /// Animate camera to show full route
   void _animateCameraToRoute(List<LatLng> points) {
     if (points.isEmpty) return;
@@ -1422,116 +1228,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// Renders a bulk incident marker: same type icon but with an ×N count badge
-  BitmapDescriptor _getCustomBulkMarker(BulkIncident bulk) {
-    final cacheKey = 'bulk_${bulk.type}_${bulk.count}';
-    if (_markerIconCache.containsKey(cacheKey)) {
-      return _markerIconCache[cacheKey]!;
-    }
-    _createAndCacheBulkMarkerIcon(cacheKey, bulk);
-    return BitmapDescriptor.defaultMarkerWithHue(
-      _getHueFromColor(bulk.typeColor),
-    );
-  }
-
-  Future<void> _createAndCacheBulkMarkerIcon(
-    String cacheKey,
-    BulkIncident bulk,
-  ) async {
-    try {
-      final pictureRecorder = ui.PictureRecorder();
-      final canvas = Canvas(pictureRecorder);
-      const size = 130.0;
-      final color = bulk.typeColor;
-
-      // Shadow
-      canvas.drawCircle(
-        const Offset(size / 2, size / 2 + 2),
-        size / 2,
-        Paint()
-          ..color = Colors.black.withOpacity(0.3)
-          ..style = PaintingStyle.fill,
-      );
-
-      // Background circle
-      canvas.drawCircle(
-        const Offset(size / 2, size / 2),
-        size / 2,
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.fill,
-      );
-
-      // Type icon (slightly smaller to leave room for badge)
-      final iconPainter = TextPainter(textDirection: TextDirection.ltr);
-      iconPainter.text = TextSpan(
-        text: String.fromCharCode(bulk.typeIcon.codePoint),
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: size * 0.48,
-          fontFamily: bulk.typeIcon.fontFamily,
-        ),
-      );
-      iconPainter.layout();
-      iconPainter.paint(
-        canvas,
-        Offset(
-          (size / 2) - (iconPainter.width / 2),
-          (size / 2) - (iconPainter.height / 2),
-        ),
-      );
-
-      // Count badge: white circle, bottom-right corner
-      const badgeRadius = 30.0;
-      const badgeCx = size - badgeRadius * 0.8;
-      const badgeCy = size - badgeRadius * 0.8;
-      canvas.drawCircle(
-        const Offset(badgeCx, badgeCy),
-        badgeRadius,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.fill,
-      );
-      canvas.drawCircle(
-        const Offset(badgeCx, badgeCy),
-        badgeRadius,
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
-
-      // Badge text (count)
-      final badgePainter = TextPainter(textDirection: TextDirection.ltr);
-      badgePainter.text = TextSpan(
-        text: '×${bulk.count}',
-        style: TextStyle(
-          color: color,
-          fontSize: 27,
-          fontWeight: FontWeight.w800,
-        ),
-      );
-      badgePainter.layout();
-      badgePainter.paint(
-        canvas,
-        Offset(
-          badgeCx - badgePainter.width / 2,
-          badgeCy - badgePainter.height / 2,
-        ),
-      );
-
-      final picture = pictureRecorder.endRecording();
-      final image = await picture.toImage(size.toInt(), size.toInt());
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      final descriptor = BitmapDescriptor.fromBytes(
-        bytes!.buffer.asUint8List(),
-      );
-
-      _markerIconCache[cacheKey] = descriptor;
-      if (mounted) _updateMapElements();
-    } catch (_) {}
-  }
-
   String _getTimeAgo(DateTime timestamp) {
     final difference = DateTime.now().difference(timestamp);
     if (difference.inMinutes < 1) {
@@ -1692,40 +1388,17 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           ),
         ),
 
-        // Report button
-        Positioned(
-          right: 16,
-          bottom: 180,
-          child: FloatingActionButton(
-            heroTag: 'report_button',
-            backgroundColor: Colors.red.shade500,
-            onPressed: widget.onReportPressed,
-            child: const Icon(
-              Icons.announcement,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-        ),
-
-        // My Location button
-        Positioned(
-          right: 16,
-          bottom: 110,
-          child: FloatingActionButton(
-            heroTag: 'my_location_button',
-            backgroundColor: Colors.blue.shade400,
-            onPressed: () {
-              if (_userLocation != null) {
-                _mapController?.animateCamera(
-                  CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
-                );
-              } else {
-                _getUserLocation();
-              }
-            },
-            child: const Icon(Icons.my_location, color: Colors.white, size: 24),
-          ),
+        MapActionButtons(
+          onReportPressed: widget.onReportPressed,
+          onMyLocationPressed: () {
+            if (_userLocation != null) {
+              _mapController?.animateCamera(
+                CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
+              );
+            } else {
+              _getUserLocation();
+            }
+          },
         ),
 
         // Route info card (if route selected)
