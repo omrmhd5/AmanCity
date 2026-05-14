@@ -31,7 +31,7 @@ import '../../utils/safe_route_scorer.dart';
 import '../../models/incidents/bulk_incident.dart';
 import '../../services/incidents/bulk_incident_api_service.dart';
 import '../incidents/incident_detail_sheet.dart';
-import '../../widgets/map/alerts/bulk_incident_detail_sheet.dart';
+import '../incidents/bulk_incident_detail_sheet.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);
