@@ -5,7 +5,7 @@ import '../../../../config/app_config.dart';
 import '../../../../data/app_colors.dart';
 import '../../../../models/bulk_incident.dart';
 import '../../../../models/map_incident.dart';
-import '../../../../services/bulk_incident_api_service.dart';
+import '../../../services/incidents/bulk_incident_api_service.dart';
 import '../../../../utils/app_theme.dart';
 import '../../../../widgets/shared/video_player_dialog.dart';
 import '../../../screens/incident_detail_sheet.dart';

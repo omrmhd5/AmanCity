@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../config/app_config.dart';
-import '../models/osint_incident.dart';
+import '../../config/app_config.dart';
+import '../../models/osint_incident.dart';
 
 class OsintApiService {
   static const String _baseUrl = '${AppConfig.backendUrl}/osint';

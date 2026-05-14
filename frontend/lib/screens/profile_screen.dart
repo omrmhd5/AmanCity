@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import '../services/auth/auth_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/profile/profile_card.dart';
 import '../widgets/profile/profile_menu_section.dart';

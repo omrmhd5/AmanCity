@@ -5,9 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
-import '../../services/geocoding_api_service.dart';
-import '../../services/places_api_service.dart';
-import '../../services/location_stream_service.dart';
+import '../../services/map/geocoding_api_service.dart';
+import '../../services/map/places_api_service.dart';
+import '../../services/map/location_stream_service.dart';
 import '../map/navigation/search_results_dropdown.dart';
 
 class LocationPickerMap extends StatefulWidget {

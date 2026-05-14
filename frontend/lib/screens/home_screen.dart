@@ -9,7 +9,7 @@ import 'report_incident_screen.dart';
 import 'ai_screen.dart';
 import 'sos_screen.dart';
 import 'alerts_screen.dart';
-import '../services/notification_service.dart';
+import '../services/notifications/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

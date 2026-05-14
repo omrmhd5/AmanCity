@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../data/app_colors.dart';
-import '../services/sos_service.dart';
+import '../services/sos/sos_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/sos_screen/sos_active_view.dart';
 import '../widgets/sos_screen/sos_header.dart';

@@ -12,8 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:torch_light/torch_light.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../models/sos_contact.dart';
-import '../models/sos_recording.dart';
+import '../../models/sos_contact.dart';
+import '../../models/sos_recording.dart';
 
 class SosService {
   static final SosService _instance = SosService._internal();

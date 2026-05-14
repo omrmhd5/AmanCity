@@ -12,9 +12,9 @@ import 'screens/permissions_screen.dart';
 import 'data/app_colors.dart';
 import 'utils/navigation_service.dart' as navigation;
 import 'routes/app_routes.dart';
-import 'services/notification_service.dart';
-import 'services/user_location_sync_service.dart';
-import 'services/connectivity_service.dart';
+import 'services/notifications/notification_service.dart';
+import 'services/core/user_location_sync_service.dart';
+import 'services/core/connectivity_service.dart';
 import 'widgets/connectivity_wrapper.dart';
 
 /// Permissions that must be granted before using the app.

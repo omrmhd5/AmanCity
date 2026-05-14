@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/app_colors.dart';
-import '../services/connectivity_service.dart';
+import '../services/core/connectivity_service.dart';
 import '../main.dart';
 
 // ─── Permission item model ────────────────────────────────────────────────────

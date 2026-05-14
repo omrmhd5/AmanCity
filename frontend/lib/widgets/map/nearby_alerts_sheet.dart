@@ -4,11 +4,11 @@ import '../../../utils/app_theme.dart';
 import '../../../data/incident_types_config.dart';
 import '../../../models/map_incident.dart';
 import '../../../models/bulk_incident.dart';
-import '../../../services/map/location_service.dart';
+import '../../services/map/location_service.dart';
 import '../../shared/custom_text.dart';
 import '../../shared/custom_search_bar.dart';
 import 'nearby_alert_card.dart';
-import 'nearby_bulk_alert_card.dart';
+import '../nearby_bulk_alert_card.dart';
 import '../../../screens/incident_detail_sheet.dart';
 import 'bulk_incident_detail_sheet.dart';
 

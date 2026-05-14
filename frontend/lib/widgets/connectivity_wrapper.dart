@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/connectivity_service.dart';
+import '../services/core/connectivity_service.dart';
 import '../screens/no_internet_screen.dart';
 import '../screens/server_unavailable_screen.dart';
 

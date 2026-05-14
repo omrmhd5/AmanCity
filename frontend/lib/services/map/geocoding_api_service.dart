@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../config/app_config.dart';
+import '../../config/app_config.dart';
 
 /// Service for reverse geocoding coordinates to address + city
 class GeocodingService {

@@ -1,5 +1,5 @@
 ﻿import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/auth/auth_service.dart';
 import '../widgets/register/register_header.dart';
 import '../widgets/register/register_step_indicator.dart';
 import '../widgets/register/steps/step_name.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/app_colors.dart';
-import '../services/connectivity_service.dart';
+import '../services/core/connectivity_service.dart';
 
 class NoInternetScreen extends StatefulWidget {
   const NoInternetScreen({Key? key}) : super(key: key);

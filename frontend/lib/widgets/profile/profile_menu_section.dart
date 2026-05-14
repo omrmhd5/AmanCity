@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../screens/onboarding_screen.dart';
-import '../../services/connectivity_service.dart';
+import '../../services/core/connectivity_service.dart';
 import 'map_theme_selector.dart';
 import 'home_location_selector.dart';
 import 'logout_section.dart';

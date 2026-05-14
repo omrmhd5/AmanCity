@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/alert_notification.dart';
-import '../services/notification_service.dart';
+import '../services/notifications/notification_service.dart';
 import '../data/app_colors.dart';
 import '../utils/app_theme.dart';
 import '../data/incident_types_config.dart';

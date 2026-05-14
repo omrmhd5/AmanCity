@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import '../config/app_config.dart';
+import '../../config/app_config.dart';
 
 /// Listens to GPS and PUTs the user's location to the backend
 /// whenever they move more than 10m from the last synced position.
