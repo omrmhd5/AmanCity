@@ -28,6 +28,7 @@ class FilterOptionsSheet extends StatefulWidget {
 class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
   Set<String> selectedIncidentTypes = {};
   bool _showAllTypes = false;
+  bool _applyPressed = false;
 
   // POI Settings
   late double radiusKm;
@@ -193,54 +194,60 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                           final isSelected = selectedIncidentTypes.contains(
                             incident.key,
                           );
-                          return FilterChip(
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  incident.icon,
-                                  size: 16,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : incident.color,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  incident.displayName,
-                                  style: TextStyle(
+                          return AnimatedScale(
+                            scale: isSelected ? 1.06 : 1.0,
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOutBack,
+                            child: FilterChip(
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    incident.icon,
+                                    size: 16,
                                     color: isSelected
                                         ? Colors.white
-                                        : AppTheme.getPrimaryTextColor(),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
+                                        : incident.color,
                                   ),
-                                ),
-                              ],
-                            ),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                if (selected) {
-                                  selectedIncidentTypes.add(incident.key);
-                                } else {
-                                  selectedIncidentTypes.remove(incident.key);
-                                }
-                              });
-                            },
-                            selectedColor: incident.color,
-                            backgroundColor: AppTheme.getCardBackgroundColor(),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? incident.color
-                                  : AppTheme.getBorderColor(),
-                              width: isSelected ? 2 : 1,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    incident.displayName,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppTheme.getPrimaryTextColor(),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    selectedIncidentTypes.add(incident.key);
+                                  } else {
+                                    selectedIncidentTypes.remove(incident.key);
+                                  }
+                                });
+                              },
+                              selectedColor: incident.color,
+                              backgroundColor:
+                                  AppTheme.getCardBackgroundColor(),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? incident.color
+                                    : AppTheme.getBorderColor(),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
                             ),
                           );
                         },
@@ -286,8 +293,9 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             child: GestureDetector(
-              onTap: () {
-                // Return settings and close
+              onTapDown: (_) => setState(() => _applyPressed = true),
+              onTapUp: (_) {
+                setState(() => _applyPressed = false);
                 Navigator.pop(
                   context,
                   FilterSettings(
@@ -296,19 +304,42 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                   ),
                 );
               },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: CustomText(
-                    text: 'Apply',
-                    size: 14,
-                    weight: FontWeight.w600,
-                    color: Color(0xFF000000),
+              onTapCancel: () => setState(() => _applyPressed = false),
+              child: AnimatedScale(
+                scale: _applyPressed ? 0.96 : 1.0,
+                duration: _applyPressed
+                    ? const Duration(milliseconds: 80)
+                    : const Duration(milliseconds: 300),
+                curve: _applyPressed ? Curves.easeIn : Curves.easeOutBack,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.secondary,
+                        AppColors.secondary.withOpacity(0.72),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.secondary.withOpacity(0.35),
+                        blurRadius: 16,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: CustomText(
+                      text: 'Apply Filters',
+                      size: 14,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

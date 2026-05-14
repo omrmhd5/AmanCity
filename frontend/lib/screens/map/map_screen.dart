@@ -1322,20 +1322,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           )
         else
           Container(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Colors.red.shade700),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Loading your location...',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
+            color: AppColors.primary,
+            child: const MapLoadingIndicator(),
           ),
 
         // Search results dropdown (overlay)
