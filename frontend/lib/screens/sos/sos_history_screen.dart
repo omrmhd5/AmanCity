@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
-import '../data/app_colors.dart';
-import '../models/sos_recording.dart';
-import '../services/sos/sos_service.dart';
-import '../utils/app_theme.dart';
-import '../widgets/sos_screen/sos_recording_card.dart';
+import '../../data/app_colors.dart';
+import '../../models/sos_recording.dart';
+import '../../services/sos/sos_service.dart';
+import '../../utils/app_theme.dart';
+import '../../widgets/sos_screen/sos_recording_card.dart';
 
 class SosHistoryScreen extends StatefulWidget {
   final VoidCallback? onBack;

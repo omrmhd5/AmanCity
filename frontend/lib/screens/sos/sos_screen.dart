@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../data/app_colors.dart';
-import '../services/sos/sos_service.dart';
-import '../utils/app_theme.dart';
-import '../widgets/sos_screen/sos_active_view.dart';
-import '../widgets/sos_screen/sos_header.dart';
-import '../widgets/sos_screen/sos_hold_button.dart';
-import '../widgets/sos_screen/sos_utility_toggles.dart';
+import '../../data/app_colors.dart';
+import '../../services/sos/sos_service.dart';
+import '../../utils/app_theme.dart';
+import '../../widgets/sos_screen/sos_active_view.dart';
+import '../../widgets/sos_screen/sos_header.dart';
+import '../../widgets/sos_screen/sos_hold_button.dart';
+import '../../widgets/sos_screen/sos_utility_toggles.dart';
 import 'sos_contacts_screen.dart';
 import 'sos_history_screen.dart';
 

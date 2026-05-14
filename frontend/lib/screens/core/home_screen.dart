@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../widgets/shared/bottom_navbar.dart';
-import 'profile_screen.dart';
-import 'news_screen.dart';
-import '../data/app_colors.dart';
-import '../utils/app_theme.dart';
-import 'map_screen.dart';
-import 'report_incident_screen.dart';
-import 'ai_screen.dart';
-import 'sos_screen.dart';
-import 'alerts_screen.dart';
-import '../services/notifications/notification_service.dart';
+import '../../widgets/shared/bottom_navbar.dart';
+import '../profile/profile_screen.dart';
+import '../incidents/news_screen.dart';
+import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
+import '../map/map_screen.dart';
+import '../incidents/report_incident_screen.dart';
+import '../ai_chat/ai_screen.dart';
+import '../sos/sos_screen.dart';
+import '../alerts/alerts_screen.dart';
+import '../../services/notifications/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

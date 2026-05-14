@@ -8,7 +8,7 @@ import '../../../../models/map_incident.dart';
 import '../../../services/incidents/bulk_incident_api_service.dart';
 import '../../../../utils/app_theme.dart';
 import '../../../../widgets/shared/video_player_dialog.dart';
-import '../../../screens/incident_detail_sheet.dart';
+import '../../../screens/incidents/incident_detail_sheet.dart';
 
 class BulkIncidentDetailSheet extends StatefulWidget {
   final BulkIncident bulk;

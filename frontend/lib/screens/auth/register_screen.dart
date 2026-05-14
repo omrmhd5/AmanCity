@@ -1,14 +1,14 @@
 ﻿import 'package:flutter/material.dart';
-import '../services/auth/auth_service.dart';
-import '../widgets/register/register_header.dart';
-import '../widgets/register/register_step_indicator.dart';
-import '../widgets/register/steps/step_name.dart';
-import '../widgets/register/steps/step_email.dart';
-import '../widgets/register/steps/step_phone.dart';
-import '../widgets/register/steps/step_password.dart';
-import '../widgets/register/steps/step_success.dart';
-import '../utils/app_theme.dart';
-import '../utils/navigation_service.dart' as navigation;
+import '../../services/auth/auth_service.dart';
+import '../../widgets/register/register_header.dart';
+import '../../widgets/register/register_step_indicator.dart';
+import '../../widgets/register/steps/step_name.dart';
+import '../../widgets/register/steps/step_email.dart';
+import '../../widgets/register/steps/step_phone.dart';
+import '../../widgets/register/steps/step_password.dart';
+import '../../widgets/register/steps/step_success.dart';
+import '../../utils/app_theme.dart';
+import '../../utils/navigation_service.dart' as navigation;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);

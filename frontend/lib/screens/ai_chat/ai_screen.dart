@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import '../utils/app_theme.dart';
-import '../services/ai_chat/gemini_chat_service.dart';
-import '../services/map/hotspot_api_service.dart';
-import '../services/map/safe_route_home_service.dart';
-import '../widgets/ai_screen/ai_chat_header.dart';
-import '../widgets/ai_screen/ai_message_bubble.dart';
-import '../widgets/ai_screen/ai_quick_prompts.dart';
-import '../widgets/ai_screen/ai_chat_input.dart';
-import '../widgets/ai_screen/ai_route_home_button.dart';
-import '../models/hotspot_zone.dart';
+import '../../utils/app_theme.dart';
+import '../../services/ai_chat/gemini_chat_service.dart';
+import '../../services/map/hotspot_api_service.dart';
+import '../../services/map/safe_route_home_service.dart';
+import '../../widgets/ai_screen/ai_chat_header.dart';
+import '../../widgets/ai_screen/ai_message_bubble.dart';
+import '../../widgets/ai_screen/ai_quick_prompts.dart';
+import '../../widgets/ai_screen/ai_chat_input.dart';
+import '../../widgets/ai_screen/ai_route_home_button.dart';
+import '../../models/hotspot_zone.dart';
 
 class ChatMessage {
   final String text;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../models/osint_incident.dart';
-import '../services/incidents/osint_api_service.dart';
-import '../utils/app_theme.dart';
-import '../widgets/news/news_header.dart';
-import '../widgets/news/news_feed_card.dart';
-import '../widgets/news/news_scan_button.dart';
-import '../widgets/news/news_scan_result_banner.dart';
-import '../widgets/news/news_search_bar.dart';
-import '../widgets/news/news_type_filter.dart';
+import '../../models/osint_incident.dart';
+import '../../services/incidents/osint_api_service.dart';
+import '../../utils/app_theme.dart';
+import '../../widgets/news/news_header.dart';
+import '../../widgets/news/news_feed_card.dart';
+import '../../widgets/news/news_scan_button.dart';
+import '../../widgets/news/news_scan_result_banner.dart';
+import '../../widgets/news/news_search_bar.dart';
+import '../../widgets/news/news_type_filter.dart';
 import 'news_incident_detail_sheet.dart';
 
 class NewsScreen extends StatefulWidget {

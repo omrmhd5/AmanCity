@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../services/auth/auth_service.dart';
-import '../widgets/login/login_header.dart';
-import '../widgets/login/login_form.dart';
-import '../widgets/login/social_login_section.dart';
-import '../widgets/login/signup_link_section.dart';
-import '../utils/app_theme.dart';
+import '../../services/auth/auth_service.dart';
+import '../../widgets/login/login_header.dart';
+import '../../widgets/login/login_form.dart';
+import '../../widgets/login/social_login_section.dart';
+import '../../widgets/login/signup_link_section.dart';
+import '../../utils/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -31,7 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await AuthService.instance.signInWithEmail(email, password);
-      // _AuthGate in main.dart will automatically navigate to HomeScreen
+      // _
+      //e in main.dart will automatically navigate to HomeScreen
     } catch (e) {
       _showError(e.toString());
     } finally {

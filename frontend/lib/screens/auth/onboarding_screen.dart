@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../data/app_colors.dart';
-import '../services/core/connectivity_service.dart';
+import '../../data/app_colors.dart';
+import '../../services/core/connectivity_service.dart';
 import 'permissions_screen.dart';
 
 // ─── Data models ────────────────────────────────────────────────────────────
