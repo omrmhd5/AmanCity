@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../models/hotspot_zone.dart';
+import '../../models/map/hotspot_zone.dart';
 import '../../config/app_config.dart';
 
 /// API service for hotspot predictions

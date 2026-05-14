@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../../config/app_config.dart';
-import '../../models/prediction_result_model.dart';
+import '../../models/prediction/prediction_result_model.dart';
 
 /// API service for prediction-related requests
 /// Handles communication with the YOLO inference backend

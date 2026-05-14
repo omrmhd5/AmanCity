@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_theme.dart';
-import '../../models/incidents/map_incident.dart';
+import '../models/incidents/map_incident.dart';
 import '../../widgets/map/incident_details/incident_detail_header.dart';
 import '../../widgets/map/incident_details/reporter_profile_card.dart';
 import '../../widgets/map/incident_details/confidence_section.dart';

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
-import '../../models/incidents/bulk_incident.dart';
+import '../models/incidents/bulk_incident.dart';
 
 class BulkIncidentApiService {
   static const String _endpoint = '/bulk-incidents';

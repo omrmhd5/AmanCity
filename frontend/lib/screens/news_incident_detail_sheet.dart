@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/incidents/osint_incident.dart';
+import '../models/incidents/osint_incident.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/news/news_details/news_detail_header.dart';
 import '../../widgets/news/news_details/news_location_section.dart';

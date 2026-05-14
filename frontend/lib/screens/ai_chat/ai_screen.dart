@@ -10,7 +10,7 @@ import '../../widgets/ai_screen/ai_message_bubble.dart';
 import '../../widgets/ai_screen/ai_quick_prompts.dart';
 import '../../widgets/ai_screen/ai_chat_input.dart';
 import '../../widgets/ai_screen/ai_route_home_button.dart';
-import '../../models/hotspot_zone.dart';
+import '../../models/map/hotspot_zone.dart';
 
 class ChatMessage {
   final String text;

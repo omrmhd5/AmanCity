@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
-import '../../../models/map_incident.dart';
+import '../../../models/incidents/map_incident.dart';
 import '../../shared/custom_text.dart';
 
 class ConfidenceSection extends StatelessWidget {

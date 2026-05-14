@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/app_config.dart';
-import '../../models/incidents/map_incident.dart';
+import '../models/incidents/map_incident.dart';
 import '../../data/incident_types_config.dart';
 import '../auth/auth_service.dart';
 

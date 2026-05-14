@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
-import '../../../models/emergency_poi.dart';
+import '../../../models/map/emergency_poi.dart';
 import '../../shared/custom_text.dart';
 
 class POIDetailSheet extends StatelessWidget {

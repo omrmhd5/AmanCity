@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../models/hotspot_zone.dart';
+import '../models/map/hotspot_zone.dart';
 import 'dart:math' as math;
 
 /// Utility to score routes based on danger zone overlap

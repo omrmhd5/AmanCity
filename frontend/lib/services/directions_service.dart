@@ -5,7 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/app_config.dart';
 import '../../utils/polyline_decoder.dart';
 import '../../utils/safe_route_scorer.dart';
-import '../../models/map/hotspot_zone.dart';
+import '../models/map/hotspot_zone.dart';
 
 /// Service for getting directions and route polylines
 class DirectionsService {

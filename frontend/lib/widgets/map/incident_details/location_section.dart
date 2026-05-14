@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/app_theme.dart';
-import '../../../models/map_incident.dart';
+import '../../../models/incidents/map_incident.dart';
 import '../../shared/custom_text.dart';
 
 class LocationSection extends StatefulWidget {

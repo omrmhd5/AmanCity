@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../models/hotspot_zone.dart';
+import '../../../models/map/hotspot_zone.dart';
 import '../../../utils/app_theme.dart';
 import '../../shared/custom_text.dart';
 import 'hotspot_detail_row.dart';

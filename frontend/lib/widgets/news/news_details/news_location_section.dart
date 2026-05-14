@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/date_time_utils.dart';
-import '../../../models/osint_incident.dart';
+import '../../../models/incidents/osint_incident.dart';
 import '../../shared/custom_text.dart';
 
 class NewsLocationSection extends StatefulWidget {

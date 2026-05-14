@@ -6,7 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
-import '../../models/alerts/alert_notification.dart';
+import '../models/alerts/alert_notification.dart';
 
 /// Must be a top-level function — firebase_messaging requirement
 @pragma('vm:entry-point')

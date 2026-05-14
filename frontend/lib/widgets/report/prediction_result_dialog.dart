@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
-import '../../models/prediction_result_model.dart';
+import '../../models/prediction/prediction_result_model.dart';
 import '../shared/custom_text.dart';
 
 /// Dialog widget that displays YOLO prediction results

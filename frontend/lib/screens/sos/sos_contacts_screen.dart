@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
-import '../../models/sos_contact.dart';
+import '../../models/sos/sos_contact.dart';
 import '../../services/sos/sos_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/sos_screen/sos_add_contact_dialog.dart';

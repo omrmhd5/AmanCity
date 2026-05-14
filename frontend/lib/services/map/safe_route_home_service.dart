@@ -1,6 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/hotspot_zone.dart';
+import '../../models/map/hotspot_zone.dart';
 import 'directions_service.dart';
 import '../../utils/safe_route_scorer.dart';
 

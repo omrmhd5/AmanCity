@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../data/incident_types_config.dart';
+import '../../data/incident_types_config.dart';
 import 'map_incident.dart';
 
 /// A sub-incident report belonging to a BulkIncident.
