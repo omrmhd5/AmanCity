@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_theme.dart';
-import '../shared/custom_text.dart';
+import '../../../utils/app_theme.dart';
+import '../../shared/custom_text.dart';
 
 class HotspotDetailRow extends StatelessWidget {
   final String label;

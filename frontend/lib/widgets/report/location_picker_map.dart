@@ -8,7 +8,7 @@ import '../../data/app_colors.dart';
 import '../../services/geocoding_api_service.dart';
 import '../../services/places_api_service.dart';
 import '../../services/location_stream_service.dart';
-import '../map/search_results_dropdown.dart';
+import '../map/navigation/search_results_dropdown.dart';
 
 class LocationPickerMap extends StatefulWidget {
   final LatLng? initialLocation;

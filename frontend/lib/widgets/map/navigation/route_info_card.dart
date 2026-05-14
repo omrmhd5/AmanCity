@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../data/app_colors.dart';
-import '../../utils/app_theme.dart';
-import '../../utils/safe_route_scorer.dart';
+import '../../../data/app_colors.dart';
+import '../../../utils/app_theme.dart';
+import '../../../utils/safe_route_scorer.dart';
 
 class RouteInfoCard extends StatefulWidget {
   final String? destinationName;

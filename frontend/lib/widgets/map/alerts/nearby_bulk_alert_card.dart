@@ -1,35 +1,39 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_theme.dart';
-import '../../data/app_colors.dart';
-import '../shared/custom_text.dart';
+import '../../../utils/app_theme.dart';
+import '../../../data/app_colors.dart';
+import '../../shared/custom_text.dart';
 
-class NearbyAlertCard extends StatelessWidget {
+class NearbyBulkAlertCard extends StatelessWidget {
   final String incidentType;
-  final String title;
+  final int count;
   final String timeAgo;
   final String distance;
   final Color borderColor;
   final IconData icon;
-  final double confidence;
+  final double avgConfidence;
   final String? locationText;
+  final bool hasHumanReports;
+  final bool hasOsintReports;
   final VoidCallback? onTap;
 
-  const NearbyAlertCard({
+  const NearbyBulkAlertCard({
     Key? key,
     required this.incidentType,
-    required this.title,
+    required this.count,
     required this.timeAgo,
     required this.distance,
     required this.borderColor,
     required this.icon,
-    this.confidence = 0.0,
+    this.avgConfidence = 0.0,
     this.locationText,
+    this.hasHumanReports = false,
+    this.hasOsintReports = false,
     this.onTap,
   }) : super(key: key);
 
   Color _getConfidenceColor() {
-    if (confidence >= 0.75) return AppColors.danger;
-    if (confidence >= 0.65) return AppColors.warning;
+    if (avgConfidence >= 0.75) return AppColors.danger;
+    if (avgConfidence >= 0.65) return AppColors.warning;
     return AppColors.success;
   }
 
@@ -63,7 +67,7 @@ class NearbyAlertCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Top row: Type badge (with icon) + Time
+              // Top row: Type badge + Count badge
               Row(
                 children: [
                   Container(
@@ -94,23 +98,34 @@ class NearbyAlertCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  CustomText(
-                    text: timeAgo,
-                    size: 11,
-                    weight: FontWeight.w900,
-                    color: AppTheme.getSecondaryTextColor().withOpacity(0.6),
+                  // Count badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: borderColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: CustomText(
+                      text: '×$count',
+                      size: 10,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
 
-              // Title
+              // Title (showing "Grouped Incidents")
               CustomText(
-                text: title,
+                text: '$count Grouped Incidents',
                 size: 13,
                 weight: FontWeight.w700,
                 color: AppTheme.getPrimaryTextColor(),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
 
@@ -139,20 +154,94 @@ class NearbyAlertCard extends StatelessWidget {
                 ),
               ],
 
+              const SizedBox(height: 10),
+
+              // Source chips (Human/OSINT)
+              Wrap(
+                spacing: 6,
+                children: [
+                  if (hasHumanReports)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.secondary.withOpacity(0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 11,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 3),
+                          CustomText(
+                            text: 'Human',
+                            size: 10,
+                            weight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (hasOsintReports)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFF7C3AED).withOpacity(0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.radar,
+                            size: 11,
+                            color: Color(0xFF7C3AED),
+                          ),
+                          const SizedBox(width: 3),
+                          CustomText(
+                            text: 'OSINT',
+                            size: 10,
+                            weight: FontWeight.w600,
+                            color: const Color(0xFF7C3AED),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
               // Confidence bar
-              if (confidence > 0) ...[
-                const SizedBox(height: 10),
+              if (avgConfidence > 0) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      text: 'Confidence',
+                      text: 'Avg Confidence',
                       size: 10,
                       weight: FontWeight.w500,
                       color: AppTheme.getSecondaryTextColor(),
                     ),
                     CustomText(
-                      text: '${(confidence * 100).toStringAsFixed(0)}%',
+                      text: '${(avgConfidence * 100).toStringAsFixed(0)}%',
                       size: 10,
                       weight: FontWeight.w600,
                       color: confidenceColor,
@@ -163,7 +252,7 @@ class NearbyAlertCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: confidence,
+                    value: avgConfidence,
                     minHeight: 6,
                     backgroundColor: AppTheme.getBorderColor(),
                     valueColor: AlwaysStoppedAnimation(confidenceColor),

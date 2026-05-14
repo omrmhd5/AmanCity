@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../models/hotspot_zone.dart';
-import '../../utils/app_theme.dart';
-import '../shared/custom_text.dart';
+import '../../../models/hotspot_zone.dart';
+import '../../../utils/app_theme.dart';
+import '../../shared/custom_text.dart';
 import 'hotspot_detail_row.dart';
 
 class HotspotDetailSheet extends StatelessWidget {
