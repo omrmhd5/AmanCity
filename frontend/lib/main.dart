@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/core/home_screen.dart';
 import 'screens/auth/onboarding_screen.dart';
 import 'screens/auth/permissions_screen.dart';
 import 'data/app_colors.dart';

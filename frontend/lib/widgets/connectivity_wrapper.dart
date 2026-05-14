@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/core/connectivity_service.dart';
-import '../screens/no_internet_screen.dart';
-import '../screens/server_unavailable_screen.dart';
+import '../screens/core/no_internet_screen.dart';
+import '../screens/core/server_unavailable_screen.dart';
 
 /// Wraps [child] and replaces it with the appropriate offline screen
 /// whenever the device has no internet or the backend server is unreachable.
