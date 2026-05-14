@@ -40,9 +40,14 @@ class _MapFilterButtonState extends State<MapFilterButton> {
           context: context,
           backgroundColor: Colors.transparent,
           isScrollControlled: true,
-          builder: (context) => FilterOptionsSheet(
-            initialRadius: widget.currentRadius,
-            initialSelectedTypes: widget.selectedIncidentTypes,
+          builder: (context) => ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            child: FilterOptionsSheet(
+              initialRadius: widget.currentRadius,
+              initialSelectedTypes: widget.selectedIncidentTypes,
+            ),
           ),
         ).then((result) {
           if (result is FilterSettings) {

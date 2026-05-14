@@ -57,7 +57,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
         boxShadow: [
           BoxShadow(
             color: _isFocused
-                ? AppColors.secondary.withOpacity(0.18)
+                ? AppColors.secondary.withOpacity(0.05)
                 : Colors.black.withOpacity(isDark ? 0.28 : 0.08),
             blurRadius: _isFocused ? 16 : 10,
             spreadRadius: 0,
