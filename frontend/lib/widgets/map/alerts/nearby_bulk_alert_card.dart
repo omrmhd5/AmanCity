@@ -3,7 +3,7 @@ import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
 import '../../shared/custom_text.dart';
 
-class NearbyBulkAlertCard extends StatelessWidget {
+class NearbyBulkAlertCard extends StatefulWidget {
   final String incidentType;
   final int count;
   final String timeAgo;
@@ -31,9 +31,16 @@ class NearbyBulkAlertCard extends StatelessWidget {
     this.onTap,
   }) : super(key: key);
 
+  @override
+  State<NearbyBulkAlertCard> createState() => _NearbyBulkAlertCardState();
+}
+
+class _NearbyBulkAlertCardState extends State<NearbyBulkAlertCard> {
+  bool _isPressed = false;
+
   Color _getConfidenceColor() {
-    if (avgConfidence >= 0.75) return AppColors.danger;
-    if (avgConfidence >= 0.65) return AppColors.warning;
+    if (widget.avgConfidence >= 0.75) return AppColors.danger;
+    if (widget.avgConfidence >= 0.65) return AppColors.warning;
     return AppColors.success;
   }
 
@@ -42,135 +49,53 @@ class NearbyBulkAlertCard extends StatelessWidget {
     final confidenceColor = _getConfidenceColor();
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Color.alphaBlend(
-            borderColor.withOpacity(0.04),
-            AppTheme.getCardBackgroundColor(),
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border(left: BorderSide(color: borderColor, width: 4)),
-          boxShadow: [
-            BoxShadow(
-              color: borderColor.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 1),
-              spreadRadius: 0,
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutBack,
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Color.alphaBlend(
+              widget.borderColor.withOpacity(0.04),
+              AppTheme.getCardBackgroundColor(),
             ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Top row: Type badge + Count badge
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: borderColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: borderColor.withOpacity(0.3),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(icon, size: 12, color: borderColor),
-                        const SizedBox(width: 4),
-                        CustomText(
-                          text: incidentType,
-                          size: 10,
-                          weight: FontWeight.w600,
-                          color: borderColor,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  // Count badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: borderColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: CustomText(
-                      text: '×$count',
-                      size: 10,
-                      weight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+            borderRadius: BorderRadius.circular(16),
+            border: Border(
+              left: BorderSide(color: widget.borderColor, width: 4),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.borderColor.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 1),
+                spreadRadius: 0,
               ),
-              const SizedBox(height: 10),
-
-              // Title (showing "Grouped Incidents")
-              CustomText(
-                text: '$count Grouped Incidents',
-                size: 13,
-                weight: FontWeight.w700,
-                color: AppTheme.getPrimaryTextColor(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              // Location text
-              if (locationText != null) ...[
-                const SizedBox(height: 10),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top row: Type badge + Count badge
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 12,
-                      color: AppTheme.getSecondaryTextColor(),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: CustomText(
-                        text: locationText!,
-                        size: 11,
-                        weight: FontWeight.w400,
-                        color: AppTheme.getSecondaryTextColor(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              const SizedBox(height: 10),
-
-              // Source chips (Human/OSINT)
-              Wrap(
-                spacing: 6,
-                children: [
-                  if (hasHumanReports)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 10,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.15),
+                        color: widget.borderColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: AppColors.secondary.withOpacity(0.3),
+                          color: widget.borderColor.withOpacity(0.3),
                           width: 0.5,
                         ),
                       ),
@@ -178,112 +103,234 @@ class NearbyBulkAlertCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.person_outline,
-                            size: 11,
-                            color: AppColors.secondary,
+                            widget.icon,
+                            size: 12,
+                            color: widget.borderColor,
                           ),
-                          const SizedBox(width: 3),
+                          const SizedBox(width: 4),
                           CustomText(
-                            text: 'Human',
+                            text: widget.incidentType,
                             size: 10,
                             weight: FontWeight.w600,
-                            color: AppColors.secondary,
+                            color: widget.borderColor,
                           ),
                         ],
                       ),
                     ),
-                  if (hasOsintReports)
+                    const Spacer(),
+                    // Count badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
-                        vertical: 4,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: const Color(0xFF7C3AED).withOpacity(0.3),
-                          width: 0.5,
+                        color: widget.borderColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: CustomText(
+                        text: '×${widget.count}',
+                        size: 10,
+                        weight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Title
+                CustomText(
+                  text: '${widget.count} Grouped Incidents',
+                  size: 13,
+                  weight: FontWeight.w700,
+                  color: AppTheme.getPrimaryTextColor(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                // Location text
+                if (widget.locationText != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 12,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: CustomText(
+                          text: widget.locationText!,
+                          size: 11,
+                          weight: FontWeight.w400,
+                          color: AppTheme.getSecondaryTextColor(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.radar,
-                            size: 11,
-                            color: Color(0xFF7C3AED),
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 10),
+
+                // Source chips (Human/OSINT)
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    if (widget.hasHumanReports)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: AppColors.secondary.withOpacity(0.3),
+                            width: 0.5,
                           ),
-                          const SizedBox(width: 3),
-                          CustomText(
-                            text: 'OSINT',
-                            size: 10,
-                            weight: FontWeight.w600,
-                            color: const Color(0xFF7C3AED),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 11,
+                              color: AppColors.secondary,
+                            ),
+                            const SizedBox(width: 3),
+                            CustomText(
+                              text: 'Human',
+                              size: 10,
+                              weight: FontWeight.w600,
+                              color: AppColors.secondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (widget.hasOsintReports)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7C3AED).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: const Color(0xFF7C3AED).withOpacity(0.3),
+                            width: 0.5,
                           ),
-                        ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.radar,
+                              size: 11,
+                              color: Color(0xFF7C3AED),
+                            ),
+                            const SizedBox(width: 3),
+                            CustomText(
+                              text: 'OSINT',
+                              size: 10,
+                              weight: FontWeight.w600,
+                              color: const Color(0xFF7C3AED),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+
+                // Confidence bar
+                if (widget.avgConfidence > 0) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        text: 'Avg Confidence',
+                        size: 10,
+                        weight: FontWeight.w500,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                      CustomText(
+                        text:
+                            '${(widget.avgConfidence * 100).toStringAsFixed(0)}%',
+                        size: 10,
+                        weight: FontWeight.w600,
+                        color: confidenceColor,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: widget.avgConfidence,
+                      minHeight: 6,
+                      backgroundColor: AppTheme.getBorderColor(),
+                      valueColor: AlwaysStoppedAnimation(confidenceColor),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                // Footer: distance · timeAgo
+                Row(
+                  children: [
+                    Icon(
+                      Icons.place_rounded,
+                      size: 12,
+                      color: widget.borderColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      widget.distance,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: widget.borderColor,
                       ),
                     ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              // Confidence bar
-              if (avgConfidence > 0) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      text: 'Avg Confidence',
-                      size: 10,
-                      weight: FontWeight.w500,
-                      color: AppTheme.getSecondaryTextColor(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text(
+                        '·',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.getSecondaryTextColor().withOpacity(
+                            0.5,
+                          ),
+                        ),
+                      ),
                     ),
-                    CustomText(
-                      text: '${(avgConfidence * 100).toStringAsFixed(0)}%',
-                      size: 10,
-                      weight: FontWeight.w600,
-                      color: confidenceColor,
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 11,
+                      color: AppTheme.getSecondaryTextColor().withOpacity(0.6),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      widget.timeAgo,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.getSecondaryTextColor().withOpacity(
+                          0.7,
+                        ),
+                      ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: avgConfidence,
-                    minHeight: 6,
-                    backgroundColor: AppTheme.getBorderColor(),
-                    valueColor: AlwaysStoppedAnimation(confidenceColor),
-                  ),
                 ),
               ],
-
-              const SizedBox(height: 12),
-
-              // Distance badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: borderColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.location_on, size: 11, color: borderColor),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      text: distance,
-                      size: 10,
-                      weight: FontWeight.w600,
-                      color: borderColor,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -12,6 +12,7 @@ class _PermItem {
   final String reason;
   final IconData icon;
   final Permission permission;
+  final Permission? fallbackPermission; // For older Android versions
   final bool required;
 
   const _PermItem({
@@ -19,6 +20,7 @@ class _PermItem {
     required this.reason,
     required this.icon,
     required this.permission,
+    this.fallbackPermission,
     required this.required,
   });
 }
@@ -73,6 +75,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           'Lets you attach media from your gallery when reporting incidents.',
       icon: Icons.photo_library_outlined,
       permission: Permission.photos,
+      fallbackPermission: Permission.storage, // Fallback for older Android
       required: true,
     ),
     _PermItem(
@@ -102,7 +105,16 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
 
   Future<void> _checkExistingPermissions() async {
     for (int i = 0; i < _items.length; i++) {
-      final status = await _items[i].permission.status;
+      final item = _items[i];
+      var status = await item.permission.status;
+
+      // If primary not granted, check fallback for older Android
+      if (!status.isGranted &&
+          !status.isLimited &&
+          item.fallbackPermission != null) {
+        status = await item.fallbackPermission!.status;
+      }
+
       if (status.isGranted || status.isLimited) {
         _step++;
       } else {
@@ -123,13 +135,23 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       _isRequesting = true;
       _deniedAtStep = -1;
     });
-    final status = await _items[index].permission.request();
+
+    final item = _items[index];
+    PermissionStatus status = await item.permission.request();
+
+    // If primary permission failed on older Android, try fallback (storage)
+    if (!status.isGranted &&
+        !status.isLimited &&
+        item.fallbackPermission != null) {
+      status = await item.fallbackPermission!.request();
+    }
+
     setState(() => _isRequesting = false);
 
     if (status.isGranted || status.isLimited) {
       setState(() => _step++);
     } else if (status.isPermanentlyDenied) {
-      await _showSettingsDialog(_items[index].title);
+      await _showSettingsDialog(item.title);
     } else {
       // Denied but can re-request — show inline hint
       setState(() => _deniedAtStep = index);

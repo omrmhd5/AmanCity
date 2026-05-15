@@ -130,6 +130,19 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
               ],
             ),
           ),
+          // Teal gradient divider
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.secondary.withOpacity(0.0),
+                  AppColors.secondary.withOpacity(0.3),
+                  AppColors.secondary.withOpacity(0.0),
+                ],
+              ),
+            ),
+          ),
           // Content
           Expanded(
             child: SingleChildScrollView(
@@ -409,14 +422,6 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                       ],
                     ),
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withOpacity(0.35),
-                        blurRadius: 16,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: const Center(
                     child: CustomText(

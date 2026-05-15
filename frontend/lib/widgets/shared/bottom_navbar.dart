@@ -26,7 +26,7 @@ class BottomNavBar extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
             child: Stack(
               children: [
                 // ── Base glass fill ──────────────────────────────────────
