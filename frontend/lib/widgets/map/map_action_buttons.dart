@@ -97,7 +97,7 @@ class _GlassFAB extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Stack(
               children: [
                 // Glass base
