@@ -49,11 +49,24 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomText(
-                  text: 'EVIDENCE FEED',
-                  size: 11,
-                  weight: FontWeight.w700,
-                  color: AppTheme.getSecondaryTextColor(),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.photo_library_rounded,
+                      size: 14,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'EVIDENCE FEED',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.getSecondaryTextColor(),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -153,11 +166,20 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomText(
-                  text: 'SOURCES',
-                  size: 11,
-                  weight: FontWeight.w700,
-                  color: AppTheme.getSecondaryTextColor(),
+                Row(
+                  children: [
+                    const Icon(Icons.radar, size: 14, color: Color(0xFF7C3AED)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'SOURCES',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.getSecondaryTextColor(),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -205,30 +227,34 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.05),
+                            color: const Color(0xFF7C3AED).withOpacity(0.07),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.2),
+                              color: const Color(0xFF7C3AED).withOpacity(0.2),
                               width: 1,
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.link, size: 14, color: Colors.blue),
+                              const Icon(
+                                Icons.link,
+                                size: 14,
+                                color: Color(0xFF7C3AED),
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: CustomText(
                                   text: entry.value,
                                   size: 12,
                                   weight: FontWeight.w500,
-                                  color: Colors.blue,
+                                  color: const Color(0xFF7C3AED),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              Icon(
+                              const Icon(
                                 Icons.open_in_new,
                                 size: 12,
-                                color: Colors.blue,
+                                color: Color(0xFF7C3AED),
                               ),
                             ],
                           ),
@@ -240,21 +266,6 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
             ),
           ),
           const SizedBox(height: 10),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: CustomText(
-                text: '🤖 Detected by Grok AI from Twitter/X',
-                size: 11,
-                weight: FontWeight.w500,
-                color: AppColors.secondary,
-              ),
-            ),
-          ),
         ],
       ],
     );
@@ -495,10 +506,6 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
         ],
       ),
     );
-  }
-
-  void _openVideoFromThumbnail(String videoUrl) {
-    _showVideoPlayer(videoUrl);
   }
 
   void _showVideoPlayer(String videoUrl) {

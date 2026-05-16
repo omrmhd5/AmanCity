@@ -53,11 +53,24 @@ class ConfidenceSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CustomText(
-                text: 'AI CONFIDENCE',
-                size: 11,
-                weight: FontWeight.w700,
-                color: AppTheme.getSecondaryTextColor(),
+              Row(
+                children: [
+                  Icon(
+                    Icons.smart_toy_rounded,
+                    size: 14,
+                    color: AppColors.secondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'AI CONFIDENCE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.getSecondaryTextColor(),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

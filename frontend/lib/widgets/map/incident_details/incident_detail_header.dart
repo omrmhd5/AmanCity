@@ -9,6 +9,7 @@ class IncidentDetailHeader extends StatelessWidget {
   final String? addressText;
   final String? city;
   final DateTime? timestamp;
+  final Color? typeColor;
   final VoidCallback onBackPressed;
   final VoidCallback onSharePressed;
 
@@ -19,24 +20,32 @@ class IncidentDetailHeader extends StatelessWidget {
     this.addressText,
     this.city,
     this.timestamp,
+    this.typeColor,
     required this.onBackPressed,
     required this.onSharePressed,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppTheme.getBackgroundColor(),
-      child: SafeArea(
-        bottom: false,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.getBackgroundColor().withOpacity(0.95),
-            border: Border(
-              bottom: BorderSide(color: AppTheme.getBorderColor(), width: 0.5),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Type-color accent strip
+        if (typeColor != null)
+          Container(
+            height: 3,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  typeColor!.withOpacity(0.0),
+                  typeColor!.withOpacity(0.7),
+                  typeColor!.withOpacity(0.0),
+                ],
+              ),
             ),
           ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -44,9 +53,17 @@ class IncidentDetailHeader extends StatelessWidget {
                 onTap: onBackPressed,
                 child: Container(
                   padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getCardBackgroundColor(),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppTheme.getBorderColor(),
+                      width: 1,
+                    ),
+                  ),
                   child: Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 20,
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 22,
                     color: AppTheme.getPrimaryTextColor(),
                   ),
                 ),
@@ -78,9 +95,17 @@ class IncidentDetailHeader extends StatelessWidget {
                 onTap: onSharePressed,
                 child: Container(
                   padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.secondary.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
                   child: Icon(
                     Icons.ios_share,
-                    size: 20,
+                    size: 18,
                     color: AppColors.secondary,
                   ),
                 ),
@@ -88,7 +113,20 @@ class IncidentDetailHeader extends StatelessWidget {
             ],
           ),
         ),
-      ),
+        // Teal gradient divider
+        Container(
+          height: 1,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.secondary.withOpacity(0.0),
+                AppColors.secondary.withOpacity(0.3),
+                AppColors.secondary.withOpacity(0.0),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

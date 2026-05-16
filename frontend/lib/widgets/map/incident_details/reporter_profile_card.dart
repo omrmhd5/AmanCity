@@ -76,136 +76,179 @@ class ReporterProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.getCardBackgroundColor(),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Incident Type Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: incident.typeColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: incident.typeColor.withOpacity(0.4),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(incident.typeIcon, size: 12, color: incident.typeColor),
-                const SizedBox(width: 4),
-                CustomText(
-                  text: incident.type.toUpperCase(),
-                  size: 10,
-                  weight: FontWeight.w600,
-                  color: incident.typeColor,
-                ),
-              ],
-            ),
-          ),
-
-          if (description != null) ...[
-            const SizedBox(height: 6),
-            CustomText(
-              text: description!,
-              size: 14,
-              weight: FontWeight.w400,
-              color: AppTheme.getSecondaryTextColor(),
-              height: 1.5,
-            ),
-            const SizedBox(height: 12),
-          ],
-
-          // Time Info
-          Row(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.getCardBackgroundColor(),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                Icons.schedule,
-                size: 16,
-                color: AppTheme.getSecondaryTextColor(),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    text: timeAgo,
-                    size: 12,
-                    weight: FontWeight.w500,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
-                  if (timestamp != null) ...[
-                    const SizedBox(height: 2),
-                    CustomText(
-                      text: DateTimeUtils.formatTime12Hour(timestamp!),
-                      size: 10,
-                      weight: FontWeight.w400,
-                      color: AppTheme.getSecondaryTextColor(),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Divider
-          Container(height: 1, color: AppTheme.getBorderColor()),
-          const SizedBox(height: 16),
-
-          // Reporter Info Header
-          CustomText(
-            text: 'REPORTED BY',
-            size: 10,
-            weight: FontWeight.w600,
-            color: AppTheme.getSecondaryTextColor(),
-          ),
-          const SizedBox(height: 12),
-
-          // Reporter Profile — Grok AI for OSINT, anonymous for human
-          if (incident.isOsint)
-            _buildGrokAiReporter()
-          else
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppTheme.getBorderColor(),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.person_outline,
-                    size: 28,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
+              // Left type-color accent bar
+              Container(width: 3, color: incident.typeColor),
+              // Card content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(
-                        text: reporterId,
-                        size: 13,
-                        weight: FontWeight.w700,
-                        color: AppTheme.getPrimaryTextColor(),
+                      // Incident Type Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: incident.typeColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: incident.typeColor.withOpacity(0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              incident.typeIcon,
+                              size: 12,
+                              color: incident.typeColor,
+                            ),
+                            const SizedBox(width: 4),
+                            CustomText(
+                              text: incident.type.toUpperCase(),
+                              size: 10,
+                              weight: FontWeight.w600,
+                              color: incident.typeColor,
+                            ),
+                          ],
+                        ),
                       ),
+
+                      if (description != null) ...[
+                        const SizedBox(height: 6),
+                        CustomText(
+                          text: description!,
+                          size: 14,
+                          weight: FontWeight.w400,
+                          color: AppTheme.getSecondaryTextColor(),
+                          height: 1.5,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // Time Info
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            size: 16,
+                            color: AppTheme.getSecondaryTextColor(),
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                text: timeAgo,
+                                size: 12,
+                                weight: FontWeight.w500,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                              if (timestamp != null) ...[
+                                const SizedBox(height: 2),
+                                CustomText(
+                                  text: DateTimeUtils.formatTime12Hour(
+                                    timestamp!,
+                                  ),
+                                  size: 10,
+                                  weight: FontWeight.w400,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Divider
+                      Container(height: 1, color: AppTheme.getBorderColor()),
+                      const SizedBox(height: 16),
+
+                      // Reporter Info Header
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person_pin_rounded,
+                            size: 14,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'REPORTED BY',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.getSecondaryTextColor(),
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Reporter Profile — Grok AI for OSINT, anonymous for human
+                      if (incident.isOsint)
+                        _buildGrokAiReporter()
+                      else
+                        Row(
+                          children: [
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: incident.typeColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: incident.typeColor.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.person_outline,
+                                size: 28,
+                                color: incident.typeColor,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    text: reporterId,
+                                    size: 13,
+                                    weight: FontWeight.w700,
+                                    color: AppTheme.getPrimaryTextColor(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
-              ],
-            ),
-        ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
