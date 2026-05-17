@@ -35,6 +35,12 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
           onTap: () => setState(() => _expanded = !_expanded),
           child: Row(
             children: [
+              Icon(
+                Icons.description_rounded,
+                size: 14,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'INDIVIDUAL REPORTS (${widget.reports.length})',

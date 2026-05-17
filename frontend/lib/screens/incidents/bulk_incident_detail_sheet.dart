@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../data/app_colors.dart';
 import '../../models/incidents/bulk_incident.dart';
 import '../../models/incidents/map_incident.dart';
 import '../../services/incidents/bulk_incident_api_service.dart';
@@ -24,6 +26,7 @@ class BulkIncidentDetailSheet extends StatefulWidget {
 class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
   BulkIncident? _fullBulk;
   bool _loading = true;
+  bool _navigatePressed = false;
 
   @override
   void initState() {
@@ -57,82 +60,176 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
   Widget build(BuildContext context) {
     final bulk = _fullBulk ?? widget.bulk;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
-      ),
-      decoration: BoxDecoration(
-        color: AppTheme.getBackgroundColor(),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppTheme.getBorderColor(),
-              borderRadius: BorderRadius.circular(2),
-            ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
           ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BulkIncidentHeader(bulk: bulk, timeAgo: _timeAgo),
-                  const SizedBox(height: 16),
-                  BulkSourceChips(bulk: bulk),
-                  const SizedBox(height: 20),
-                  if (bulk.mediaUrls.isNotEmpty) ...[
-                    _sectionLabel('Media Evidence'),
-                    const SizedBox(height: 10),
-                    BulkMediaFeed(mediaUrls: bulk.mediaUrls, itemSize: 130),
-                    const SizedBox(height: 20),
-                  ],
-                  if (bulk.sourceUrls.isNotEmpty) ...[
-                    _sectionLabel('OSINT Sources'),
-                    const SizedBox(height: 10),
-                    BulkOsintSources(urls: bulk.sourceUrls),
-                    const SizedBox(height: 20),
-                  ],
-                  if (_loading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                  else if ((_fullBulk?.subIncidents ?? []).isNotEmpty) ...[
-                    BulkReportsSection(
-                      reports: _fullBulk!.subIncidents,
-                      parentBulk: _fullBulk!,
-                      onReportTap: _openSubIncidentDetail,
-                      timeAgo: _timeAgo,
-                    ),
-                  ],
-                ],
+          decoration: BoxDecoration(
+            color: AppTheme.getBackgroundColor().withOpacity(0.8),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBorderColor(),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(height: 8),
+              // Teal gradient divider
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.0),
+                      AppColors.secondary.withOpacity(0.3),
+                      AppColors.secondary.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+              // Main content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BulkIncidentHeader(bulk: bulk, timeAgo: _timeAgo),
+                      const SizedBox(height: 16),
+                      BulkSourceChips(bulk: bulk),
+                      const SizedBox(height: 20),
+                      if (bulk.mediaUrls.isNotEmpty) ...[
+                        _sectionLabel('Media Evidence', Icons.image_rounded),
+                        const SizedBox(height: 10),
+                        BulkMediaFeed(mediaUrls: bulk.mediaUrls, itemSize: 130),
+                        const SizedBox(height: 20),
+                      ],
+                      if (bulk.sourceUrls.isNotEmpty) ...[
+                        _sectionLabel('OSINT Sources', Icons.link_rounded),
+                        const SizedBox(height: 10),
+                        BulkOsintSources(urls: bulk.sourceUrls),
+                        const SizedBox(height: 20),
+                      ],
+                      if (_loading)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      else if ((_fullBulk?.subIncidents ?? []).isNotEmpty) ...[
+                        BulkReportsSection(
+                          reports: _fullBulk!.subIncidents,
+                          parentBulk: _fullBulk!,
+                          onReportTap: _openSubIncidentDetail,
+                          timeAgo: _timeAgo,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              // Navigate Button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: GestureDetector(
+                  onTapDown: (_) => setState(() => _navigatePressed = true),
+                  onTapUp: (_) {
+                    setState(() => _navigatePressed = false);
+                    // Navigate to cluster center
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  onTapCancel: () => setState(() => _navigatePressed = false),
+                  child: AnimatedScale(
+                    scale: _navigatePressed ? 0.96 : 1.0,
+                    duration: _navigatePressed
+                        ? const Duration(milliseconds: 80)
+                        : const Duration(milliseconds: 300),
+                    curve: _navigatePressed
+                        ? Curves.easeIn
+                        : Curves.easeOutBack,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            bulk.typeColor,
+                            bulk.typeColor.withOpacity(0.75),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: bulk.typeColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.navigation_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Navigate To Location',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Text(
-      text.toUpperCase(),
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: AppTheme.getSecondaryTextColor(),
-        letterSpacing: 1.0,
-      ),
+  Widget _sectionLabel(String text, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppColors.secondary),
+        const SizedBox(width: 8),
+        Text(
+          text.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.getSecondaryTextColor(),
+            letterSpacing: 1.0,
+          ),
+        ),
+      ],
     );
   }
 
