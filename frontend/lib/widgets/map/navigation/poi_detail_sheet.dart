@@ -51,22 +51,9 @@ class _POIDetailSheetState extends State<POIDetailSheet> {
                 ),
               ),
               const SizedBox(height: 10),
-              // Teal gradient divider
-              Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.secondary.withOpacity(0.0),
-                      AppColors.secondary.withOpacity(0.3),
-                      AppColors.secondary.withOpacity(0.0),
-                    ],
-                  ),
-                ),
-              ),
               // Header row
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -97,9 +84,22 @@ class _POIDetailSheetState extends State<POIDetailSheet> {
                   ],
                 ),
               ),
+              // Teal gradient divider
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.0),
+                      AppColors.secondary.withOpacity(0.3),
+                      AppColors.secondary.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
               // Content
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
