@@ -26,19 +26,32 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
   bool _loading = true;
   String? _currentlyPlayingId;
   late StreamSubscription _playerCompleteSubscription;
+  late StreamSubscription _playerStateSubscription;
+  late StreamSubscription _playerPositionSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadRecordings();
     _playerCompleteSubscription = _player.onPlayerComplete.listen((_) {
+      print('[SosHistory] onPlayerComplete fired — id=$_currentlyPlayingId');
       if (mounted) setState(() => _currentlyPlayingId = null);
+    });
+    _playerStateSubscription = _player.onPlayerStateChanged.listen((state) {
+      print('[SosHistory] playerState → $state');
+    });
+    _playerPositionSubscription = _player.onPositionChanged.listen((pos) {
+      if (pos.inMilliseconds % 2000 < 200) {
+        print('[SosHistory] position=${pos.inSeconds}s');
+      }
     });
   }
 
   @override
   void dispose() {
     _playerCompleteSubscription.cancel();
+    _playerStateSubscription.cancel();
+    _playerPositionSubscription.cancel();
     _player.dispose();
     super.dispose();
   }

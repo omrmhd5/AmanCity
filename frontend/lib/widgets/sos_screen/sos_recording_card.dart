@@ -73,7 +73,9 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
         source = DeviceFileSource(filePath);
         print('[SosRecordingCard:$recordingId] [10] source created: $source');
 
-        print('[SosRecordingCard:$recordingId] [11] about to call play()');
+        print('[SosRecordingCard:$recordingId] [11] about to call play()...');
+        await widget.sharedPlayer.stop(); // ensure clean state
+        await widget.sharedPlayer.setReleaseMode(ReleaseMode.stop);
         await widget.sharedPlayer.play(source, volume: 1.0);
         print(
           '[SosRecordingCard:$recordingId] [12] play() returned successfully',

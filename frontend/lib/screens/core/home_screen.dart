@@ -58,9 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Main content — padded so nothing hides behind the floating navbar
+          // No padding when SOS is active (navbar is hidden)
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 85),
+              padding: EdgeInsets.only(bottom: _sosActive ? 0 : 85),
               child: _buildContent(),
             ),
           ),

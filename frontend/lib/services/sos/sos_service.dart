@@ -28,7 +28,7 @@ class SosService {
   bool _isRecording = false;
   String? _currentRecordingPath;
   int _recordingStartMs = 0;
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  AudioPlayer? _sirenPlayer;
 
   // ─── Flashlight strobe ──────────────────────────────────────────────────────
 
@@ -73,30 +73,39 @@ class SosService {
       },
     ),
     android: AudioContextAndroid(
-      isSpeakerphoneOn: true,
       stayAwake: true,
       contentType: AndroidContentType.music,
       usageType: AndroidUsageType.alarm,
-      audioFocus: AndroidAudioFocus.gain,
+      audioFocus: AndroidAudioFocus.none,
     ),
   );
 
   Future<void> startSiren() async {
+    // Always dispose the old player so the new one gets a fresh native instance
+    // with the correct audio context — setAudioContext() on an existing player
+    // does NOT propagate to the already-initialized native side.
+    await stopSiren();
+
+    final player = AudioPlayer();
+    _sirenPlayer = player;
     try {
-      await _audioPlayer.stop();
-    } catch (_) {}
-    try {
-      await _audioPlayer.setAudioContext(_sirenAudioContext);
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      await _audioPlayer.play(AssetSource('sos_sound.mp3'), volume: 1.0);
+      await player.setAudioContext(_sirenAudioContext);
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.play(AssetSource('sos_sound.mp3'), volume: 1.0);
+      print('[SosService] siren started');
     } catch (e) {
       print('[SosService] startSiren error: $e');
+      await player.dispose();
+      _sirenPlayer = null;
     }
   }
 
   Future<void> stopSiren() async {
+    final player = _sirenPlayer;
+    _sirenPlayer = null;
     try {
-      await _audioPlayer.stop();
+      await player?.stop();
+      await player?.dispose();
     } catch (_) {}
   }
 
@@ -106,6 +115,7 @@ class SosService {
     if (_isRecording) return false;
 
     final status = await Permission.microphone.request();
+    print('[SosService] mic permission status: $status');
     if (!status.isGranted) return false;
 
     try {
@@ -122,6 +132,11 @@ class SosService {
           sampleRate: 44100,
           numChannels: 1,
           bitRate: 256000,
+          // echoCancel: true,
+          autoGain: true,
+          // androidConfig: AndroidRecordConfig(
+          //   audioSource: AndroidAudioSource.voiceCommunication,
+          // ),
         ),
         path: path,
       );

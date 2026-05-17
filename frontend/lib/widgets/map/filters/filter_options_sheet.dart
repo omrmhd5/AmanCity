@@ -159,11 +159,11 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Alert Radius section header ───────────────────
+                      // ── Display Range section header ──────────────────
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _sectionLabel(Icons.radar, 'Alert Radius'),
+                          _sectionLabel(Icons.place_rounded, 'Display Range'),
                           Text(
                             '${radiusKm.toStringAsFixed(1)} km',
                             style: TextStyle(
@@ -258,7 +258,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              'You will receive real-time alerts for incidents reported within this distance from your current location.',
+                              'POIs like hospitals, police stations, and fire departments within this range will be displayed on the map.',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
