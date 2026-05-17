@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -52,6 +53,7 @@ class RouteInfoCard extends StatefulWidget {
 class _RouteInfoCardState extends State<RouteInfoCard> {
   // true = user selected safest, false = user selected fastest
   bool _safestSelected = true;
+  bool _startPressed = false;
 
   String _safetyPercent(double dangerScore) {
     final pct = ((1.0 - dangerScore) * 100).round().clamp(0, 100);
@@ -60,9 +62,6 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = AppTheme.currentMode == AppThemeMode.dark
-        ? AppColors.primary
-        : Colors.white;
     final borderColor = widget.routeColor ?? AppColors.secondary;
     final safestInfo = widget.dangerScore != null
         ? SafeRouteScorer.getDangerLevelInfo(widget.dangerScore!)
@@ -71,193 +70,265 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
         ? SafeRouteScorer.getDangerLevelInfo(widget.fastestDangerScore!)
         : null;
 
-    return Material(
-      elevation: 5,
+    return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor.withOpacity(0.35), width: 1),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Header (destination + close) ──────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
-              child: Row(
-                children: [
-                  Icon(Icons.pin_drop, color: borderColor, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.destinationName ?? 'Destination',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.getPrimaryTextColor(),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (widget.incidentType != null) ...[
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: borderColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: borderColor.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              widget.isIncident
-                                  ? '${widget.incidentType} Incident'
-                                  : widget.incidentType!,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: borderColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                        if (widget.locationText != null) ...[
-                          const SizedBox(height: 2),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.getBackgroundColor().withOpacity(0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor.withOpacity(0.35), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 24,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Header (destination + close) ──────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
+                child: Row(
+                  children: [
+                    Icon(Icons.pin_drop, color: borderColor, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            widget.locationText!,
+                            widget.destinationName ?? 'Destination',
                             style: TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.getSecondaryTextColor(),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.getPrimaryTextColor(),
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          if (widget.incidentType != null) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: borderColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: borderColor.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                widget.isIncident
+                                    ? '${widget.incidentType} Incident'
+                                    : widget.incidentType!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: borderColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (widget.locationText != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.locationText!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      size: 20,
-                      color: AppTheme.getSecondaryTextColor(),
-                    ),
-                    onPressed: widget.onClose,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // ── Route cards ───────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                children: [
-                  // Safest route card
-                  _RouteOptionCard(
-                    label: widget.hasFastestAlternative
-                        ? 'Safest'
-                        : 'Safest + Fastest',
-                    labelColor: const Color(0xFF10B981),
-                    duration: widget.duration ?? 'Calculating...',
-                    distance: widget.distance ?? '...',
-                    safetyPercent: widget.dangerScore != null
-                        ? _safetyPercent(widget.dangerScore!)
-                        : null,
-                    safetyColor: safestInfo != null
-                        ? (safestInfo['color'] as Color)
-                        : const Color(0xFF10B981),
-                    safetyIcon: Icons.verified_user,
-                    isSelected: _safestSelected,
-                    isLoading: widget.isLoading,
-                    onTap: () {
-                      setState(() => _safestSelected = true);
-                      widget.onRouteSelectionChanged?.call(true);
-                    },
-                  ),
-
-                  // Fastest route card (only when there's an alternative)
-                  if (widget.hasFastestAlternative &&
-                      widget.fastestDuration != null) ...[
-                    const SizedBox(height: 8),
-                    _RouteOptionCard(
-                      label: 'Fastest',
-                      labelColor: const Color(0xFF3B82F6),
-                      duration: widget.fastestDuration!,
-                      distance: widget.fastestDistance ?? '...',
-                      safetyPercent: widget.fastestDangerScore != null
-                          ? _safetyPercent(widget.fastestDangerScore!)
-                          : null,
-                      safetyColor: fastestInfo != null
-                          ? (fastestInfo['color'] as Color)
-                          : const Color(0xFFF59E0B),
-                      safetyIcon: Icons.gpp_maybe,
-                      isSelected: !_safestSelected,
-                      isLoading: widget.isLoading,
-                      onTap: () {
-                        setState(() => _safestSelected = false);
-                        widget.onRouteSelectionChanged?.call(false);
-                      },
+                    IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                      onPressed: widget.onClose,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 12),
-
-            // ── Start navigation button ───────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: widget.isLoading
-                      ? null
-                      : (_safestSelected
-                            ? (widget.onNavigateSafeRoute ?? widget.onNavigate)
-                            : widget.onNavigate),
-                  icon: const Icon(Icons.navigation, size: 18),
-                  label: Text(
-                    widget.isLoading ? 'Calculating...' : 'Start Navigation',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColors.secondary.withOpacity(
-                      0.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+              const SizedBox(height: 8),
+              // Teal gradient divider
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.0),
+                      AppColors.secondary.withOpacity(0.3),
+                      AppColors.secondary.withOpacity(0.0),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+
+              // ── Route cards ───────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    // Safest route card
+                    _RouteOptionCard(
+                      label: widget.hasFastestAlternative
+                          ? 'Safest'
+                          : 'Safest + Fastest',
+                      labelColor: const Color(0xFF10B981),
+                      duration: widget.duration ?? 'Calculating...',
+                      distance: widget.distance ?? '...',
+                      safetyPercent: widget.dangerScore != null
+                          ? _safetyPercent(widget.dangerScore!)
+                          : null,
+                      safetyColor: safestInfo != null
+                          ? (safestInfo['color'] as Color)
+                          : const Color(0xFF10B981),
+                      safetyIcon: Icons.verified_user,
+                      isSelected: _safestSelected,
+                      isLoading: widget.isLoading,
+                      onTap: () {
+                        setState(() => _safestSelected = true);
+                        widget.onRouteSelectionChanged?.call(true);
+                      },
+                    ),
+
+                    // Fastest route card (only when there's an alternative)
+                    if (widget.hasFastestAlternative &&
+                        widget.fastestDuration != null) ...[
+                      const SizedBox(height: 8),
+                      _RouteOptionCard(
+                        label: 'Fastest',
+                        labelColor: const Color(0xFF3B82F6),
+                        duration: widget.fastestDuration!,
+                        distance: widget.fastestDistance ?? '...',
+                        safetyPercent: widget.fastestDangerScore != null
+                            ? _safetyPercent(widget.fastestDangerScore!)
+                            : null,
+                        safetyColor: fastestInfo != null
+                            ? (fastestInfo['color'] as Color)
+                            : const Color(0xFFF59E0B),
+                        safetyIcon: Icons.gpp_maybe,
+                        isSelected: !_safestSelected,
+                        isLoading: widget.isLoading,
+                        onTap: () {
+                          setState(() => _safestSelected = false);
+                          widget.onRouteSelectionChanged?.call(false);
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // ── Start navigation button ───────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                child: GestureDetector(
+                  onTapDown: widget.isLoading
+                      ? null
+                      : (_) => setState(() => _startPressed = true),
+                  onTapUp: widget.isLoading
+                      ? null
+                      : (_) {
+                          setState(() => _startPressed = false);
+                          (_safestSelected
+                                  ? (widget.onNavigateSafeRoute ??
+                                        widget.onNavigate)
+                                  : widget.onNavigate)
+                              .call();
+                        },
+                  onTapCancel: widget.isLoading
+                      ? null
+                      : () => setState(() => _startPressed = false),
+                  child: AnimatedScale(
+                    scale: _startPressed ? 0.96 : 1.0,
+                    duration: _startPressed
+                        ? const Duration(milliseconds: 80)
+                        : const Duration(milliseconds: 300),
+                    curve: _startPressed ? Curves.easeIn : Curves.easeOutBack,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: widget.isLoading
+                              ? [
+                                  AppColors.secondary.withOpacity(0.4),
+                                  AppColors.secondary.withOpacity(0.3),
+                                ]
+                              : [
+                                  AppColors.secondary,
+                                  AppColors.secondary.withOpacity(0.72),
+                                ],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: widget.isLoading
+                            ? null
+                            : [
+                                BoxShadow(
+                                  color: AppColors.secondary.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.navigation_rounded,
+                            color: Colors.white.withOpacity(
+                              widget.isLoading ? 0.5 : 1.0,
+                            ),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.isLoading
+                                ? 'Calculating...'
+                                : 'Start Navigation',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white.withOpacity(
+                                widget.isLoading ? 0.5 : 1.0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -296,7 +367,7 @@ class _RouteOptionCard extends StatelessWidget {
     final cardBg = AppTheme.currentMode == AppThemeMode.dark
         ? (isSelected
               ? AppColors.primaryHover
-              : AppColors.primary.withOpacity(0.6))
+              : AppTheme.getBackgroundColor().withOpacity(0.5))
         : (isSelected ? Colors.white : Colors.grey.shade50);
 
     return GestureDetector(
@@ -308,8 +379,10 @@ class _RouteOptionCard extends StatelessWidget {
           color: cardBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? labelColor : Colors.transparent,
-            width: 2,
+            color: isSelected
+                ? labelColor
+                : AppTheme.getBorderColor().withOpacity(0.3),
+            width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
               ? [
