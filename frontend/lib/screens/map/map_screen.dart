@@ -777,6 +777,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _userLocation!,
         destination,
         _hotspots,
+        incidents: _incidents.where((i) => !i.isMerged).toList(),
+        bulkIncidents: _bulkIncidents,
       );
 
       final points = routeData['points'] as List<LatLng>;
@@ -846,6 +848,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _userLocation!,
         poi.position,
         _hotspots,
+        incidents: _incidents.where((i) => !i.isMerged).toList(),
+        bulkIncidents: _bulkIncidents,
       );
 
       final points = routeData['points'] as List<LatLng>;
@@ -905,6 +909,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _userLocation!,
         incident.position,
         _hotspots,
+        incidents: _incidents.where((i) => !i.isMerged).toList(),
+        bulkIncidents: _bulkIncidents,
       );
 
       final points = routeData['points'] as List<LatLng>;
@@ -979,6 +985,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _userLocation!,
         destination,
         _hotspots,
+        incidents: _incidents.where((i) => !i.isMerged).toList(),
+        bulkIncidents: _bulkIncidents,
       );
 
       final points = routeData['points'] as List<LatLng>;

@@ -6,6 +6,8 @@ import '../../config/app_config.dart';
 import '../../utils/polyline_decoder.dart';
 import '../../utils/safe_route_scorer.dart';
 import '../../models/map/hotspot_zone.dart';
+import '../../models/incidents/map_incident.dart';
+import '../../models/incidents/bulk_incident.dart';
 
 /// Service for getting directions and route polylines
 class DirectionsService {
@@ -68,8 +70,10 @@ class DirectionsService {
   static Future<Map<String, dynamic>> getSafeRoute(
     LatLng origin,
     LatLng destination,
-    List<HotspotZone> hotspots,
-  ) async {
+    List<HotspotZone> hotspots, {
+    List<MapIncident> incidents = const [],
+    List<BulkIncident> bulkIncidents = const [],
+  }) async {
     try {
       // Fetch routes (includes alternatives)
       final response = await http
@@ -103,6 +107,8 @@ class DirectionsService {
           final result = SafeRouteScorer.pickSafestRoute(
             decodedRoutes,
             hotspots,
+            incidents: incidents,
+            bulkIncidents: bulkIncidents,
           );
 
           final safestIndex = result['index'] as int;
@@ -114,7 +120,12 @@ class DirectionsService {
           // Fastest route is always index 0 (Google returns fastest first).
           // Compute its score first so we can decide whether to expose it.
           final fastestDangerScore = (safestIndex != 0 && routes.isNotEmpty)
-              ? SafeRouteScorer.scoreRoute(decodedRoutes[0], hotspots)
+              ? SafeRouteScorer.scoreRoute(
+                  decodedRoutes[0],
+                  hotspots,
+                  incidents: incidents,
+                  bulkIncidents: bulkIncidents,
+                )
               : null;
           // Only show fastest as separate option when scores differ meaningfully (>1%).
           final hasFastest =

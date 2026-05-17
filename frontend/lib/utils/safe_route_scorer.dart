@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/map/hotspot_zone.dart';
+import '../models/incidents/map_incident.dart';
+import '../models/incidents/bulk_incident.dart';
 import 'dart:math' as math;
 
 /// Utility to score routes based on danger zone overlap
 /// Lower score = safer route
 class SafeRouteScorer {
+  // Danger zone radii for individual data sources
+  static const double _singleIncidentRadiusM = 200.0;
+  static const double _bulkIncidentRadiusM = 500.0;
+
   /// Calculate Haversine distance between two coordinates in meters
   static double _haversineDistance(LatLng point1, LatLng point2) {
     const earthRadiusM = 6371000; // Earth radius in meters
@@ -29,29 +35,22 @@ class SafeRouteScorer {
   /// Considers overlap with hotspot zones weighted by risk score
   static double scoreRoute(
     List<LatLng> polylinePoints,
-    List<HotspotZone> hotspots,
-  ) {
-    if (polylinePoints.isEmpty || hotspots.isEmpty) {
+    List<HotspotZone> hotspots, {
+    List<MapIncident> incidents = const [],
+    List<BulkIncident> bulkIncidents = const [],
+  }) {
+    if (polylinePoints.isEmpty) {
       return 0.0;
     }
 
-    double totalDanger = 0.0;
-    int pointsInDanger = 0;
+    double maxDangerOnRoute = 0.0;
 
-    // For each point on the route, check if it's in any hotspot
     for (final point in polylinePoints) {
       double maxDangerAtPoint = 0.0;
 
-      // Check against each hotspot zone
       for (final hotspot in hotspots) {
         final distanceToCenter = _haversineDistance(point, hotspot.center);
-
-        // If point is within the hotspot radius, calculate danger contribution
         if (distanceToCenter <= hotspot.radiusMeters) {
-          // Danger increases closer to the center
-          // Formula: riskScore * (1 - (distance / radius))
-          // At center: riskScore * 1.0
-          // At edge: riskScore * 0.0
           final dangerAtPoint =
               hotspot.riskScore *
               (1.0 - (distanceToCenter / hotspot.radiusMeters));
@@ -59,28 +58,41 @@ class SafeRouteScorer {
         }
       }
 
-      if (maxDangerAtPoint > 0.0) {
-        totalDanger += maxDangerAtPoint;
-        pointsInDanger++;
+      for (final incident in incidents) {
+        if (incident.isMerged) continue;
+        final dist = _haversineDistance(point, incident.position);
+        if (dist <= _singleIncidentRadiusM) {
+          final danger =
+              incident.confidence *
+              0.45 *
+              (1.0 - (dist / _singleIncidentRadiusM));
+          maxDangerAtPoint = math.max(maxDangerAtPoint, danger);
+        }
       }
+
+      for (final bulk in bulkIncidents) {
+        final dist = _haversineDistance(point, bulk.center);
+        if (dist <= _bulkIncidentRadiusM) {
+          final danger =
+              bulk.avgConfidence * 0.65 * (1.0 - (dist / _bulkIncidentRadiusM));
+          maxDangerAtPoint = math.max(maxDangerAtPoint, danger);
+        }
+      }
+
+      maxDangerOnRoute = math.max(maxDangerOnRoute, maxDangerAtPoint);
     }
 
-    // Average danger score: total danger / total points
-    // This normalizes to 0.0-1.0 range
-    if (pointsInDanger == 0) {
-      return 0.0; // Route avoids all hotspots
-    }
-
-    final averageDanger = totalDanger / polylinePoints.length;
-    return math.min(averageDanger, 1.0); // Clamp to max 1.0
+    return maxDangerOnRoute;
   }
 
   /// Pick the safest route from multiple alternatives
   /// Returns: {index, dangerScore} where index is the safest route
   static Map<String, dynamic> pickSafestRoute(
     List<List<LatLng>> decodedRoutes,
-    List<HotspotZone> hotspots,
-  ) {
+    List<HotspotZone> hotspots, {
+    List<MapIncident> incidents = const [],
+    List<BulkIncident> bulkIncidents = const [],
+  }) {
     if (decodedRoutes.isEmpty) {
       return {'index': 0, 'dangerScore': 0.0};
     }
@@ -89,7 +101,12 @@ class SafeRouteScorer {
     int safestIndex = 0;
 
     for (int i = 0; i < decodedRoutes.length; i++) {
-      final score = scoreRoute(decodedRoutes[i], hotspots);
+      final score = scoreRoute(
+        decodedRoutes[i],
+        hotspots,
+        incidents: incidents,
+        bulkIncidents: bulkIncidents,
+      );
       if (score < minDangerScore) {
         minDangerScore = score;
         safestIndex = i;

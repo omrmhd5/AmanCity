@@ -8,42 +8,85 @@ class LogoutSection extends StatelessWidget {
 
   const LogoutSection({Key? key, this.isCompact = false}) : super(key: key);
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
+  void _showLogoutDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.9),
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.getCardBackgroundColor(),
-        title: Text(
-          'Sign Out?',
-          style: TextStyle(
-            color: AppTheme.getPrimaryTextColor(),
-            fontWeight: FontWeight.w700,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.currentMode == AppThemeMode.dark
+                ? AppColors.primary
+                : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Sign Out?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryTextColor(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'You\'ll need to log in again to use the app.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.getSecondaryTextColor(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: AppTheme.getSecondaryTextColor(),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.danger,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        content: Text(
-          'Are you sure you want to sign out? You\'ll need to log in again to use the app.',
-          style: TextStyle(color: AppTheme.getSecondaryTextColor()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppTheme.getSecondaryTextColor()),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _performLogout(context);
-            },
-            child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
+
+    if (confirmed == true) {
+      await _performLogout(context);
+    }
   }
 
   Future<void> _performLogout(BuildContext context) async {

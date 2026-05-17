@@ -233,9 +233,8 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                   onPressed: widget.isLoading
                       ? null
                       : (_safestSelected
-                            ? widget.onNavigate
-                            : (widget.onNavigateSafeRoute ??
-                                  widget.onNavigate)),
+                            ? (widget.onNavigateSafeRoute ?? widget.onNavigate)
+                            : widget.onNavigate),
                   icon: const Icon(Icons.navigation, size: 18),
                   label: Text(
                     widget.isLoading ? 'Calculating...' : 'Start Navigation',
