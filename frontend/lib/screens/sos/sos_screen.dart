@@ -83,23 +83,24 @@ class _SosScreenState extends State<SosScreen> {
     });
     widget.onActiveStateChanged?.call(true);
 
+    // Start recording first — so recorder initialises audio session before siren
+    await _sosService.startRecording();
+    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _recordingSeconds++);
+    });
+
     // Ensure flash is running
     if (!_flashEnabled) {
       setState(() => _flashEnabled = true);
       await _sosService.startFlashStrobe();
     }
 
-    // Ensure siren is running
+    // Start siren LAST — its playAndRecord audio context is applied on top of
+    // whatever the recorder set, allowing both to coexist
     if (!_sirenEnabled) {
       setState(() => _sirenEnabled = true);
-      await _sosService.startSiren();
     }
-
-    // Start recording
-    await _sosService.startRecording();
-    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _recordingSeconds++);
-    });
+    await _sosService.startSiren();
 
     // Acquire location and notify contacts in background
     _acquireAndNotify();

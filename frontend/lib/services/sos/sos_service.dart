@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -29,7 +28,6 @@ class SosService {
   bool _isRecording = false;
   String? _currentRecordingPath;
   int _recordingStartMs = 0;
-  final FlutterRingtonePlayer _ringtonePlayer = FlutterRingtonePlayer();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   // ─── Flashlight strobe ──────────────────────────────────────────────────────
@@ -65,30 +63,40 @@ class SosService {
 
   // ─── Siren ──────────────────────────────────────────────────────────────────
 
+  static final AudioContext _sirenAudioContext = AudioContext(
+    iOS: AudioContextIOS(
+      category: AVAudioSessionCategory.playAndRecord,
+      options: {
+        AVAudioSessionOptions.defaultToSpeaker,
+        AVAudioSessionOptions.allowBluetooth,
+        AVAudioSessionOptions.mixWithOthers,
+      },
+    ),
+    android: AudioContextAndroid(
+      isSpeakerphoneOn: true,
+      stayAwake: true,
+      contentType: AndroidContentType.music,
+      usageType: AndroidUsageType.alarm,
+      audioFocus: AndroidAudioFocus.gain,
+    ),
+  );
+
   Future<void> startSiren() async {
     try {
       await _audioPlayer.stop();
-      await _audioPlayer.release();
     } catch (_) {}
-
     try {
+      await _audioPlayer.setAudioContext(_sirenAudioContext);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.play(AssetSource('sos_sound.mp3'), volume: 1.0);
     } catch (e) {
-      print('Failed to play custom SOS sound: $e');
-      // Fallback to system ringtone if custom audio fails
-      try {
-        await _ringtonePlayer.playAlarm(looping: true, volume: 1.0);
-      } catch (_) {}
+      print('[SosService] startSiren error: $e');
     }
   }
 
   Future<void> stopSiren() async {
     try {
       await _audioPlayer.stop();
-    } catch (_) {}
-    try {
-      await _ringtonePlayer.stop();
     } catch (_) {}
   }
 

@@ -1,5 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 import '../../data/app_colors.dart';
 import '../../models/sos/sos_recording.dart';
@@ -29,12 +30,63 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
   bool get _isPlaying => widget.currentlyPlayingId == widget.recording.id;
 
   Future<void> _togglePlay() async {
+    final recordingId = widget.recording.id;
+    final filePath = widget.recording.path;
+
     if (_isPlaying) {
+      print('[SosRecordingCard:$recordingId] PAUSE');
       await widget.sharedPlayer.pause();
       widget.onPlayStateChange(null);
     } else {
-      await widget.sharedPlayer.play(DeviceFileSource(widget.recording.path));
-      widget.onPlayStateChange(widget.recording.id);
+      print('[SosRecordingCard:$recordingId] PLAY START - path=$filePath');
+
+      try {
+        // Check file exists (sync, with explicit logging)
+        print('[SosRecordingCard:$recordingId] [1] creating File object...');
+        final file = File(filePath);
+        print('[SosRecordingCard:$recordingId] [2] File object created');
+
+        print(
+          '[SosRecordingCard:$recordingId] [3] checking existence synchronously...',
+        );
+        final exists = file.existsSync();
+        print('[SosRecordingCard:$recordingId] [4] file exists (sync)=$exists');
+
+        if (exists) {
+          print('[SosRecordingCard:$recordingId] [5] getting file size...');
+          final size = file.lengthSync();
+          print('[SosRecordingCard:$recordingId] [6] file size=$size bytes');
+        } else {
+          print('[SosRecordingCard:$recordingId] [ERROR] file not found!');
+          return;
+        }
+
+        print(
+          '[SosRecordingCard:$recordingId] [7] exited if-block, about to create source',
+        );
+        print(
+          '[SosRecordingCard:$recordingId] [8] creating DeviceFileSource...',
+        );
+
+        DeviceFileSource? source;
+        print('[SosRecordingCard:$recordingId] [9] about to assign source');
+        source = DeviceFileSource(filePath);
+        print('[SosRecordingCard:$recordingId] [10] source created: $source');
+
+        print('[SosRecordingCard:$recordingId] [11] about to call play()');
+        await widget.sharedPlayer.play(source, volume: 1.0);
+        print(
+          '[SosRecordingCard:$recordingId] [12] play() returned successfully',
+        );
+
+        print('[SosRecordingCard:$recordingId] [13] setting play state...');
+        widget.onPlayStateChange(recordingId);
+        print('[SosRecordingCard:$recordingId] [14] play state updated');
+      } catch (e, st) {
+        print('[SosRecordingCard:$recordingId] [EXCEPTION] $e');
+        print('[SosRecordingCard:$recordingId] [STACK] $st');
+        rethrow;
+      }
     }
   }
 
