@@ -34,17 +34,10 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
     super.initState();
     _loadRecordings();
     _playerCompleteSubscription = _player.onPlayerComplete.listen((_) {
-      print('[SosHistory] onPlayerComplete fired — id=$_currentlyPlayingId');
       if (mounted) setState(() => _currentlyPlayingId = null);
     });
-    _playerStateSubscription = _player.onPlayerStateChanged.listen((state) {
-      print('[SosHistory] playerState → $state');
-    });
-    _playerPositionSubscription = _player.onPositionChanged.listen((pos) {
-      if (pos.inMilliseconds % 2000 < 200) {
-        print('[SosHistory] position=${pos.inSeconds}s');
-      }
-    });
+    _playerStateSubscription = _player.onPlayerStateChanged.listen((state) {});
+    _playerPositionSubscription = _player.onPositionChanged.listen((pos) {});
   }
 
   @override
@@ -157,49 +150,121 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
-      appBar: AppBar(
-        backgroundColor: AppTheme.getBackgroundColor(),
-        elevation: 0,
-        title: Text(
-          'SOS Recordings',
-          style: TextStyle(
-            color: AppTheme.getPrimaryTextColor(),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: AppTheme.getPrimaryTextColor(),
-            size: 20,
-          ),
-          onPressed: () =>
-              widget.onBack != null ? widget.onBack!() : Navigator.pop(context),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => widget.onBack != null
+                        ? widget.onBack!()
+                        : Navigator.pop(context),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.getBackgroundColor().withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.getBorderColor().withOpacity(0.15),
+                          width: 0.75,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: AppTheme.getPrimaryTextColor(),
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'SOS Recordings',
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  const SizedBox(width: 40),
+                ],
+              ),
+            ),
+            // Teal gradient divider
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.0),
+                      AppColors.secondary.withOpacity(0.3),
+                      AppColors.secondary.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Section label
+            if (!_loading && _recordings.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.mic_rounded,
+                      size: 15,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'RECORDINGS',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.getSecondaryTextColor(),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.secondary,
+                      ),
+                    )
+                  : _recordings.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 4, bottom: 24),
+                      itemCount: _recordings.length,
+                      itemBuilder: (context, index) {
+                        final rec = _recordings[index];
+                        return SosRecordingCard(
+                          recording: rec,
+                          sharedPlayer: _player,
+                          currentlyPlayingId: _currentlyPlayingId,
+                          onDelete: () => _confirmDelete(rec),
+                          onPlayStateChange: (id) {
+                            if (mounted)
+                              setState(() => _currentlyPlayingId = id);
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.secondary),
-            )
-          : _recordings.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 24),
-              itemCount: _recordings.length,
-              itemBuilder: (context, index) {
-                final rec = _recordings[index];
-                return SosRecordingCard(
-                  recording: rec,
-                  sharedPlayer: _player,
-                  currentlyPlayingId: _currentlyPlayingId,
-                  onDelete: () => _confirmDelete(rec),
-                  onPlayStateChange: (id) {
-                    if (mounted) setState(() => _currentlyPlayingId = id);
-                  },
-                );
-              },
-            ),
     );
   }
 
@@ -208,17 +273,30 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.mic_off_outlined,
-            size: 64,
-            color: AppTheme.getSecondaryTextColor().withOpacity(0.4),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.danger.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: AppColors.danger.withOpacity(0.18),
+                width: 0.75,
+              ),
+            ),
+            child: Icon(
+              Icons.mic_off_rounded,
+              size: 36,
+              color: AppColors.danger.withOpacity(0.5),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             'No recordings yet',
             style: TextStyle(
-              color: AppTheme.getSecondaryTextColor(),
-              fontSize: 16,
+              color: AppTheme.getPrimaryTextColor(),
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -226,8 +304,9 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
             'Audio is recorded automatically\nwhen you activate SOS.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppTheme.getSecondaryTextColor().withOpacity(0.6),
+              color: AppTheme.getSecondaryTextColor(),
               fontSize: 13,
+              height: 1.5,
             ),
           ),
         ],

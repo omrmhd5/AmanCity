@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -10,76 +11,111 @@ class SosHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Back button or placeholder
-          SizedBox(
-            width: 48,
-            child: onBackPressed != null
-                ? IconButton(
-                    icon: Icon(
-                      Icons.arrow_back_ios,
-                      color: AppTheme.getPrimaryTextColor(),
-                      size: 20,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Back button or placeholder
+              SizedBox(
+                width: 48,
+                child: onBackPressed != null
+                    ? GestureDetector(
+                        onTap: onBackPressed,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppTheme.getBackgroundColor().withOpacity(
+                              0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.getBorderColor().withOpacity(
+                                0.15,
+                              ),
+                              width: 0.75,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: AppTheme.getPrimaryTextColor(),
+                            size: 18,
+                          ),
+                        ),
+                      )
+                    : const SizedBox(),
+              ),
+              // Centered content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Glass icon container with glow
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                        child: Container(
+                          width: 68,
+                          height: 68,
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.danger.withOpacity(0.28),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.danger.withOpacity(0.18),
+                                blurRadius: 20,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.sos_rounded,
+                            color: AppColors.danger,
+                            size: 36,
+                          ),
+                        ),
+                      ),
                     ),
-                    onPressed: onBackPressed,
-                    splashRadius: 20,
-                    padding: EdgeInsets.zero,
-                  )
-                : const SizedBox(),
-          ),
-          // Centered content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.danger.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.danger.withOpacity(0.3),
-                      width: 1.5,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Emergency SOS',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.getPrimaryTextColor(),
+                        letterSpacing: 0.2,
+                      ),
                     ),
-                  ),
-                  child: const Icon(
-                    Icons.sos,
-                    color: AppColors.danger,
-                    size: 34,
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Hold the button for 3 seconds to alert your trusted contacts',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.getSecondaryTextColor().withOpacity(
+                          0.85,
+                        ),
+                        height: 1.55,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  'Emergency SOS',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.getPrimaryTextColor(),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Hold the button for 3 seconds to alert your trusted contacts',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: AppTheme.getSecondaryTextColor(),
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              // Balance spacer
+              const SizedBox(width: 48),
+            ],
           ),
-          // Balance spacer
-          const SizedBox(width: 48),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

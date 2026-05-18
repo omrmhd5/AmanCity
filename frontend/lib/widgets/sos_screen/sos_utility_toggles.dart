@@ -69,17 +69,17 @@ class _ToggleButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.danger.withOpacity(0.1)
-              : AppTheme.getCardBackgroundColor(),
-          borderRadius: BorderRadius.circular(14),
+              ? AppColors.danger.withOpacity(0.10)
+              : AppTheme.getBackgroundColor().withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive
-                ? AppColors.danger.withOpacity(0.5)
-                : AppTheme.getBorderColor(),
-            width: 1.5,
+                ? AppColors.danger.withOpacity(0.40)
+                : AppTheme.getBorderColor().withOpacity(0.15),
+            width: isActive ? 1.5 : 0.75,
           ),
         ),
         child: Column(
@@ -87,25 +87,41 @@ class _ToggleButton extends StatelessWidget {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(
-                  icon,
-                  color: isActive
-                      ? AppColors.danger
-                      : AppTheme.getSecondaryTextColor(),
-                  size: 30,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? AppColors.danger.withOpacity(0.12)
+                        : AppTheme.getBorderColor().withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: isActive
+                          ? AppColors.danger.withOpacity(0.2)
+                          : AppTheme.getBorderColor().withOpacity(0.12),
+                      width: 0.75,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isActive
+                        ? AppColors.danger
+                        : AppTheme.getSecondaryTextColor(),
+                    size: 26,
+                  ),
                 ),
                 if (isActive)
                   Positioned(
-                    top: -3,
-                    right: -3,
+                    top: -4,
+                    right: -4,
                     child: Container(
-                      width: 10,
-                      height: 10,
+                      width: 11,
+                      height: 11,
                       decoration: BoxDecoration(
                         color: AppColors.success,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppTheme.getCardBackgroundColor(),
+                          color: AppTheme.getBackgroundColor(),
                           width: 1.5,
                         ),
                       ),

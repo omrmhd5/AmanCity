@@ -39,7 +39,7 @@ class _AiChatInputState extends State<AiChatInput> {
       // Request microphone permission first
       final status = await Permission.microphone.request();
       print('[AiChatInput] Microphone permission: $status');
-      
+
       if (!status.isGranted) {
         print('[AiChatInput] Microphone permission denied');
         if (mounted) setState(() => _speechAvailable = false);
@@ -55,7 +55,7 @@ class _AiChatInputState extends State<AiChatInput> {
           print('[AiChatInput] Speech status: $status');
         },
       );
-      
+
       print('[AiChatInput] Speech available: $available');
       if (mounted) setState(() => _speechAvailable = available);
     } catch (e) {

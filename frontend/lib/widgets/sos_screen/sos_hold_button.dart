@@ -100,8 +100,8 @@ class _SosHoldButtonState extends State<SosHoldButton>
                         color: const Color(
                           0xFFEF4444,
                         ).withOpacity(_isHolding ? 0.75 : 0.4),
-                        blurRadius: _isHolding ? 48 : 20,
-                        spreadRadius: _isHolding ? 8 : 2,
+                        blurRadius: _isHolding ? 56 : 20,
+                        spreadRadius: _isHolding ? 10 : 2,
                       ),
                     ],
                   ),
@@ -155,7 +155,7 @@ class _RippleRing extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(
           color: const Color(0xFFEF4444).withOpacity(opacity),
-          width: 2,
+          width: 1.5,
         ),
       ),
     );
@@ -177,7 +177,7 @@ class _ProgressRingPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = Colors.white.withOpacity(0.1)
+        ..color = const Color(0xFFEF4444).withOpacity(0.15)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.5,
     );

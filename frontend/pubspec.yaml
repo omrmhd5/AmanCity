@@ -90,6 +90,7 @@ dependencies:
 
   # Video playback for evidence feed
   video_player: ^2.9.5
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_test:

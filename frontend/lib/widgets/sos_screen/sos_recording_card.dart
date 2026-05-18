@@ -122,39 +122,49 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
   @override
   Widget build(BuildContext context) {
     final recording = widget.recording;
-    final cardBg = AppTheme.getCardBackgroundColor();
-    final borderColor = _isPlaying
-        ? AppColors.secondary
-        : AppTheme.getBorderColor();
-    final textColor = AppTheme.getPrimaryTextColor();
-    final subColor = AppTheme.getSecondaryTextColor();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor, width: _isPlaying ? 1.5 : 1),
+        color: AppTheme.getBackgroundColor().withOpacity(0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _isPlaying
+              ? AppColors.secondary.withOpacity(0.5)
+              : AppTheme.getBorderColor().withOpacity(0.15),
+          width: _isPlaying ? 1 : 0.75,
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
             // Play / pause button
             GestureDetector(
               onTap: _togglePlay,
               child: Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
+                  gradient: _isPlaying
+                      ? const LinearGradient(
+                          colors: [AppColors.secondary, Color(0xFF00897B)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
                   color: _isPlaying
-                      ? AppColors.secondary.withOpacity(0.15)
-                      : AppColors.secondary.withOpacity(0.08),
+                      ? null
+                      : AppColors.secondary.withOpacity(0.1),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.secondary.withOpacity(0.2),
+                    width: 0.75,
+                  ),
                 ),
                 child: Icon(
                   _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: AppColors.secondary,
+                  color: _isPlaying ? Colors.white : AppColors.secondary,
                   size: 26,
                 ),
               ),
@@ -168,33 +178,43 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
                   Text(
                     _formatDate(recording.dateTime),
                     style: TextStyle(
-                      color: textColor,
+                      color: AppTheme.getPrimaryTextColor(),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.timer_outlined, size: 12, color: subColor),
+                      Icon(
+                        Icons.timer_outlined,
+                        size: 12,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         _formatDuration(recording.durationSeconds),
-                        style: TextStyle(color: subColor, fontSize: 12),
+                        style: TextStyle(
+                          color: AppTheme.getSecondaryTextColor(),
+                          fontSize: 12,
+                        ),
                       ),
                       if (recording.latitude != null) ...[
                         const SizedBox(width: 10),
                         Icon(
                           Icons.location_on_outlined,
                           size: 12,
-                          color: subColor,
+                          color: AppTheme.getSecondaryTextColor(),
                         ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             '${recording.latitude!.toStringAsFixed(4)}, '
                             '${recording.longitude!.toStringAsFixed(4)}',
-                            style: TextStyle(color: subColor, fontSize: 12),
+                            style: TextStyle(
+                              color: AppTheme.getSecondaryTextColor(),
+                              fontSize: 12,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -205,14 +225,25 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
               ),
             ),
             // Delete
-            IconButton(
-              icon: Icon(
-                Icons.delete_outline,
-                color: AppColors.danger,
-                size: 20,
+            GestureDetector(
+              onTap: widget.onDelete,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.danger.withOpacity(0.15),
+                    width: 0.75,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AppColors.danger,
+                  size: 18,
+                ),
               ),
-              onPressed: widget.onDelete,
-              splashRadius: 20,
             ),
           ],
         ),

@@ -17,16 +17,23 @@ enum _SosView { idle, contacts, history }
 class SosScreen extends StatefulWidget {
   final VoidCallback? onBack;
   final ValueChanged<bool>? onActiveStateChanged;
+  final ValueNotifier<bool>? activateSignal;
 
-  const SosScreen({Key? key, this.onBack, this.onActiveStateChanged})
-    : super(key: key);
+  const SosScreen({
+    Key? key,
+    this.onBack,
+    this.onActiveStateChanged,
+    this.activateSignal,
+  }) : super(key: key);
 
   @override
   State<SosScreen> createState() => _SosScreenState();
 }
 
-class _SosScreenState extends State<SosScreen> {
+class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   final SosService _sosService = SosService();
+
+  late AnimationController _entryController;
 
   bool _isActive = false;
   bool _flashEnabled = false;
@@ -39,17 +46,59 @@ class _SosScreenState extends State<SosScreen> {
   double? _activeLng;
   _SosView _currentView = _SosView.idle;
 
+  // Pressed states for management cards
+  bool _contactsPressed = false;
+  bool _historyPressed = false;
+
   Timer? _recordingTimer;
 
   @override
+  void initState() {
+    super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+    widget.activateSignal?.addListener(_onActivateSignal);
+  }
+
+  @override
   void dispose() {
+    _entryController.dispose();
     _recordingTimer?.cancel();
+    widget.activateSignal?.removeListener(_onActivateSignal);
     if (_isActive) {
       _sosService.stopRecording(lat: _activeLat, lng: _activeLng);
       _sosService.stopFlashStrobe();
       _sosService.stopSiren();
     }
     super.dispose();
+  }
+
+  void _onActivateSignal() {
+    if (widget.activateSignal?.value == true) {
+      widget.activateSignal!.value = false;
+      _onActivate();
+    }
+  }
+
+  // ─── Animation helper ────────────────────────────────────────────────────────
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   // ─── Idle toggles ────────────────────────────────────────────────────────────
@@ -187,11 +236,17 @@ class _SosScreenState extends State<SosScreen> {
               ? _buildActiveView()
               : _currentView == _SosView.contacts
               ? SosContactsScreen(
-                  onBack: () => setState(() => _currentView = _SosView.idle),
+                  onBack: () {
+                    setState(() => _currentView = _SosView.idle);
+                    _entryController.forward(from: 0);
+                  },
                 )
               : _currentView == _SosView.history
               ? SosHistoryScreen(
-                  onBack: () => setState(() => _currentView = _SosView.idle),
+                  onBack: () {
+                    setState(() => _currentView = _SosView.idle);
+                    _entryController.forward(from: 0);
+                  },
                 )
               : _buildIdleView(),
         ),
@@ -211,160 +266,285 @@ class _SosScreenState extends State<SosScreen> {
 
   Widget _buildIdleView() {
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       child: Column(
         children: [
-          SosHeader(onBackPressed: widget.onBack),
-          const SizedBox(height: 24),
-          SosUtilityToggles(
-            flashEnabled: _flashEnabled,
-            sirenEnabled: _sirenEnabled,
-            onFlashToggle: _onFlashToggle,
-            onSirenToggle: _onSirenToggle,
+          _animated(
+            SosHeader(onBackPressed: widget.onBack),
+            start: 0.0,
+            end: 0.5,
           ),
-          const SizedBox(height: 44),
-          SosHoldButton(onActivate: _onActivate),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: AppColors.success,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Location tracking active',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.getSecondaryTextColor(),
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 36),
-          // Manage Contacts card
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: GestureDetector(
-              onTap: () => setState(() => _currentView = _SosView.contacts),
+          // Teal gradient divider
+          _animated(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                height: 1,
                 decoration: BoxDecoration(
-                  color: AppTheme.getCardBackgroundColor(),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.getBorderColor()),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.contacts_outlined,
-                        color: AppColors.secondary,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Manage SOS Contacts',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.getPrimaryTextColor(),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Add trusted contacts to receive emergency alerts',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.getSecondaryTextColor(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: AppTheme.getSecondaryTextColor(),
-                    ),
-                  ],
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.0),
+                      AppColors.secondary.withOpacity(0.3),
+                      AppColors.secondary.withOpacity(0.0),
+                    ],
+                  ),
                 ),
               ),
             ),
+            start: 0.05,
+            end: 0.55,
+          ),
+          const SizedBox(height: 20),
+          _animated(
+            SosUtilityToggles(
+              flashEnabled: _flashEnabled,
+              sirenEnabled: _sirenEnabled,
+              onFlashToggle: _onFlashToggle,
+              onSirenToggle: _onSirenToggle,
+            ),
+            start: 0.1,
+            end: 0.65,
+          ),
+          const SizedBox(height: 44),
+          _animated(
+            SosHoldButton(onActivate: _onActivate),
+            start: 0.2,
+            end: 0.8,
+          ),
+          const SizedBox(height: 12),
+          // Location active pill
+          _animated(
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.success.withOpacity(0.25),
+                  width: 0.75,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    'Location tracking active',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            start: 0.3,
+            end: 0.85,
+          ),
+          const SizedBox(height: 36),
+          // Section label
+          _animated(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.settings_rounded,
+                    size: 15,
+                    color: AppColors.secondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'MANAGE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.getSecondaryTextColor(),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            start: 0.35,
+            end: 0.9,
+          ),
+          // Manage Contacts card
+          _animated(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: GestureDetector(
+                onTapDown: (_) => setState(() => _contactsPressed = true),
+                onTapUp: (_) {
+                  setState(() => _contactsPressed = false);
+                  setState(() => _currentView = _SosView.contacts);
+                },
+                onTapCancel: () => setState(() => _contactsPressed = false),
+                child: AnimatedScale(
+                  scale: _contactsPressed ? 0.97 : 1.0,
+                  duration: _contactsPressed
+                      ? const Duration(milliseconds: 80)
+                      : const Duration(milliseconds: 300),
+                  curve: _contactsPressed ? Curves.easeIn : Curves.easeOutBack,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCardBackgroundColor(),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.getBorderColor().withOpacity(0.15),
+                        width: 0.75,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(13),
+                            border: Border.all(
+                              color: AppColors.secondary.withOpacity(0.15),
+                              width: 0.75,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.people_rounded,
+                            color: AppColors.secondary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Manage SOS Contacts',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.getPrimaryTextColor(),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Add trusted contacts to receive emergency alerts',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppTheme.getSecondaryTextColor(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            start: 0.4,
+            end: 1.0,
           ),
           const SizedBox(height: 12),
           // Past Recordings card
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: GestureDetector(
-              onTap: () => setState(() => _currentView = _SosView.history),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.getCardBackgroundColor(),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.getBorderColor()),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.history_rounded,
-                        color: AppColors.secondary,
-                        size: 22,
+          _animated(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: GestureDetector(
+                onTapDown: (_) => setState(() => _historyPressed = true),
+                onTapUp: (_) {
+                  setState(() => _historyPressed = false);
+                  setState(() => _currentView = _SosView.history);
+                },
+                onTapCancel: () => setState(() => _historyPressed = false),
+                child: AnimatedScale(
+                  scale: _historyPressed ? 0.97 : 1.0,
+                  duration: _historyPressed
+                      ? const Duration(milliseconds: 80)
+                      : const Duration(milliseconds: 300),
+                  curve: _historyPressed ? Curves.easeIn : Curves.easeOutBack,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCardBackgroundColor(),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.getBorderColor().withOpacity(0.15),
+                        width: 0.75,
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Past Recordings',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.getPrimaryTextColor(),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withOpacity(0.10),
+                            borderRadius: BorderRadius.circular(13),
+                            border: Border.all(
+                              color: AppColors.danger.withOpacity(0.12),
+                              width: 0.75,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Review & play audio captured during SOS alerts',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.getSecondaryTextColor(),
-                            ),
+                          child: Icon(
+                            Icons.history_rounded,
+                            color: AppColors.danger,
+                            size: 22,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Past Recordings',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.getPrimaryTextColor(),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Review & play audio captured during SOS alerts',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppTheme.getSecondaryTextColor(),
+                        ),
+                      ],
                     ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: AppTheme.getSecondaryTextColor(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
+            start: 0.45,
+            end: 1.0,
           ),
           const SizedBox(height: 28),
         ],

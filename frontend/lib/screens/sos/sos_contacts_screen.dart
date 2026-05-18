@@ -66,48 +66,80 @@ class _SosContactsScreenState extends State<SosContactsScreen> {
   void _confirmDelete(String id, String name) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppTheme.getCardBackgroundColor(),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Remove Contact',
-          style: TextStyle(
-            color: AppTheme.getPrimaryTextColor(),
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.currentMode == AppThemeMode.dark
+                ? AppColors.primary
+                : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.getBorderColor(), width: 1),
           ),
-        ),
-        content: Text(
-          'Remove "$name" from your SOS contacts?',
-          style: TextStyle(
-            color: AppTheme.getSecondaryTextColor(),
-            fontSize: 14,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppTheme.getSecondaryTextColor()),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              setState(() => _contacts.removeWhere((c) => c.id == id));
-              await _persist();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Remove Contact',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryTextColor(),
+                ),
               ),
-            ),
-            child: const Text('Remove'),
+              const SizedBox(height: 12),
+              Text(
+                'Remove "$name" from your SOS contacts?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.getSecondaryTextColor(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: AppTheme.getSecondaryTextColor(),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.of(ctx).pop();
+                      setState(() => _contacts.removeWhere((c) => c.id == id));
+                      await _persist();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.danger,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Remove',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -116,213 +148,228 @@ class _SosContactsScreenState extends State<SosContactsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
-      appBar: AppBar(
-        backgroundColor: AppTheme.getBackgroundColor(),
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppTheme.getPrimaryTextColor(),
-            size: 20,
-          ),
-          onPressed: () => widget.onBack != null
-              ? widget.onBack!()
-              : Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'SOS Contacts',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.getPrimaryTextColor(),
-          ),
-        ),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppTheme.getBorderColor()),
-        ),
-      ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(AppColors.secondary),
-              ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Row(
                 children: [
-                  // Info banner
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryHover],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.security,
-                          color: Colors.white54,
-                          size: 28,
+                  GestureDetector(
+                    onTap: () => widget.onBack != null
+                        ? widget.onBack!()
+                        : Navigator.of(context).pop(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.getBackgroundColor().withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.getBorderColor().withOpacity(0.15),
+                          width: 0.75,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Trusted Circle',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: AppTheme.getPrimaryTextColor(),
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'SOS Contacts',
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  const SizedBox(width: 40),
+                ],
+              ),
+            ),
+            // Teal gradient divider
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [
+                    AppColors.secondary.withOpacity(0.0),
+                    AppColors.secondary.withOpacity(0.3),
+                    AppColors.secondary.withOpacity(0.0),
+                  ]),
+                ),
+              ),
+            ),
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(AppColors.secondary),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Info banner
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.secondary.withOpacity(0.3),
+                                width: 1.5,
                               ),
-                              const SizedBox(height: 3),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.security,
+                                  color: AppColors.secondary,
+                                  size: 28,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Trusted Circle',
+                                        style: TextStyle(
+                                          color: AppTheme.getPrimaryTextColor(),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Contacts receive your location via WhatsApp during an SOS alert',
+                                        style: TextStyle(
+                                          color: AppTheme.getSecondaryTextColor(),
+                                          fontSize: 12,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+
+                          // Header row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.shield_rounded, size: 15, color: AppColors.secondary),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'PRIORITY LIST',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.getSecondaryTextColor(),
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
                               Text(
-                                'Contacts receive your location via WhatsApp during an SOS alert',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.6),
+                                '${_contacts.length}/5 added',
+                                style: const TextStyle(
                                   fontSize: 12,
-                                  height: 1.4,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.secondary,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 22),
+                          const SizedBox(height: 12),
 
-                  // Header row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'PRIORITY LIST',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.getSecondaryTextColor(),
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      Text(
-                        '${_contacts.length}/5 added',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Contact list
-                  if (_contacts.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.person_add_outlined,
-                              size: 52,
-                              color: AppTheme.getSecondaryTextColor(),
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              'No contacts added yet',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.getPrimaryTextColor(),
+                          // Contact list
+                          if (_contacts.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 32),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.person_add_outlined,
+                                      size: 52,
+                                      color: AppTheme.getSecondaryTextColor(),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Text(
+                                      'No contacts added yet',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.getPrimaryTextColor(),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Tap the button below to add trusted contacts',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppTheme.getSecondaryTextColor(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            ...List.generate(
+                              _contacts.length,
+                              (i) => SosContactCard(
+                                contact: _contacts[i],
+                                priority: i + 1,
+                                onEdit: () => _showAddDialog(existing: _contacts[i]),
+                                onDelete: () =>
+                                    _confirmDelete(_contacts[i].id, _contacts[i].name),
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Tap the button below to add trusted contacts',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppTheme.getSecondaryTextColor(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    ...List.generate(
-                      _contacts.length,
-                      (i) => SosContactCard(
-                        contact: _contacts[i],
-                        priority: i + 1,
-                        onEdit: () => _showAddDialog(existing: _contacts[i]),
-                        onDelete: () =>
-                            _confirmDelete(_contacts[i].id, _contacts[i].name),
-                      ),
-                    ),
 
-                  // Add slot placeholder (when under 5)
-                  if (_contacts.length < 5)
-                    GestureDetector(
-                      onTap: () => _showAddDialog(),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.getBorderColor(),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_circle_outline,
-                              color: AppTheme.getSecondaryTextColor(),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              _contacts.isEmpty
+                          // Add slot placeholder (when under 5)
+                          if (_contacts.length < 5)
+                            _AddContactButton(
+                              label: _contacts.isEmpty
                                   ? 'Add First Contact'
                                   : 'Add ${_contacts.length + 1}${_ordinalSuffix(_contacts.length + 1)} Contact',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.getSecondaryTextColor(),
-                              ),
+                              onTap: () => _showAddDialog(),
                             ),
-                          ],
-                        ),
+
+                          const SizedBox(height: 16),
+                          Text(
+                            'Contacts are notified in the order listed above when SOS is activated.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.getSecondaryTextColor().withOpacity(0.7),
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-
-                  const SizedBox(height: 16),
-                  Text(
-                    'Contacts are notified in the order listed above when SOS is activated.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.getSecondaryTextColor().withOpacity(0.7),
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -330,5 +377,68 @@ class _SosContactsScreenState extends State<SosContactsScreen> {
     if (n == 2) return 'nd';
     if (n == 3) return 'rd';
     return 'th';
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+class _AddContactButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _AddContactButton({required this.label, required this.onTap});
+
+  @override
+  State<_AddContactButton> createState() => _AddContactButtonState();
+}
+
+class _AddContactButtonState extends State<_AddContactButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: _pressed
+            ? const Duration(milliseconds: 80)
+            : const Duration(milliseconds: 300),
+        curve: _pressed ? Curves.easeIn : Curves.easeOutBack,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.secondary.withOpacity(0.4),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_rounded,
+                color: AppColors.secondary,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

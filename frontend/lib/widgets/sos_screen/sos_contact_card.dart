@@ -33,17 +33,18 @@ class SosContactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFirst = priority == 1;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.getCardBackgroundColor(),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.getBackgroundColor().withOpacity(0.5),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: priority == 1
-              ? AppColors.danger.withOpacity(0.25)
-              : AppTheme.getBorderColor(),
-          width: 1.5,
+          color: isFirst
+              ? AppColors.danger.withOpacity(0.28)
+              : AppTheme.getBorderColor().withOpacity(0.15),
+          width: isFirst ? 1 : 0.75,
         ),
       ),
       child: Row(
@@ -56,13 +57,15 @@ class SosContactCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: isFirst
+                      ? AppColors.danger.withOpacity(0.12)
+                      : AppColors.secondary.withOpacity(0.10),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: priority == 1
-                        ? AppColors.danger.withOpacity(0.4)
-                        : AppTheme.getBorderColor(),
-                    width: 1.5,
+                    color: isFirst
+                        ? AppColors.danger.withOpacity(0.3)
+                        : AppColors.secondary.withOpacity(0.2),
+                    width: 1,
                   ),
                 ),
                 child: Center(
@@ -73,7 +76,7 @@ class SosContactCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.getPrimaryTextColor(),
+                      color: isFirst ? AppColors.danger : AppColors.secondary,
                     ),
                   ),
                 ),
@@ -87,12 +90,10 @@ class SosContactCard extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: priority == 1
-                        ? AppColors.danger
-                        : AppColors.darkGray,
-                    borderRadius: BorderRadius.circular(6),
+                    color: isFirst ? AppColors.danger : AppColors.darkGray,
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppTheme.getCardBackgroundColor(),
+                      color: AppTheme.getBackgroundColor(),
                       width: 1.5,
                     ),
                   ),
@@ -116,15 +117,18 @@ class SosContactCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      contact.name,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.getPrimaryTextColor(),
+                    Flexible(
+                      child: Text(
+                        contact.name,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.getPrimaryTextColor(),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (priority == 1) ...[
+                    if (isFirst) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -133,7 +137,11 @@ class SosContactCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.danger.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: AppColors.danger.withOpacity(0.2),
+                            width: 0.75,
+                          ),
                         ),
                         child: const Text(
                           'PRIMARY',
@@ -162,8 +170,8 @@ class SosContactCard extends StatelessWidget {
           // Actions
           IconButton(
             icon: Icon(
-              Icons.edit_outlined,
-              size: 20,
+              Icons.edit_rounded,
+              size: 19,
               color: AppTheme.getSecondaryTextColor(),
             ),
             onPressed: onEdit,
@@ -172,8 +180,8 @@ class SosContactCard extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(
-              Icons.delete_outline,
-              size: 20,
+              Icons.delete_outline_rounded,
+              size: 19,
               color: AppColors.danger,
             ),
             onPressed: onDelete,

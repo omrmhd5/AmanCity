@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -96,90 +97,158 @@ class _SosAddContactDialogState extends State<SosAddContactDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppTheme.getCardBackgroundColor(),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      title: Text(
-        widget.existingContact != null ? 'Edit Contact' : 'Add SOS Contact',
-        style: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          color: AppTheme.getPrimaryTextColor(),
+    final isEdit = widget.existingContact != null;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.getBackgroundColor().withOpacity(0.88),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppTheme.getBorderColor().withOpacity(0.2),
+                width: 0.75,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.danger.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.danger.withOpacity(0.2),
+                            width: 0.75,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.person_add_rounded,
+                          color: AppColors.danger,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        isEdit ? 'Edit Contact' : 'Add SOS Contact',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.getPrimaryTextColor(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Name field
+                  TextFormField(
+                    controller: _nameController,
+                    textCapitalization: TextCapitalization.words,
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
+                      fontSize: 14,
+                    ),
+                    decoration: _fieldDecoration(
+                      'Full Name',
+                      Icons.person_outline,
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Name is required'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  // Phone field
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryTextColor(),
+                      fontSize: 14,
+                    ),
+                    decoration: _fieldDecoration(
+                      'Phone (with country code)',
+                      Icons.phone_outlined,
+                      hint: 'e.g. 201001234567',
+                    ),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty)
+                        return 'Phone is required';
+                      final digits = v.replaceAll(RegExp(r'\D'), '');
+                      if (digits.length < 7)
+                        return 'Enter a valid phone number';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Include country code without + or spaces. Example: 201001234567',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.getSecondaryTextColor().withOpacity(0.65),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: AppTheme.getSecondaryTextColor(),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _save,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 22,
+                            vertical: 11,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppColors.danger, Color(0xFFC0392B)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _nameController,
-              textCapitalization: TextCapitalization.words,
-              style: TextStyle(
-                color: AppTheme.getPrimaryTextColor(),
-                fontSize: 14,
-              ),
-              decoration: _fieldDecoration('Full Name', Icons.person_outline),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              style: TextStyle(
-                color: AppTheme.getPrimaryTextColor(),
-                fontSize: 14,
-              ),
-              decoration: _fieldDecoration(
-                'Phone (with country code)',
-                Icons.phone_outlined,
-                hint: 'e.g. 201001234567',
-              ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Phone is required';
-                final digits = v.replaceAll(RegExp(r'\D'), '');
-                if (digits.length < 7) return 'Enter a valid phone number';
-                return null;
-              },
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Include country code without + or spaces. Example: 201001234567',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppTheme.getSecondaryTextColor().withOpacity(0.65),
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            'Cancel',
-            style: TextStyle(color: AppTheme.getSecondaryTextColor()),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: _save,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.danger,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          ),
-          child: const Text(
-            'Save',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
     );
   }
 }
