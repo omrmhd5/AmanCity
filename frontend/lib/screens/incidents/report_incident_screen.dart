@@ -35,6 +35,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   TextEditingController _titleController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   bool _isSubmitting = false;
+  bool _submitPressed = false;
   File? _selectedFile;
   bool _isPickingFile = false;
   String? _geoLocationText;
@@ -218,36 +219,67 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
       builder: (ctx) => Container(
         decoration: BoxDecoration(
           color: AppTheme.getBackgroundColor(),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
             Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 10),
               width: 36,
               height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: AppTheme.getBorderColor(),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Text(
-              isPhoto ? 'Select Photo' : 'Select Video',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.getPrimaryTextColor(),
+            // Title row
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    isPhoto
+                        ? Icons.photo_camera_rounded
+                        : Icons.videocam_rounded,
+                    size: 17,
+                    color: AppColors.secondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isPhoto ? 'Select Photo' : 'Select Video',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.getPrimaryTextColor(),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
+            // Teal gradient divider
+            Container(
+              height: 1,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.secondary.withOpacity(0.0),
+                    AppColors.secondary.withOpacity(0.3),
+                    AppColors.secondary.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
             Row(
               children: [
                 Expanded(
                   child: _sourceOption(
-                    icon: isPhoto ? Icons.camera_alt : Icons.videocam,
+                    icon: isPhoto
+                        ? Icons.camera_alt_rounded
+                        : Icons.videocam_rounded,
                     label: 'Camera',
                     onTap: () => Navigator.pop(ctx, ImageSource.camera),
                   ),
@@ -255,7 +287,9 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _sourceOption(
-                    icon: isPhoto ? Icons.photo_library : Icons.video_library,
+                    icon: isPhoto
+                        ? Icons.photo_library_rounded
+                        : Icons.video_library_rounded,
                     label: 'Gallery',
                     onTap: () => Navigator.pop(ctx, ImageSource.gallery),
                   ),
@@ -456,21 +490,59 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
+                    // Header
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.report_rounded,
+                            size: 20,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Report Incident',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.getPrimaryTextColor(),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Help keep your community safe',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppTheme.getSecondaryTextColor(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Report Incident',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.getPrimaryTextColor(),
+                    ),
+                    const SizedBox(height: 10),
+                    // Teal gradient divider
+                    Container(
+                      height: 1,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.secondary.withOpacity(0.0),
+                            AppColors.secondary.withOpacity(0.3),
+                            AppColors.secondary.withOpacity(0.0),
+                          ],
                         ),
                       ),
                     ),
+                    const SizedBox(height: 4),
                     // Location Context Card
                     if (_currentLocation != null)
                       Padding(
@@ -503,21 +575,28 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                     const SizedBox(height: 16),
                     // Title Section
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 16.0,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Title',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.getSecondaryTextColor(),
-                              letterSpacing: 0.5,
-                            ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.title_rounded,
+                                size: 15,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'TITLE',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 12),
                           TextField(
@@ -565,14 +644,24 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Upload Evidence',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.getSecondaryTextColor(),
-                              letterSpacing: 0.5,
-                            ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.upload_file_rounded,
+                                size: 15,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'UPLOAD EVIDENCE',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 12),
                           if (_selectedFile == null)
@@ -604,14 +693,24 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Description (Optional)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.getSecondaryTextColor(),
-                              letterSpacing: 0.5,
-                            ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.notes_rounded,
+                                size: 15,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'DESCRIPTION (OPTIONAL)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 12),
                           TextField(
@@ -658,39 +757,90 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                     // Report Button
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isSubmitting ? null : _submitReport,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.danger,
-                            disabledBackgroundColor: AppColors.danger
-                                .withOpacity(0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTapDown: _isSubmitting
+                            ? null
+                            : (_) => setState(() => _submitPressed = true),
+                        onTapUp: _isSubmitting
+                            ? null
+                            : (_) {
+                                setState(() => _submitPressed = false);
+                                _submitReport();
+                              },
+                        onTapCancel: () =>
+                            setState(() => _submitPressed = false),
+                        child: AnimatedScale(
+                          scale: _submitPressed ? 0.96 : 1.0,
+                          duration: _submitPressed
+                              ? const Duration(milliseconds: 80)
+                              : const Duration(milliseconds: 300),
+                          curve: _submitPressed
+                              ? Curves.easeIn
+                              : Curves.easeOutBack,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: _isSubmitting
+                                    ? [
+                                        AppColors.danger.withOpacity(0.4),
+                                        AppColors.danger.withOpacity(0.3),
+                                      ]
+                                    : [
+                                        AppColors.danger,
+                                        AppColors.danger.withOpacity(0.75),
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: _isSubmitting
+                                  ? []
+                                  : [
+                                      BoxShadow(
+                                        color: AppColors.danger.withOpacity(
+                                          0.3,
+                                        ),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                             ),
-                            elevation: 4,
-                          ),
-                          child: _isSubmitting
-                              ? SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                            child: Center(
+                              child: _isSubmitting
+                                  ? const SizedBox(
+                                      height: 22,
+                                      width: 22,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.report_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Report Incident',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  'Report Incident',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
-class LocationContextCard extends StatelessWidget {
+class LocationContextCard extends StatefulWidget {
   final double latitude;
   final double longitude;
   final bool isLoading;
@@ -18,13 +18,39 @@ class LocationContextCard extends StatelessWidget {
     this.city,
   }) : super(key: key);
 
+  @override
+  State<LocationContextCard> createState() => _LocationContextCardState();
+}
+
+class _LocationContextCardState extends State<LocationContextCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 1.0, end: 1.6).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
   String _getLocationName() {
-    // Display geocoded address if available, otherwise show city or fallback
-    if (addressText != null && addressText!.isNotEmpty) {
-      return addressText!;
+    if (widget.addressText != null && widget.addressText!.isNotEmpty) {
+      return widget.addressText!;
     }
-    if (city != null && city!.isNotEmpty) {
-      return city!;
+    if (widget.city != null && widget.city!.isNotEmpty) {
+      return widget.city!;
     }
     return 'Current Location';
   }
@@ -33,32 +59,37 @@ class LocationContextCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.currentMode == AppThemeMode.dark
-            ? AppColors.primary
-            : AppColors.white,
-        border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.getBackgroundColor().withOpacity(0.5),
+        border: Border.all(
+          color: AppTheme.getBorderColor().withOpacity(0.15),
+          width: 0.75,
+        ),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          // Location icon
+          // Location icon container
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.secondary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.secondary.withOpacity(0.2),
+                width: 0.75,
+              ),
             ),
             child: Icon(
-              Icons.my_location,
+              Icons.my_location_rounded,
               color: AppColors.secondary,
               size: 20,
             ),
@@ -74,9 +105,9 @@ class LocationContextCard extends StatelessWidget {
                   'CURRENT LOCATION',
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.getSecondaryTextColor(),
-                    letterSpacing: 0.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondary,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -90,74 +121,82 @@ class LocationContextCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} PM • Auto-detected',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Auto-detected',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w400,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          // Mini map preview
+          // Mini map preview with animated pulse
           Container(
-            width: 48,
-            height: 48,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
-              color: AppTheme.currentMode == AppThemeMode.dark
-                  ? AppColors.neutral800
-                  : AppColors.lightGray,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  spreadRadius: 0,
-                ),
-              ],
+              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: AppTheme.currentMode == AppThemeMode.dark
+                    ? [const Color(0xFF1E3A5F), const Color(0xFF162B47)]
+                    : [const Color(0xFFD6E4FF), const Color(0xFFCDD6F4)],
+              ),
+              border: Border.all(
+                color: AppColors.secondary.withOpacity(0.2),
+                width: 0.75,
+              ),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Map background (gradient to simulate map)
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppTheme.currentMode == AppThemeMode.dark
-                            ? const Color(0xFF2A3F5F)
-                            : const Color(0xFFE0E7FF),
-                        AppTheme.currentMode == AppThemeMode.dark
-                            ? const Color(0xFF1A2F4F)
-                            : const Color(0xFFDDD6FE),
-                      ],
+                // Outer pulse ring
+                AnimatedBuilder(
+                  animation: _pulseAnim,
+                  builder: (_, __) => Transform.scale(
+                    scale: _pulseAnim.value,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
                 ),
-                // Location pulse
-                ScaleTransition(
-                  scale: AlwaysStoppedAnimation(1.0),
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary,
-                      borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.secondary.withOpacity(0.4),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
+                // Inner dot
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.secondary.withOpacity(0.5),
+                        blurRadius: 6,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
                 ),
               ],

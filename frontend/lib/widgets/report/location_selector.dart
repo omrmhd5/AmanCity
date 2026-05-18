@@ -26,7 +26,6 @@ class _LocationSelectorState extends State<LocationSelector> {
   late bool _useCurrentLocation;
   LatLng? _selectedLocation;
   String? _selectedAddressText;
-  String? _selectedCity;
   late String _lastMapStylePreference;
   late Timer _themePreferenceListener;
 
@@ -92,7 +91,6 @@ class _LocationSelectorState extends State<LocationSelector> {
           onAddressUpdated: (address, city) {
             setState(() {
               _selectedAddressText = address;
-              _selectedCity = city;
             });
           },
         ),
@@ -107,14 +105,24 @@ class _LocationSelectorState extends State<LocationSelector> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Location',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.getSecondaryTextColor(),
-              letterSpacing: 0.5,
-            ),
+          Row(
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                size: 15,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'LOCATION',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.getSecondaryTextColor(),
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           // Toggle Current / Manual Location
@@ -129,29 +137,29 @@ class _LocationSelectorState extends State<LocationSelector> {
                       widget.onLocationSelected(widget.currentLocation!);
                     }
                   },
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
                       color: _useCurrentLocation
-                          ? AppColors.secondary.withOpacity(0.2)
-                          : AppTheme.currentMode == AppThemeMode.dark
-                          ? AppColors.primary
-                          : AppColors.white,
+                          ? AppColors.secondary.withOpacity(0.12)
+                          : AppTheme.getBackgroundColor().withOpacity(0.5),
                       border: Border.all(
                         color: _useCurrentLocation
                             ? AppColors.secondary
-                            : AppTheme.getBorderColor(),
+                            : AppTheme.getBorderColor().withOpacity(0.15),
+                        width: _useCurrentLocation ? 1.5 : 0.75,
                       ),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.location_on,
+                          Icons.location_on_rounded,
                           color: _useCurrentLocation
                               ? AppColors.secondary
                               : AppTheme.getSecondaryTextColor(),
@@ -177,29 +185,29 @@ class _LocationSelectorState extends State<LocationSelector> {
               Expanded(
                 child: GestureDetector(
                   onTap: () => setState(() => _useCurrentLocation = false),
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
                       color: !_useCurrentLocation
-                          ? AppColors.secondary.withOpacity(0.2)
-                          : AppTheme.currentMode == AppThemeMode.dark
-                          ? AppColors.primary
-                          : AppColors.white,
+                          ? AppColors.secondary.withOpacity(0.12)
+                          : AppTheme.getBackgroundColor().withOpacity(0.5),
                       border: Border.all(
                         color: !_useCurrentLocation
                             ? AppColors.secondary
-                            : AppTheme.getBorderColor(),
+                            : AppTheme.getBorderColor().withOpacity(0.15),
+                        width: !_useCurrentLocation ? 1.5 : 0.75,
                       ),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.map,
+                          Icons.map_rounded,
                           color: !_useCurrentLocation
                               ? AppColors.secondary
                               : AppTheme.getSecondaryTextColor(),
@@ -229,23 +237,33 @@ class _LocationSelectorState extends State<LocationSelector> {
               onTap: _openMapPicker,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppTheme.currentMode == AppThemeMode.dark
-                      ? AppColors.primary
-                      : AppColors.white,
-                  border: Border.all(color: AppTheme.getBorderColor()),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppTheme.getBackgroundColor().withOpacity(0.5),
+                  border: Border.all(
+                    color: AppTheme.getBorderColor().withOpacity(0.15),
+                    width: 0.75,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      color: AppColors.secondary,
-                      size: 20,
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.secondary.withOpacity(0.2),
+                          width: 0.75,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.secondary,
+                        size: 18,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -253,46 +271,46 @@ class _LocationSelectorState extends State<LocationSelector> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Tap to open map',
+                            _selectedAddressText != null
+                                ? 'Location Selected'
+                                : 'Tap to open map',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppTheme.getSecondaryTextColor(),
+                              color: _selectedAddressText != null
+                                  ? AppColors.secondary
+                                  : AppTheme.getSecondaryTextColor(),
                             ),
                           ),
-                          if (_selectedAddressText != null)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 4),
-                                Text(
-                                  _selectedAddressText!,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppTheme.getPrimaryTextColor(),
-                                  ),
-                                ),
-                                if (_selectedCity != null) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'City: ${_selectedCity!}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppTheme.getSecondaryTextColor(),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                          if (_selectedAddressText != null) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              _selectedAddressText!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.getPrimaryTextColor(),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          ] else ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              'Choose a custom location on the map',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                     Icon(
-                      Icons.arrow_forward_ios,
+                      Icons.chevron_right_rounded,
                       color: AppTheme.getSecondaryTextColor(),
-                      size: 14,
+                      size: 20,
                     ),
                   ],
                 ),

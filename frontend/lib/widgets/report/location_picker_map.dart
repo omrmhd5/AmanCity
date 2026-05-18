@@ -34,6 +34,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   String? _geoLocationText;
   String? _geoLocationCity;
   StreamSubscription<Position>? _locationStreamSubscription;
+  bool _confirmPressed = false;
 
   // Search state
   final searchController = TextEditingController();
@@ -396,30 +397,67 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 decoration: BoxDecoration(
                   color: AppTheme.getBackgroundColor(),
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
+                    top: Radius.circular(24),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 12,
                       offset: const Offset(0, -2),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Selected Location',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.getSecondaryTextColor(),
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 12, bottom: 10),
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppTheme.getBorderColor(),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    // Selected location label
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 15,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'SELECTED LOCATION',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.getSecondaryTextColor(),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Teal gradient divider
+                    Container(
+                      height: 1,
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.secondary.withOpacity(0.0),
+                            AppColors.secondary.withOpacity(0.3),
+                            AppColors.secondary.withOpacity(0.0),
+                          ],
+                        ),
+                      ),
+                    ),
                     if (_geoLocationText != null)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,31 +492,79 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                           AppColors.secondary,
                         ),
                       ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Tap on the map to choose another location or drag the marker',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.getSecondaryTextColor(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _confirmLocation,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.secondary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.touch_app_rounded,
+                          size: 13,
+                          color: AppTheme.getSecondaryTextColor(),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Tap on the map to choose another location or drag the marker',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.getSecondaryTextColor(),
                           ),
                         ),
-                        child: Text(
-                          'Confirm Location',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Animated confirm button
+                    GestureDetector(
+                      onTapDown: (_) => setState(() => _confirmPressed = true),
+                      onTapUp: (_) {
+                        setState(() => _confirmPressed = false);
+                        _confirmLocation();
+                      },
+                      onTapCancel: () =>
+                          setState(() => _confirmPressed = false),
+                      child: AnimatedScale(
+                        scale: _confirmPressed ? 0.96 : 1.0,
+                        duration: _confirmPressed
+                            ? const Duration(milliseconds: 80)
+                            : const Duration(milliseconds: 300),
+                        curve: _confirmPressed
+                            ? Curves.easeIn
+                            : Curves.easeOutBack,
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.secondary,
+                                AppColors.secondary.withOpacity(0.72),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.secondary.withOpacity(0.35),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Confirm Location',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

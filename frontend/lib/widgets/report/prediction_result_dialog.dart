@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -26,11 +27,37 @@ class PredictionResultDialog extends StatefulWidget {
 
 class _PredictionResultDialogState extends State<PredictionResultDialog> {
   late PredictionResult _selectedPrediction;
+  bool _createPressed = false;
+  bool _dismissPressed = false;
 
   @override
   void initState() {
     super.initState();
     _selectedPrediction = widget.prediction;
+  }
+
+  /// Get icon based on model type
+  IconData _getModelIcon(String? model) {
+    switch (model?.toLowerCase()) {
+      case 'weapons':
+        return Icons.gavel_rounded;
+      case '7classes':
+        return Icons.nature_rounded;
+      default:
+        return Icons.security_rounded;
+    }
+  }
+
+  /// Get label based on model type
+  String _getModelLabel(String? model) {
+    switch (model?.toLowerCase()) {
+      case 'weapons':
+        return 'Weapon';
+      case '7classes':
+        return 'Environmental';
+      default:
+        return 'Crime';
+    }
   }
 
   /// Get color based on prediction confidence
@@ -77,6 +104,7 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
     required bool isSelected,
     required bool isAlternative,
     VoidCallback? onTap,
+    IconData? titleIcon,
   }) {
     final confidenceColor = _getConfidenceColor(
       confidence: confidence,
@@ -110,11 +138,24 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomText(
-                          text: title,
-                          size: 12,
-                          weight: FontWeight.w500,
-                          color: AppTheme.getSecondaryTextColor(),
+                        Row(
+                          children: [
+                            if (titleIcon != null)
+                              Icon(
+                                titleIcon,
+                                size: 14,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                            if (titleIcon != null) const SizedBox(width: 6),
+                            Expanded(
+                              child: CustomText(
+                                text: title,
+                                size: 12,
+                                weight: FontWeight.w500,
+                                color: AppTheme.getSecondaryTextColor(),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         CustomText(
@@ -373,20 +414,22 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.currentMode == AppThemeMode.dark
-              ? AppColors.primary
-              : AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Check Icon
-              Container(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.getBackgroundColor().withOpacity(0.85),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Check Icon
+                  Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
@@ -431,12 +474,9 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
               // Primary Prediction Card
               _buildPredictionCard(
                 title: isDual
-                    ? (widget.prediction.model?.toLowerCase() == 'weapons'
-                          ? '🔪 Weapon'
-                          : widget.prediction.model?.toLowerCase() == '7classes'
-                          ? '🌍 Environmental Incident'
-                          : '🚨 Crime Detection')
+                    ? _getModelLabel(widget.prediction.model)
                     : 'Detected Type',
+                titleIcon: isDual ? _getModelIcon(widget.prediction.model) : null,
                 className: widget.prediction.className,
                 confidence: widget.prediction.confidence,
                 isSelected:
@@ -453,25 +493,13 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
               // Alternative Prediction Cards (if multiple - up to 3 total)
               if (isDual && widget.prediction.alternatives != null)
                 ...widget.prediction.alternatives!.asMap().entries.map((entry) {
-                  final index = entry.key;
                   final alt = entry.value;
-
-                  // Get title based on model type
-                  String getModelTitle(String? model) {
-                    switch (model?.toLowerCase()) {
-                      case 'weapons':
-                        return '🔪 Weapon';
-                      case '7classes':
-                        return '🌍 Environmental Incident';
-                      default:
-                        return 'Alternative';
-                    }
-                  }
 
                   return Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: _buildPredictionCard(
-                      title: getModelTitle(alt.model),
+                      title: _getModelLabel(alt.model),
+                      titleIcon: _getModelIcon(alt.model),
                       className: alt.className,
                       confidence: alt.confidence,
                       isSelected:
@@ -491,29 +519,38 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                 children: [
                   // Dismiss Button
                   Expanded(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          widget.onDismiss?.call();
-                          Navigator.of(context).pop();
-                        },
-                        borderRadius: BorderRadius.circular(12),
+                    child: GestureDetector(
+                      onTapDown: (_) => setState(() => _dismissPressed = true),
+                      onTapUp: (_) {
+                        setState(() => _dismissPressed = false);
+                        widget.onDismiss?.call();
+                        Navigator.of(context).pop();
+                      },
+                      onTapCancel: () => setState(() => _dismissPressed = false),
+                      child: AnimatedScale(
+                        scale: _dismissPressed ? 0.96 : 1.0,
+                        duration: _dismissPressed
+                            ? const Duration(milliseconds: 80)
+                            : const Duration(milliseconds: 300),
+                        curve: _dismissPressed ? Curves.easeIn : Curves.easeOutBack,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           decoration: BoxDecoration(
+                            color: AppTheme.getBackgroundColor().withOpacity(0.5),
                             border: Border.all(
-                              color: AppTheme.getBorderColor(),
-                              width: 1.5,
+                              color: AppTheme.getBorderColor().withOpacity(0.25),
+                              width: 1,
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Center(
-                            child: CustomText(
-                              text: 'Cancel',
-                              size: 14,
-                              weight: FontWeight.w600,
-                              color: AppTheme.getPrimaryTextColor(),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.getPrimaryTextColor(),
+                              ),
                             ),
                           ),
                         ),
@@ -524,26 +561,46 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
 
                   // Create Incident Button
                   Expanded(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          widget.onCreateIncident?.call(_selectedPrediction);
-                          Navigator.of(context).pop();
-                        },
-                        borderRadius: BorderRadius.circular(12),
+                    child: GestureDetector(
+                      onTapDown: (_) => setState(() => _createPressed = true),
+                      onTapUp: (_) {
+                        setState(() => _createPressed = false);
+                        widget.onCreateIncident?.call(_selectedPrediction);
+                        Navigator.of(context).pop();
+                      },
+                      onTapCancel: () => setState(() => _createPressed = false),
+                      child: AnimatedScale(
+                        scale: _createPressed ? 0.96 : 1.0,
+                        duration: _createPressed
+                            ? const Duration(milliseconds: 80)
+                            : const Duration(milliseconds: 300),
+                        curve: _createPressed ? Curves.easeIn : Curves.easeOutBack,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary,
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.secondary,
+                                AppColors.secondary.withOpacity(0.72),
+                              ],
+                            ),
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.secondary.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: Center(
-                            child: CustomText(
-                              text: 'Create',
-                              size: 14,
-                              weight: FontWeight.w600,
-                              color: AppColors.white,
+                            child: Text(
+                              'Create',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -554,6 +611,8 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );
