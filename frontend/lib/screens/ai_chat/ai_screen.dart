@@ -43,6 +43,7 @@ class _AiScreenState extends State<AiScreen> {
   double? _userLat;
   double? _userLng;
   List<HotspotZone>? _cachedHotspots; // Cache hotspots for lazy loading
+  String _selectedLanguage = 'en_US';
 
   @override
   void initState() {
@@ -199,7 +200,11 @@ class _AiScreenState extends State<AiScreen> {
     return Column(
       children: [
         // Header
-        AiChatHeader(),
+        AiChatHeader(
+          onLanguageChanged: (language) {
+            setState(() => _selectedLanguage = language);
+          },
+        ),
         // Messages area
         Expanded(
           child: ListView.builder(
@@ -268,6 +273,7 @@ class _AiScreenState extends State<AiScreen> {
           onMicPress: () {
             // TODO: Implement voice input
           },
+          selectedLanguage: _selectedLanguage,
         ),
       ],
     );

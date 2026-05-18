@@ -4,8 +4,17 @@ import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
 import '../shared/custom_text.dart';
 
-class AiChatHeader extends StatelessWidget {
-  const AiChatHeader({Key? key}) : super(key: key);
+class AiChatHeader extends StatefulWidget {
+  final Function(String)? onLanguageChanged;
+
+  const AiChatHeader({Key? key, this.onLanguageChanged}) : super(key: key);
+
+  @override
+  State<AiChatHeader> createState() => _AiChatHeaderState();
+}
+
+class _AiChatHeaderState extends State<AiChatHeader> {
+  String _selectedLanguage = 'en_US';
 
   Future<void> _emergencyCall() async {
     try {
@@ -106,24 +115,70 @@ class AiChatHeader extends StatelessWidget {
                 ),
               ],
             ),
-            // Emergency button
-            GestureDetector(
-              onTap: _emergencyCall,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.danger,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.danger.withOpacity(0.4),
-                      blurRadius: 8,
-                      spreadRadius: 1,
+            // Language selector + Emergency button
+            Row(
+              children: [
+                // Language selector
+                PopupMenuButton<String>(
+                  initialValue: _selectedLanguage,
+                  onSelected: (language) {
+                    setState(() => _selectedLanguage = language);
+                    widget.onLanguageChanged?.call(language);
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(
+                      value: 'en_US',
+                      child: Text('🇺🇸 English'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'ar_SA',
+                      child: Text('🇸🇦 العربية'),
                     ),
                   ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCardBackgroundColor(),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppTheme.getBorderColor(),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      _selectedLanguage == 'en_US' ? '🇺🇸' : '🇸🇦',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  ),
                 ),
-                child: Icon(Icons.phone_in_talk, color: Colors.white, size: 20),
-              ),
+                const SizedBox(width: 8),
+                // Emergency button
+                GestureDetector(
+                  onTap: _emergencyCall,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.danger.withOpacity(0.4),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.phone_in_talk,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
