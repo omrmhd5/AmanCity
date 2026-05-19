@@ -5,8 +5,6 @@ import '../../widgets/home/home_hero.dart';
 import '../../widgets/home/home_report_card.dart';
 import '../../widgets/home/home_sos_card.dart';
 import '../../widgets/home/home_community_tools.dart';
-import '../sos/sos_contacts_screen.dart';
-import '../sos/sos_history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../incidents/news_screen.dart';
 import '../../data/app_colors.dart';
@@ -33,6 +31,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // SOS activation signal — set to true to auto-activate SosScreen
   final ValueNotifier<bool> _sosActivateSignal = ValueNotifier(false);
+  // SOS view signal — set to 'contacts' or 'history' to navigate to sub-view
+  final ValueNotifier<String?> _sosViewSignal = ValueNotifier(null);
 
   @override
   void initState() {
@@ -47,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     _entryController.dispose();
     _sosActivateSignal.dispose();
+    _sosViewSignal.dispose();
     super.dispose();
   }
 
@@ -152,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             setState(() => _sosActive = isActive);
           },
           activateSignal: _sosActivateSignal,
+          viewSignal: _sosViewSignal,
         ),
         // 5 — Profile
         const ProfileScreen(),
@@ -238,20 +240,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   });
                 },
                 onOpenSos: () => _onNavItemTapped(NavItem.sos),
-                onContactsTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        SosContactsScreen(onBack: () => Navigator.pop(context)),
-                  ),
-                ),
-                onRecordingsTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        SosHistoryScreen(onBack: () => Navigator.pop(context)),
-                  ),
-                ),
+                onContactsTap: () {
+                  _sosViewSignal.value = 'contacts';
+                  _onNavItemTapped(NavItem.sos);
+                },
+                onRecordingsTap: () {
+                  _sosViewSignal.value = 'history';
+                  _onNavItemTapped(NavItem.sos);
+                },
               ),
               start: 0.25,
               end: 0.85,

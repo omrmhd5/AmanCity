@@ -18,12 +18,14 @@ class SosScreen extends StatefulWidget {
   final VoidCallback? onBack;
   final ValueChanged<bool>? onActiveStateChanged;
   final ValueNotifier<bool>? activateSignal;
+  final ValueNotifier<String?>? viewSignal;
 
   const SosScreen({
     Key? key,
     this.onBack,
     this.onActiveStateChanged,
     this.activateSignal,
+    this.viewSignal,
   }) : super(key: key);
 
   @override
@@ -46,6 +48,8 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   double? _activeLng;
   _SosView _currentView = _SosView.idle;
 
+  bool _viewFromExternal = false;
+
   // Pressed states for management cards
   bool _contactsPressed = false;
   bool _historyPressed = false;
@@ -60,6 +64,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 700),
     )..forward();
     widget.activateSignal?.addListener(_onActivateSignal);
+    widget.viewSignal?.addListener(_onViewSignal);
   }
 
   @override
@@ -67,6 +72,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
     _entryController.dispose();
     _recordingTimer?.cancel();
     widget.activateSignal?.removeListener(_onActivateSignal);
+    widget.viewSignal?.removeListener(_onViewSignal);
     if (_isActive) {
       _sosService.stopRecording(lat: _activeLat, lng: _activeLng);
       _sosService.stopFlashStrobe();
@@ -79,6 +85,23 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
     if (widget.activateSignal?.value == true) {
       widget.activateSignal!.value = false;
       _onActivate();
+    }
+  }
+
+  void _onViewSignal() {
+    final v = widget.viewSignal?.value;
+    if (v == null) return;
+    widget.viewSignal!.value = null;
+    if (v == 'contacts') {
+      setState(() {
+        _currentView = _SosView.contacts;
+        _viewFromExternal = true;
+      });
+    } else if (v == 'history') {
+      setState(() {
+        _currentView = _SosView.history;
+        _viewFromExternal = true;
+      });
     }
   }
 
@@ -220,8 +243,16 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (_currentView != _SosView.idle) {
-            // If in contacts or history view, go back to idle
-            setState(() => _currentView = _SosView.idle);
+            final fromExternal = _viewFromExternal;
+            setState(() {
+              _currentView = _SosView.idle;
+              _viewFromExternal = false;
+            });
+            if (fromExternal) {
+              widget.onBack?.call();
+            } else {
+              _entryController.forward(from: 0);
+            }
           } else if (widget.onBack != null) {
             widget.onBack!();
           }
@@ -237,15 +268,31 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
               : _currentView == _SosView.contacts
               ? SosContactsScreen(
                   onBack: () {
-                    setState(() => _currentView = _SosView.idle);
-                    _entryController.forward(from: 0);
+                    final fromExternal = _viewFromExternal;
+                    setState(() {
+                      _currentView = _SosView.idle;
+                      _viewFromExternal = false;
+                    });
+                    if (fromExternal) {
+                      widget.onBack?.call();
+                    } else {
+                      _entryController.forward(from: 0);
+                    }
                   },
                 )
               : _currentView == _SosView.history
               ? SosHistoryScreen(
                   onBack: () {
-                    setState(() => _currentView = _SosView.idle);
-                    _entryController.forward(from: 0);
+                    final fromExternal = _viewFromExternal;
+                    setState(() {
+                      _currentView = _SosView.idle;
+                      _viewFromExternal = false;
+                    });
+                    if (fromExternal) {
+                      widget.onBack?.call();
+                    } else {
+                      _entryController.forward(from: 0);
+                    }
                   },
                 )
               : _buildIdleView(),
