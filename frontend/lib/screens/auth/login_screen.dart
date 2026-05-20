@@ -55,6 +55,17 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleAppleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await AuthService.instance.signInWithApple();
+    } catch (e) {
+      _showError(e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 LoginForm(onLoginPressed: _handleLogin, isLoading: _isLoading),
                 SocialLoginSection(
                   onGooglePressed: _handleGoogleLogin,
-                  onApplePressed: () {},
+                  onApplePressed: _handleAppleLogin,
                 ),
                 SignUpLinkSection(),
               ],

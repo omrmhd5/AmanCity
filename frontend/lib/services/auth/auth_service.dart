@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 
@@ -89,6 +92,67 @@ class AuthService {
         );
       }
       return user;
+    } on FirebaseAuthException catch (e) {
+      throw _friendlyErrorMessage(e.code);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Apple Sign-In
+  // ---------------------------------------------------------------------------
+
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  Future<User?> signInWithApple() async {
+    final rawNonce = _generateNonce();
+    final nonce = _sha256ofString(rawNonce);
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+
+      final cred = await _auth.signInWithCredential(oauthCredential);
+      final user = cred.user!;
+
+      if (cred.additionalUserInfo?.isNewUser ?? false) {
+        final fullName = [
+          appleCredential.givenName ?? '',
+          appleCredential.familyName ?? '',
+        ].where((s) => s.isNotEmpty).join(' ');
+
+        await _syncUserToBackend(
+          user,
+          name: fullName.isNotEmpty ? fullName : (user.displayName ?? ''),
+          phone: user.phoneNumber ?? '',
+        );
+      }
+      return user;
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return null;
+      throw 'Apple Sign-In failed. Please try again.';
     } on FirebaseAuthException catch (e) {
       throw _friendlyErrorMessage(e.code);
     }
