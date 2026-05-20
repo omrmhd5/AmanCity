@@ -72,8 +72,10 @@
 	<string>AmanCity uses the camera flash for emergency strobe signaling during SOS.</string>
 
 	<!-- SOS: Audio recording -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>AmanCity needs access to speech recognition to process your voice commands for urban safety reporting.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>AmanCity records audio during an active SOS alert to preserve evidence.</string>
+	<string>AmanCity needs access to your microphone to record audio for emergency alerts and voice inputs.</string>
 
 	<!-- Location permissions -->
 	<key>NSLocationWhenInUseUsageDescription</key>
