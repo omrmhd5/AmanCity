@@ -29,12 +29,74 @@ const _requiredPermissions = [
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
-  await Firebase.initializeApp();
-  await NotificationService.instance.init();
-  UserLocationSyncService.instance.start();
-  ConnectivityService.instance.init();
-  runApp(const MyApp());
+
+  // Catch any uncaught Flutter framework errors and print them
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exceptionAsString()}');
+  };
+
+  try {
+    // Load .env — gracefully skip if file is missing in the build
+    try {
+      await dotenv.load();
+    } catch (e) {
+      debugPrint('Warning: .env not loaded — $e');
+    }
+
+    await Firebase.initializeApp();
+
+    try {
+      await NotificationService.instance.init();
+    } catch (e) {
+      debugPrint('Warning: Notifications init failed — $e');
+    }
+
+    UserLocationSyncService.instance.start();
+    ConnectivityService.instance.init();
+
+    runApp(const MyApp());
+  } catch (e, stack) {
+    debugPrint('Fatal startup error: $e\n$stack');
+    runApp(_ErrorApp(message: e.toString()));
+  }
+}
+
+class _ErrorApp extends StatelessWidget {
+  final String message;
+  const _ErrorApp({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'AmanCity failed to start',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
