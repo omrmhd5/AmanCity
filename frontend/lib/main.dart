@@ -16,6 +16,7 @@ import 'services/notifications/notification_service.dart';
 import 'services/core/user_location_sync_service.dart';
 import 'services/core/connectivity_service.dart';
 import 'widgets/connectivity_wrapper.dart';
+import 'firebase_options.dart';
 
 /// Permissions that must be granted before using the app.
 const _requiredPermissions = [
@@ -29,6 +30,23 @@ const _requiredPermissions = [
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Catch UI rendering errors and paint them on the screen instead of a white void.
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: Colors.black,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'UI CRASH:\n${details.exception}\n\n${details.stack}',
+            style: const TextStyle(color: Colors.yellow, fontSize: 12),
+            textDirection: TextDirection.ltr,
+          ),
+        ),
+      ),
+    );
+  };
 
   // Catch any uncaught Flutter framework errors and print them
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -44,7 +62,9 @@ void main() async {
       debugPrint('Warning: .env not loaded — $e');
     }
 
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     try {
       await NotificationService.instance.init();
