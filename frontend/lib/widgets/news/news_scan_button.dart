@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
-import '../../utils/app_theme.dart';
 import '../shared/custom_text.dart';
 
 class NewsScanButton extends StatelessWidget {
@@ -27,14 +26,7 @@ class NewsScanButton extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.secondary,
-                    Colors.blue[400] ?? Colors.blue,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: AppColors.secondary,
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(

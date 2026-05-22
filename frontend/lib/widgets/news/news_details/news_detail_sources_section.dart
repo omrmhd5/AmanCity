@@ -33,7 +33,6 @@ class NewsDetailSourcesSection extends StatelessWidget {
         }
       }
     } catch (e) {
-      print('Error launching URL: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -53,11 +52,21 @@ class NewsDetailSourcesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            text: 'Sources',
-            size: 14,
-            weight: FontWeight.w600,
-            color: AppTheme.getPrimaryTextColor(),
+          // Section label
+          Row(
+            children: [
+              Icon(Icons.link_rounded, size: 15, color: AppColors.secondary),
+              const SizedBox(width: 6),
+              Text(
+                'SOURCES',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.getSecondaryTextColor(),
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Container(
@@ -84,30 +93,34 @@ class NewsDetailSourcesSection extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.05),
+                            color: AppColors.secondary.withOpacity(0.06),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.blue.withOpacity(0.2),
+                              color: AppColors.secondary.withOpacity(0.2),
                               width: 1,
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.link, size: 14, color: Colors.blue),
+                              Icon(
+                                Icons.link,
+                                size: 14,
+                                color: AppColors.secondary,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: CustomText(
                                   text: entry.value,
                                   size: 12,
                                   weight: FontWeight.w500,
-                                  color: Colors.blue,
+                                  color: AppColors.secondary,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Icon(
                                 Icons.open_in_new,
                                 size: 12,
-                                color: Colors.blue,
+                                color: AppColors.secondary,
                               ),
                             ],
                           ),

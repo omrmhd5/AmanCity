@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/app_colors.dart';
 import '../../models/incidents/osint_incident.dart';
 import '../../services/incidents/osint_api_service.dart';
 import '../../utils/app_theme.dart';
@@ -19,7 +20,10 @@ class NewsScreen extends StatefulWidget {
   State<NewsScreen> createState() => _NewsScreenState();
 }
 
-class _NewsScreenState extends State<NewsScreen> {
+class _NewsScreenState extends State<NewsScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _entryController;
+
   List<OsintIncident> _incidents = [];
   bool _isLoading = false;
   bool _isScanning = false;
@@ -33,7 +37,34 @@ class _NewsScreenState extends State<NewsScreen> {
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     _fetchIncidents();
+  }
+
+  @override
+  void dispose() {
+    _entryController.dispose();
+    super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   /// Fetch incidents from backend
@@ -137,78 +168,138 @@ class _NewsScreenState extends State<NewsScreen> {
         body: SafeArea(
           child: _isLoading && _incidents.isEmpty
               ? _buildLoadingState()
-              : RefreshIndicator(
-                  onRefresh: _fetchIncidents,
-                  child: ListView(
-                    children: [
-                      // Header
+              : Column(
+                  children: [
+                    // Header
+                    _animated(
                       NewsHeader(onBackPressed: widget.onBack),
-
-                      // Scan Button
-                      NewsScanButton(
-                        onPressed: _triggerScan,
-                        isLoading: _isScanning,
-                        errorMessage: _scanError,
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Scan Result Banner
-                      if (_lastScanResult != null)
-                        NewsScanResultBanner(
-                          scanned: _lastScanResult!['scanned'] ?? 0,
-                          saved: _lastScanResult!['saved'] ?? 0,
-                          onDismiss: () {
-                            setState(() {
-                              _lastScanResult = null;
-                            });
-                          },
-                        ),
-
-                      const SizedBox(height: 12),
-
-                      // Search Bar
-                      NewsSearchBar(
-                        searchQuery: _searchQuery,
-                        onSearchChanged: (value) {
-                          setState(() => _searchQuery = value);
-                        },
-                      ),
-
-                      // Type Filter
-                      NewsTypeFilter(
-                        selectedFilter: _selectedTypeFilter,
-                        onFilterChanged: (filter) {
-                          setState(() => _selectedTypeFilter = filter);
-                        },
-                        showAllTypes: _showAllTypes,
-                        onShowAllTypesChanged: (value) {
-                          setState(() => _showAllTypes = value);
-                        },
-                      ),
-
-                      // Incidents List or Empty State
-                      if (_error != null)
-                        _buildErrorState()
-                      else if (_incidents.isEmpty)
-                        _buildEmptyState()
-                      else if (_getFilteredIncidents().isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Center(
-                            child: Text(
-                              'No incidents match your search or filter',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.getSecondaryTextColor(),
-                              ),
-                            ),
+                      start: 0.0,
+                      end: 0.5,
+                    ),
+                    // Teal gradient divider
+                    _animated(
+                      Container(
+                        height: 1,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.secondary.withOpacity(0.0),
+                              AppColors.secondary.withOpacity(0.3),
+                              AppColors.secondary.withOpacity(0.0),
+                            ],
                           ),
-                        )
-                      else
-                        ..._buildIncidentsList(),
-                    ],
-                  ),
+                        ),
+                      ),
+                      start: 0.05,
+                      end: 0.55,
+                    ),
+                    // Scrollable content
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _fetchIncidents,
+                        child: ListView(
+                          physics: const BouncingScrollPhysics(),
+                          children: [
+                            // Scan Button
+                            _animated(
+                              NewsScanButton(
+                                onPressed: _triggerScan,
+                                isLoading: _isScanning,
+                                errorMessage: _scanError,
+                              ),
+                              start: 0.1,
+                              end: 0.65,
+                            ),
+
+                            // Scan Result Banner
+                            if (_lastScanResult != null)
+                              _animated(
+                                NewsScanResultBanner(
+                                  scanned: _lastScanResult!['scanned'] ?? 0,
+                                  saved: _lastScanResult!['saved'] ?? 0,
+                                  onDismiss: () {
+                                    setState(() => _lastScanResult = null);
+                                  },
+                                ),
+                                start: 0.1,
+                                end: 0.65,
+                              ),
+
+                            // Search Bar
+                            _animated(
+                              NewsSearchBar(
+                                searchQuery: _searchQuery,
+                                onSearchChanged: (value) {
+                                  setState(() => _searchQuery = value);
+                                },
+                              ),
+                              start: 0.15,
+                              end: 0.7,
+                            ),
+
+                            // Type Filter
+                            _animated(
+                              NewsTypeFilter(
+                                selectedFilter: _selectedTypeFilter,
+                                onFilterChanged: (filter) {
+                                  setState(() => _selectedTypeFilter = filter);
+                                },
+                                showAllTypes: _showAllTypes,
+                                onShowAllTypesChanged: (value) {
+                                  setState(() => _showAllTypes = value);
+                                },
+                              ),
+                              start: 0.2,
+                              end: 0.75,
+                            ),
+
+                            // Section label
+                            _animated(
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  12,
+                                  20,
+                                  4,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.newspaper_rounded,
+                                      size: 15,
+                                      color: AppColors.secondary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'INCIDENTS',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.getSecondaryTextColor(),
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              start: 0.25,
+                              end: 0.8,
+                            ),
+
+                            // Incidents List or States
+                            if (_error != null)
+                              _buildErrorState()
+                            else if (_incidents.isEmpty)
+                              _buildEmptyState()
+                            else if (_getFilteredIncidents().isEmpty)
+                              _buildNoResultsState()
+                            else
+                              ..._buildIncidentsList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
         ),
       ),
@@ -218,7 +309,7 @@ class _NewsScreenState extends State<NewsScreen> {
   Widget _buildLoadingState() {
     return Center(
       child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation(AppTheme.getSecondaryTextColor()),
+        valueColor: AlwaysStoppedAnimation(AppColors.secondary),
       ),
     );
   }
@@ -228,10 +319,17 @@ class _NewsScreenState extends State<NewsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
       child: Column(
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: AppTheme.getSecondaryTextColor(),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.danger.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.error_outline_rounded,
+              size: 36,
+              color: AppColors.danger,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -252,9 +350,27 @@ class _NewsScreenState extends State<NewsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _fetchIncidents,
-            child: const Text('Retry'),
+          GestureDetector(
+            onTap: _fetchIncidents,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.secondary.withOpacity(0.4),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                'Retry',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -266,14 +382,21 @@ class _NewsScreenState extends State<NewsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
       child: Column(
         children: [
-          Icon(
-            Icons.newspaper_outlined,
-            size: 48,
-            color: AppTheme.getSecondaryTextColor(),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.newspaper_outlined,
+              size: 36,
+              color: AppColors.secondary,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
-            'No news yet',
+            'No incidents yet',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -294,11 +417,27 @@ class _NewsScreenState extends State<NewsScreen> {
     );
   }
 
+  Widget _buildNoResultsState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      child: Center(
+        child: Text(
+          'No incidents match your search or filter',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.getSecondaryTextColor(),
+          ),
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildIncidentsList() {
     final filteredIncidents = _getFilteredIncidents();
     return [
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Text(
           '${filteredIncidents.length} of ${_incidents.length} incidents',
           style: TextStyle(
@@ -308,14 +447,18 @@ class _NewsScreenState extends State<NewsScreen> {
           ),
         ),
       ),
-      ...filteredIncidents
-          .map(
-            (incident) => NewsFeedCard(
-              incident: incident,
-              onTap: () => _showIncidentDetails(incident),
-            ),
-          )
-          .toList(),
+      ...filteredIncidents.asMap().entries.map((entry) {
+        final i = entry.key;
+        final incident = entry.value;
+        return _animated(
+          NewsFeedCard(
+            incident: incident,
+            onTap: () => _showIncidentDetails(incident),
+          ),
+          start: (0.3 + i * 0.04).clamp(0.0, 0.85),
+          end: (0.65 + i * 0.04).clamp(0.0, 1.0),
+        );
+      }),
       const SizedBox(height: 20),
     ];
   }

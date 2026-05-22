@@ -20,66 +20,133 @@ class NewsDetailConfidenceSection extends StatelessWidget {
     }
   }
 
+  String _getConfidenceLevelText() {
+    if (incident.osintConfidence >= 0.7) return 'HIGH';
+    if (incident.osintConfidence >= 0.4) return 'MEDIUM';
+    return 'LOW';
+  }
+
   @override
   Widget build(BuildContext context) {
     final confidenceColor = _getConfidenceColor();
+    final levelText = _getConfidenceLevelText();
+    final percent = '${(incident.osintConfidence * 100).toStringAsFixed(0)}%';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            text: 'Confidence Score',
-            size: 14,
-            weight: FontWeight.w600,
-            color: AppTheme.getPrimaryTextColor(),
+          // Section label
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.smart_toy_rounded,
+                    size: 15,
+                    color: AppColors.secondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'AI CONFIDENCE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.getSecondaryTextColor(),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: confidenceColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: confidenceColor.withOpacity(0.4),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  levelText,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: confidenceColor,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
+          // Confidence card
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppTheme.getCardBackgroundColor(),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.getBorderColor(), width: 1),
             ),
-            child: Center(
-              child: SizedBox(
-                height: 100,
-                child: Stack(
-                  alignment: Alignment.center,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: CircularProgressIndicator(
-                        value: incident.osintConfidence,
-                        strokeWidth: 8,
-                        backgroundColor: AppTheme.getBorderColor(),
-                        valueColor: AlwaysStoppedAnimation(confidenceColor),
-                      ),
+                    CustomText(
+                      text: 'Detection Score',
+                      size: 13,
+                      weight: FontWeight.w500,
+                      color: AppTheme.getPrimaryTextColor(),
                     ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CustomText(
-                          text:
-                              '${(incident.osintConfidence * 100).toStringAsFixed(0)}%',
-                          size: 24,
-                          weight: FontWeight.w700,
-                          color: confidenceColor,
-                        ),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          text: 'Confidence',
-                          size: 10,
-                          weight: FontWeight.w400,
-                          color: AppTheme.getSecondaryTextColor(),
-                        ),
-                      ],
+                    CustomText(
+                      text: percent,
+                      size: 18,
+                      weight: FontWeight.w700,
+                      color: confidenceColor,
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: incident.osintConfidence,
+                    minHeight: 8,
+                    backgroundColor: confidenceColor.withOpacity(0.2),
+                    valueColor: AlwaysStoppedAnimation<Color>(confidenceColor),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      incident.osintConfidence >= 0.7
+                          ? Icons.check_circle_rounded
+                          : incident.osintConfidence >= 0.4
+                          ? Icons.info_rounded
+                          : Icons.warning_rounded,
+                      size: 15,
+                      color: confidenceColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: CustomText(
+                        text: incident.osintConfidence >= 0.7
+                            ? 'High AI confidence in detection'
+                            : incident.osintConfidence >= 0.4
+                            ? 'Moderate AI confidence in detection'
+                            : 'Low AI confidence — verify manually',
+                        size: 12,
+                        weight: FontWeight.w400,
+                        color: AppTheme.getSecondaryTextColor(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

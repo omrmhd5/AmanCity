@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/date_time_utils.dart';
 import '../../../models/incidents/osint_incident.dart';
@@ -61,11 +62,25 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            text: 'Location',
-            size: 14,
-            weight: FontWeight.w600,
-            color: AppTheme.getPrimaryTextColor(),
+          // Section label
+          Row(
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                size: 15,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'LOCATION',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.getSecondaryTextColor(),
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Container(
