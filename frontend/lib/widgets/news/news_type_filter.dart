@@ -3,6 +3,7 @@ import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import '../../data/incident_types_config.dart';
 import '../shared/custom_text.dart';
+import '../shared/custom_filter_chips.dart';
 
 class NewsTypeFilter extends StatelessWidget {
   final String? selectedFilter;
@@ -27,11 +28,14 @@ class NewsTypeFilter extends StatelessWidget {
         child: Row(
           children: [
             // "All" chip
-            _FilterChip(
+            CustomFilterChip(
               label: 'All',
               isSelected: selectedFilter == null,
               selectedColor: AppColors.secondary,
               onTap: () => onFilterChanged(null),
+              fontSize: 12,
+              iconSize: 14,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             ),
             const SizedBox(width: 6),
             // Incident type chips
@@ -42,7 +46,7 @@ class NewsTypeFilter extends StatelessWidget {
                 final isSelected = selectedFilter == config.key;
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
-                  child: _FilterChip(
+                  child: CustomFilterChip(
                     label: config.displayName,
                     icon: config.icon,
                     isSelected: isSelected,
@@ -50,6 +54,12 @@ class NewsTypeFilter extends StatelessWidget {
                     iconColor: config.color,
                     onTap: () =>
                         onFilterChanged(isSelected ? null : config.key),
+                    fontSize: 12,
+                    iconSize: 14,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
                   ),
                 );
               },
@@ -79,87 +89,6 @@ class NewsTypeFilter extends StatelessWidget {
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatefulWidget {
-  final String label;
-  final IconData? icon;
-  final bool isSelected;
-  final Color selectedColor;
-  final Color? iconColor;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    this.icon,
-    required this.isSelected,
-    required this.selectedColor,
-    this.iconColor,
-    required this.onTap,
-  });
-
-  @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedScale(
-      scale: _pressed ? 0.95 : 1.0,
-      duration: _pressed
-          ? const Duration(milliseconds: 80)
-          : const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: widget.isSelected
-                ? widget.selectedColor.withOpacity(0.15)
-                : AppTheme.getCardBackgroundColor(),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: widget.isSelected
-                  ? widget.selectedColor.withOpacity(0.5)
-                  : AppTheme.getBorderColor(),
-              width: widget.isSelected ? 1.5 : 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.icon != null) ...[
-                Icon(
-                  widget.icon,
-                  size: 13,
-                  color: widget.iconColor ?? widget.selectedColor,
-                ),
-                const SizedBox(width: 5),
-              ],
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: widget.isSelected
-                      ? widget.selectedColor
-                      : AppTheme.getPrimaryTextColor(),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

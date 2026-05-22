@@ -4,6 +4,7 @@ import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
 import '../../../data/incident_types_config.dart';
 import '../../shared/custom_text.dart';
+import '../../shared/custom_filter_chips.dart';
 
 class FilterSettings {
   final double radiusKm;
@@ -313,58 +314,19 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                               scale: isSelected ? 1.06 : 1.0,
                               duration: const Duration(milliseconds: 260),
                               curve: Curves.easeOutBack,
-                              child: FilterChip(
-                                label: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      incident.icon,
-                                      size: 16,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : incident.color,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      incident.displayName,
-                                      style: TextStyle(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppTheme.getPrimaryTextColor(),
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      selectedIncidentTypes.add(incident.key);
-                                    } else {
-                                      selectedIncidentTypes.remove(
-                                        incident.key,
-                                      );
-                                    }
-                                  });
-                                },
+                              child: CustomFilterChip(
+                                label: incident.displayName,
+                                icon: incident.icon,
+                                isSelected: isSelected,
                                 selectedColor: incident.color,
-                                backgroundColor:
-                                    AppTheme.getCardBackgroundColor(),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? incident.color
-                                      : AppTheme.getBorderColor(),
-                                  width: isSelected ? 2 : 1,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
+                                iconColor: incident.color,
+                                onTap: () => setState(() {
+                                  if (isSelected) {
+                                    selectedIncidentTypes.remove(incident.key);
+                                  } else {
+                                    selectedIncidentTypes.add(incident.key);
+                                  }
+                                }),
                               ),
                             );
                           },

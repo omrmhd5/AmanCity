@@ -9,6 +9,7 @@ import '../../../models/incidents/bulk_incident.dart';
 import '../../../services/map/location_service.dart';
 import '../../shared/custom_text.dart';
 import '../../shared/custom_search_bar.dart';
+import '../../shared/custom_filter_chips.dart';
 import 'nearby_alert_card.dart';
 import 'nearby_bulk_alert_card.dart';
 import '../../../screens/incidents/incident_detail_sheet.dart';
@@ -569,49 +570,18 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                       child: Row(
                                         children: [
                                           // "All" chip
-                                          AnimatedScale(
-                                            scale: _selectedFilter == null
-                                                ? 1.06
-                                                : 1.0,
-                                            duration: const Duration(
-                                              milliseconds: 260,
+                                          CustomFilterChip(
+                                            label: 'All',
+                                            isSelected: _selectedFilter == null,
+                                            selectedColor: AppColors.secondary,
+                                            onTap: () => setState(
+                                              () => _selectedFilter = null,
                                             ),
-                                            curve: Curves.easeOutBack,
-                                            child: FilterChip(
-                                              label: const Text(
-                                                'All',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 11,
-                                                ),
-                                              ),
-                                              selected: _selectedFilter == null,
-                                              onSelected: (selected) {
-                                                setState(
-                                                  () => _selectedFilter = null,
-                                                );
-                                              },
-                                              selectedColor:
-                                                  AppColors.secondary,
-                                              backgroundColor:
-                                                  AppTheme.getCardBackgroundColor(),
-                                              side: BorderSide(
-                                                color: _selectedFilter == null
-                                                    ? AppColors.secondary
-                                                    : AppTheme.getBorderColor(),
-                                                width: _selectedFilter == null
-                                                    ? 2
-                                                    : 1,
-                                              ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 6,
-                                                  ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
+                                            fontSize: 12,
+                                            iconSize: 14,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 14,
+                                              vertical: 9,
                                             ),
                                           ),
                                           const SizedBox(width: 6),
@@ -638,72 +608,24 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                                 padding: const EdgeInsets.only(
                                                   right: 6,
                                                 ),
-                                                child: AnimatedScale(
-                                                  scale: isSelected
-                                                      ? 1.06
-                                                      : 1.0,
-                                                  duration: const Duration(
-                                                    milliseconds: 260,
-                                                  ),
-                                                  curve: Curves.easeOutBack,
-                                                  child: FilterChip(
-                                                    label: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          config.icon,
-                                                          size: 14,
-                                                          color: isSelected
-                                                              ? Colors.white
-                                                              : config.color,
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 4,
-                                                        ),
-                                                        Text(
-                                                          config.displayName,
-                                                          style: TextStyle(
-                                                            color: isSelected
-                                                                ? Colors.white
-                                                                : AppTheme.getPrimaryTextColor(),
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontSize: 11,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    selected: isSelected,
-                                                    onSelected: (selected) {
-                                                      setState(() {
-                                                        _selectedFilter =
-                                                            selected
-                                                            ? config.key
-                                                            : null;
-                                                      });
-                                                    },
-                                                    selectedColor: config.color,
-                                                    backgroundColor:
-                                                        AppTheme.getCardBackgroundColor(),
-                                                    side: BorderSide(
-                                                      color: isSelected
-                                                          ? config.color
-                                                          : AppTheme.getBorderColor(),
-                                                      width: isSelected ? 2 : 1,
-                                                    ),
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 6,
-                                                        ),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            16,
-                                                          ),
-                                                    ),
-                                                  ),
+                                                child: CustomFilterChip(
+                                                  label: config.displayName,
+                                                  icon: config.icon,
+                                                  isSelected: isSelected,
+                                                  selectedColor: config.color,
+                                                  iconColor: config.color,
+                                                  onTap: () => setState(() {
+                                                    _selectedFilter = isSelected
+                                                        ? null
+                                                        : config.key;
+                                                  }),
+                                                  fontSize: 12,
+                                                  iconSize: 14,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 14,
+                                                        vertical: 9,
+                                                      ),
                                                 ),
                                               );
                                             },

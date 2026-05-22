@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../utils/app_theme.dart';
 import '../../shared/custom_search_bar.dart';
+import '../../shared/custom_filter_chips.dart';
 import 'map_filter_button.dart';
 import 'filter_options_sheet.dart';
 
@@ -104,54 +104,27 @@ class _MapFilterSectionState extends State<MapFilterSection> {
 
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  icon,
-                                  size: 16,
-                                  color: isSelected ? Colors.white : color,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  label,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : AppTheme.getPrimaryTextColor(),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            selected: isSelected,
-                            onSelected: (selected) {
+                          child: CustomFilterChip(
+                            label: label,
+                            icon: icon,
+                            isSelected: isSelected,
+                            selectedColor: color,
+                            iconColor: color,
+                            onTap: () {
                               setState(() {
-                                if (selected) {
-                                  selectedFilters.add(label);
-                                } else {
+                                if (isSelected) {
                                   selectedFilters.remove(label);
+                                } else {
+                                  selectedFilters.add(label);
                                 }
                               });
-                              // Notify parent about the selected filter
                               widget.onFilterChanged?.call(label);
                             },
-                            selectedColor: color,
-                            backgroundColor: AppTheme.getCardBackgroundColor(),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? color
-                                  : AppTheme.getBorderColor(),
-                              width: isSelected ? 2 : 1,
-                            ),
+                            fontSize: 11.5,
+                            iconSize: 13,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
+                              horizontal: 14,
                               vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
                             ),
                           ),
                         );
