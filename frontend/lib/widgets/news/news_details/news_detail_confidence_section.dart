@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../models/incidents/osint_incident.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
-import '../../shared/custom_text.dart';
 
 class NewsDetailConfidenceSection extends StatelessWidget {
   final OsintIncident incident;
@@ -11,26 +10,29 @@ class NewsDetailConfidenceSection extends StatelessWidget {
     : super(key: key);
 
   Color _getConfidenceColor() {
-    if (incident.osintConfidence >= 0.7) {
-      return AppColors.danger;
-    } else if (incident.osintConfidence >= 0.4) {
-      return AppColors.warning;
-    } else {
-      return AppColors.success;
-    }
+    if (incident.osintConfidence >= 0.7) return AppColors.danger;
+    if (incident.osintConfidence >= 0.4) return AppColors.warning;
+    return AppColors.success;
   }
 
-  String _getConfidenceLevelText() {
+  String _getLevelText() {
     if (incident.osintConfidence >= 0.7) return 'HIGH';
     if (incident.osintConfidence >= 0.4) return 'MEDIUM';
     return 'LOW';
   }
 
+  String _getLevelDescription() {
+    if (incident.osintConfidence >= 0.7)
+      return 'High confidence in this incident detection';
+    if (incident.osintConfidence >= 0.4)
+      return 'Moderate confidence — treat with some caution';
+    return 'Low confidence — verify manually';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final confidenceColor = _getConfidenceColor();
-    final levelText = _getConfidenceLevelText();
-    final percent = '${(incident.osintConfidence * 100).toStringAsFixed(0)}%';
+    final color = _getConfidenceColor();
+    final percent = (incident.osintConfidence * 100).toStringAsFixed(0);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -50,7 +52,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'AI CONFIDENCE',
+                    'CONFIDENCE',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -63,94 +65,212 @@ class NewsDetailConfidenceSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: confidenceColor.withOpacity(0.12),
+                  color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: confidenceColor.withOpacity(0.4),
-                    width: 1,
-                  ),
+                  border: Border.all(color: color.withOpacity(0.4), width: 1),
                 ),
                 child: Text(
-                  levelText,
+                  _getLevelText(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: confidenceColor,
+                    color: color,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Confidence card
+          const SizedBox(height: 16),
+          // Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             decoration: BoxDecoration(
               color: AppTheme.getCardBackgroundColor(),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppTheme.getBorderColor(), width: 1),
             ),
-            child: Column(
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      text: 'Detection Score',
-                      size: 13,
-                      weight: FontWeight.w500,
-                      color: AppTheme.getPrimaryTextColor(),
-                    ),
-                    CustomText(
-                      text: percent,
-                      size: 18,
-                      weight: FontWeight.w700,
-                      color: confidenceColor,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: incident.osintConfidence,
-                    minHeight: 8,
-                    backgroundColor: confidenceColor.withOpacity(0.2),
-                    valueColor: AlwaysStoppedAnimation<Color>(confidenceColor),
+                // Circular gauge
+                SizedBox(
+                  width: 110,
+                  height: 110,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Track ring
+                      SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: CircularProgressIndicator(
+                          value: 1.0,
+                          strokeWidth: 9,
+                          strokeCap: StrokeCap.round,
+                          valueColor: AlwaysStoppedAnimation(
+                            color.withOpacity(0.12),
+                          ),
+                        ),
+                      ),
+                      // Value ring
+                      SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: CircularProgressIndicator(
+                          value: incident.osintConfidence,
+                          strokeWidth: 9,
+                          strokeCap: StrokeCap.round,
+                          backgroundColor: Colors.transparent,
+                          valueColor: AlwaysStoppedAnimation(color),
+                        ),
+                      ),
+                      // Center text
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$percent%',
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: color,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'score',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.getSecondaryTextColor(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      incident.osintConfidence >= 0.7
-                          ? Icons.check_circle_rounded
-                          : incident.osintConfidence >= 0.4
-                          ? Icons.info_rounded
-                          : Icons.warning_rounded,
-                      size: 15,
-                      color: confidenceColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: CustomText(
-                        text: incident.osintConfidence >= 0.7
-                            ? 'High AI confidence in detection'
-                            : incident.osintConfidence >= 0.4
-                            ? 'Moderate AI confidence in detection'
-                            : 'Low AI confidence — verify manually',
-                        size: 12,
-                        weight: FontWeight.w400,
-                        color: AppTheme.getSecondaryTextColor(),
+                const SizedBox(width: 20),
+                // Right side info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Confidence Score',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.getSecondaryTextColor(),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        '$percent%',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.getPrimaryTextColor(),
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Mini tick marks for Low / Med / High
+                      Row(
+                        children: [
+                          _LevelDot(
+                            label: 'Low',
+                            active: incident.osintConfidence < 0.4,
+                            color: AppColors.success,
+                          ),
+                          const SizedBox(width: 6),
+                          _LevelDot(
+                            label: 'Med',
+                            active:
+                                incident.osintConfidence >= 0.4 &&
+                                incident.osintConfidence < 0.7,
+                            color: AppColors.warning,
+                          ),
+                          const SizedBox(width: 6),
+                          _LevelDot(
+                            label: 'High',
+                            active: incident.osintConfidence >= 0.7,
+                            color: AppColors.danger,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 14,
+                            color: color,
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              _getLevelDescription(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.getSecondaryTextColor(),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LevelDot extends StatelessWidget {
+  final String label;
+  final bool active;
+  final Color color;
+
+  const _LevelDot({
+    required this.label,
+    required this.active,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: active ? color : color.withOpacity(0.2),
+            boxShadow: active
+                ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 6)]
+                : null,
+          ),
+        ),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+            color: active ? color : AppTheme.getSecondaryTextColor(),
+          ),
+        ),
+      ],
     );
   }
 }

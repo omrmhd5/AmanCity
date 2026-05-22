@@ -36,11 +36,11 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen> {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Container(
           height: screenHeight * 0.92,
           decoration: BoxDecoration(
-            color: AppTheme.getBackgroundColor().withOpacity(0.8),
+            color: AppTheme.getBackgroundColor().withOpacity(0.75),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(

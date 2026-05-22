@@ -34,6 +34,81 @@ class _NewsScreenState extends State<NewsScreen>
   String? _selectedTypeFilter;
   bool _showAllTypes = false;
 
+  static final List<OsintIncident> _demoIncidents = [
+    OsintIncident(
+      id: 'demo-1',
+      title: 'Traffic accident reported near Al-Quds Street intersection',
+      type: 'Accident',
+      locationText: 'Al-Quds Street, Amman',
+      latitude: 31.9539,
+      longitude: 35.9106,
+      osintConfidence: 0.88,
+      locationPrecision: 'EXACT',
+      sourceUrls: ['https://x.com/demo/status/1'],
+      timestamp: DateTime.now().subtract(const Duration(minutes: 12)),
+    ),
+    OsintIncident(
+      id: 'demo-2',
+      title: 'Fire reported at warehouse in the industrial area',
+      type: 'Fire',
+      locationText: 'Industrial Area, Zarqa',
+      latitude: 32.0636,
+      longitude: 36.0880,
+      osintConfidence: 0.95,
+      locationPrecision: 'EXACT',
+      sourceUrls: ['https://x.com/demo/status/2'],
+      timestamp: DateTime.now().subtract(const Duration(hours: 1)),
+    ),
+    OsintIncident(
+      id: 'demo-3',
+      title: 'Flooding on main road causing severe disruption to traffic',
+      type: 'Flood',
+      locationText: 'King Abdullah II Street, Irbid',
+      latitude: 32.5568,
+      longitude: 35.8498,
+      osintConfidence: 0.72,
+      locationPrecision: 'VAGUE',
+      sourceUrls: ['https://x.com/demo/status/3'],
+      timestamp: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    OsintIncident(
+      id: 'demo-4',
+      title: 'Medical emergency at shopping mall, ambulance on scene',
+      type: 'Medical',
+      locationText: 'City Mall, Amman',
+      latitude: 31.9721,
+      longitude: 35.8614,
+      osintConfidence: 0.81,
+      locationPrecision: 'EXACT',
+      sourceUrls: ['https://x.com/demo/status/4'],
+      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
+    ),
+    OsintIncident(
+      id: 'demo-5',
+      title: 'Protest gathering outside parliament building remains peaceful',
+      type: 'Civil Unrest',
+      locationText: 'Parliament Street, Amman',
+      latitude: 31.9499,
+      longitude: 35.9340,
+      osintConfidence: 0.93,
+      locationPrecision: 'EXACT',
+      sourceUrls: ['https://x.com/demo/status/5'],
+      timestamp: DateTime.now().subtract(const Duration(hours: 8)),
+    ),
+    OsintIncident(
+      id: 'demo-6',
+      title: 'Power outage affecting multiple neighbourhoods in west Amman',
+      type: 'Infrastructure',
+      locationText: 'Khalda, Amman',
+      latitude: 31.9927,
+      longitude: 35.8478,
+      osintConfidence: 0.66,
+      locationPrecision: 'VAGUE',
+      sourceUrls: ['https://x.com/demo/status/6'],
+      timestamp: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +116,7 @@ class _NewsScreenState extends State<NewsScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
-    _fetchIncidents();
+    _incidents = List.of(_demoIncidents); // pre-load demo data only
   }
 
   @override

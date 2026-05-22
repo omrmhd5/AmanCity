@@ -35,7 +35,7 @@ class NewsHeader extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            'Intel Feed',
+            'Twitter Incidents',
             style: TextStyle(
               color: AppTheme.getPrimaryTextColor(),
               fontSize: 18,

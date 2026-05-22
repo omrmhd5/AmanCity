@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
+import '../../data/incident_types_config.dart';
 import '../../models/incidents/osint_incident.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/news/news_details/news_detail_header.dart';
@@ -23,6 +24,14 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
     with SingleTickerProviderStateMixin {
   late AnimationController _entryController;
   late Animation<double> _fadeAnim;
+
+  Color _getIncidentColor() {
+    final config = IncidentTypesConfig.allTypes.firstWhere(
+      (t) => t.key.toLowerCase() == widget.incident.type.toLowerCase(),
+      orElse: () => IncidentTypesConfig.allTypes.first,
+    );
+    return config.color;
+  }
 
   @override
   void initState() {
@@ -47,14 +56,16 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
 
+    final incidentColor = _getIncidentColor();
+
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Container(
           height: screenHeight * 0.92,
           decoration: BoxDecoration(
-            color: AppTheme.getBackgroundColor().withOpacity(0.88),
+            color: AppTheme.getBackgroundColor().withOpacity(0.75),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: FadeTransition(
@@ -76,7 +87,26 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Teal gradient divider
+                // Incident-colored gradient divider (above header)
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        incidentColor.withOpacity(0.0),
+                        incidentColor.withOpacity(0.45),
+                        incidentColor.withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+                // Header
+                NewsDetailHeader(
+                  title: widget.incident.title,
+                  incidentType: widget.incident.type,
+                  onBackPressed: () => Navigator.pop(context),
+                ),
+                // Teal gradient divider (below header)
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
@@ -88,12 +118,6 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
                       ],
                     ),
                   ),
-                ),
-                // Header
-                NewsDetailHeader(
-                  title: widget.incident.title,
-                  incidentType: widget.incident.type,
-                  onBackPressed: () => Navigator.pop(context),
                 ),
                 // Main content
                 Expanded(
