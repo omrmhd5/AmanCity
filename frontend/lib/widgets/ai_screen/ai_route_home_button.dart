@@ -20,28 +20,33 @@ class SafeRouteHomeData {
   });
 }
 
-class AiRouteHomeButton extends StatelessWidget {
+class AiRouteHomeButton extends StatefulWidget {
   final SafeRouteHomeData data;
 
   const AiRouteHomeButton({Key? key, required this.data}) : super(key: key);
 
-  void _openGoogleMaps() async {
+  @override
+  State<AiRouteHomeButton> createState() => _AiRouteHomeButtonState();
+}
+
+class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
+  bool _pressed = false;
+
+  Future<void> _openGoogleMaps() async {
     try {
-      if (await canLaunchUrl(Uri.parse(data.googleMapsUrl))) {
+      if (await canLaunchUrl(Uri.parse(widget.data.googleMapsUrl))) {
         await launchUrl(
-          Uri.parse(data.googleMapsUrl),
+          Uri.parse(widget.data.googleMapsUrl),
           mode: LaunchMode.externalApplication,
         );
       }
-    } catch (e) {
-      print('Error opening Google Maps: $e');
-    }
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     final dangerLevelInfo = SafeRouteScorer.getDangerLevelInfo(
-      data.dangerScore,
+      widget.data.dangerScore,
     );
     final dangerColor = dangerLevelInfo['color'] as Color;
     final dangerIcon = dangerLevelInfo['icon'] as String;
@@ -51,9 +56,9 @@ class AiRouteHomeButton extends StatelessWidget {
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.getBackgroundColor(),
+        color: AppTheme.getCardBackgroundColor(),
         border: Border.all(color: dangerColor.withOpacity(0.5), width: 1.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,19 +95,19 @@ class AiRouteHomeButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (data.distance != null)
+                    if (widget.data.distance != null)
                       Text(
-                        data.distance!,
+                        widget.data.distance!,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.getPrimaryTextColor(),
                         ),
                       ),
-                    if (data.duration != null) ...[
+                    if (widget.data.duration != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        data.duration!,
+                        widget.data.duration!,
                         style: TextStyle(
                           fontSize: 11,
                           color: AppTheme.getSecondaryTextColor(),
@@ -122,7 +127,7 @@ class AiRouteHomeButton extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  data.homeAddress,
+                  widget.data.homeAddress,
                   style: TextStyle(
                     fontSize: 11,
                     color: AppTheme.getSecondaryTextColor(),
@@ -134,18 +139,46 @@ class AiRouteHomeButton extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Navigate Button
-          SizedBox(
-            width: double.infinity,
-            height: 36,
-            child: ElevatedButton.icon(
-              onPressed: _openGoogleMaps,
-              icon: const Icon(Icons.navigation, size: 16),
-              label: const Text('Navigate Home Safely'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+          // Navigate Button with press feedback
+          AnimatedScale(
+            scale: _pressed ? 0.97 : 1.0,
+            duration: _pressed
+                ? const Duration(milliseconds: 80)
+                : const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            child: GestureDetector(
+              onTap: _openGoogleMaps,
+              onTapDown: (_) => setState(() => _pressed = true),
+              onTapUp: (_) => setState(() => _pressed = false),
+              onTapCancel: () => setState(() => _pressed = false),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _pressed
+                      ? AppColors.secondary.withOpacity(0.85)
+                      : AppColors.secondary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.navigation_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Navigate Home Safely',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

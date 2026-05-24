@@ -9,7 +9,6 @@ class AiMessageBubble extends StatelessWidget {
   final bool isUser;
   final String timestamp;
   final String? citationText;
-  final VoidCallback? onCitationTap;
   final SafeRouteHomeData? routeHomeData;
 
   const AiMessageBubble({
@@ -18,7 +17,6 @@ class AiMessageBubble extends StatelessWidget {
     required this.isUser,
     required this.timestamp,
     this.citationText,
-    this.onCitationTap,
     this.routeHomeData,
   }) : super(key: key);
 
@@ -60,8 +58,8 @@ class AiMessageBubble extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: isUser
-                        ? Colors.blue[800]
-                        : AppColors.secondary.withOpacity(0.15),
+                        ? AppColors.secondary.withOpacity(0.25)
+                        : AppTheme.getCardBackgroundColor(),
                     borderRadius: isUser
                         ? const BorderRadius.only(
                             topLeft: Radius.circular(20),
@@ -73,9 +71,12 @@ class AiMessageBubble extends StatelessWidget {
                             bottomLeft: Radius.circular(20),
                             bottomRight: Radius.circular(20),
                           ),
-                    border: !isUser
-                        ? Border.all(color: AppTheme.getBorderColor(), width: 1)
-                        : null,
+                    border: Border.all(
+                      color: isUser
+                          ? AppColors.secondary.withOpacity(0.5)
+                          : AppTheme.getBorderColor(),
+                      width: 1,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
@@ -138,7 +139,7 @@ class AiMessageBubble extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               GestureDetector(
-                                onTap: onCitationTap,
+                                onTap: null,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -146,13 +147,13 @@ class AiMessageBubble extends StatelessWidget {
                                       text: 'View on Map',
                                       size: 11,
                                       weight: FontWeight.w600,
-                                      color: Colors.blue,
+                                      color: AppColors.secondary,
                                     ),
                                     const SizedBox(width: 4),
                                     Icon(
                                       Icons.open_in_new,
                                       size: 10,
-                                      color: Colors.blue,
+                                      color: AppColors.secondary,
                                     ),
                                   ],
                                 ),
@@ -163,6 +164,20 @@ class AiMessageBubble extends StatelessWidget {
                       ],
                       if (routeHomeData != null && !isUser)
                         AiRouteHomeButton(data: routeHomeData!),
+                      // Timestamp inside bubble
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          timestamp,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isUser
+                                ? Colors.white.withOpacity(0.7)
+                                : AppTheme.getSecondaryTextColor(),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -170,18 +185,6 @@ class AiMessageBubble extends StatelessWidget {
               const SizedBox(width: 8),
               if (isUser) const SizedBox(width: 32),
             ],
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: isUser
-                ? const EdgeInsets.only(right: 40)
-                : const EdgeInsets.only(left: 40),
-            child: CustomText(
-              text: timestamp,
-              size: 10,
-              weight: FontWeight.w400,
-              color: AppTheme.getSecondaryTextColor(),
-            ),
           ),
         ],
       ),

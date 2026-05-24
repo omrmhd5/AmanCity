@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
-import '../shared/custom_text.dart';
+import '../shared/custom_filter_chips.dart';
 
 class AiQuickPrompts extends StatelessWidget {
   final Function(String) onPromptSelected;
@@ -17,44 +17,75 @@ class AiQuickPrompts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: List.generate(
-            prompts.length,
-            (index) => Padding(
-              padding: EdgeInsets.only(
-                right: index < prompts.length - 1 ? 8 : 0,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Gradient divider
+        Container(
+          height: 1,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.secondary.withOpacity(0.0),
+                AppColors.secondary.withOpacity(0.2),
+                AppColors.secondary.withOpacity(0.0),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // Section label
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.flash_on_rounded,
+                size: 15,
+                color: AppColors.secondary,
               ),
-              child: GestureDetector(
-                onTap: () => onPromptSelected(prompts[index]),
-                child: Container(
+              const SizedBox(width: 6),
+              Text(
+                'QUICK PROMPTS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.getSecondaryTextColor(),
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: List.generate(
+              prompts.length,
+              (index) => Padding(
+                padding: EdgeInsets.only(
+                  right: index < prompts.length - 1 ? 8 : 0,
+                ),
+                child: CustomFilterChip(
+                  label: prompts[index],
+                  isSelected: false,
+                  selectedColor: AppColors.secondary,
+                  fontSize: 12,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.12),
-                    border: Border.all(
-                      color: AppColors.secondary.withOpacity(0.3),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: CustomText(
-                    text: prompts[index],
-                    size: 12,
-                    weight: FontWeight.w500,
-                    color: AppTheme.getPrimaryTextColor(),
-                  ),
+                  onTap: () => onPromptSelected(prompts[index]),
                 ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

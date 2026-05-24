@@ -35,14 +35,18 @@ class AiScreen extends StatefulWidget {
   State<AiScreen> createState() => _AiScreenState();
 }
 
-class _AiScreenState extends State<AiScreen> {
+class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
   late List<ChatMessage> _messages;
   late TextEditingController _inputController;
   late ScrollController _scrollController;
+  late AnimationController _entryController;
+  late AnimationController _dot1;
+  late AnimationController _dot2;
+  late AnimationController _dot3;
   bool _isTyping = false;
   double? _userLat;
   double? _userLng;
-  List<HotspotZone>? _cachedHotspots; // Cache hotspots for lazy loading
+  List<HotspotZone>? _cachedHotspots;
   String _selectedLanguage = 'en_US';
 
   @override
@@ -51,7 +55,33 @@ class _AiScreenState extends State<AiScreen> {
     _inputController = TextEditingController();
     _scrollController = ScrollController();
 
-    // Initialize with greeting message
+    // Entry animation
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+
+    // Typing indicator dot controllers
+    _dot1 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _dot2 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _dot3 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _dot1.repeat(reverse: true);
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) _dot2.repeat(reverse: true);
+    });
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) _dot3.repeat(reverse: true);
+    });
+
     _messages = [
       ChatMessage(
         text:
@@ -61,7 +91,6 @@ class _AiScreenState extends State<AiScreen> {
       ),
     ];
 
-    // Get user location for chat context
     _getUserLocation();
   }
 
@@ -69,6 +98,10 @@ class _AiScreenState extends State<AiScreen> {
   void dispose() {
     _inputController.dispose();
     _scrollController.dispose();
+    _entryController.dispose();
+    _dot1.dispose();
+    _dot2.dispose();
+    _dot3.dispose();
     super.dispose();
   }
 
@@ -88,7 +121,6 @@ class _AiScreenState extends State<AiScreen> {
       });
     } catch (e) {
       // Location permission denied or error; continue without location context
-      print('Location error: $e');
     }
   }
 
@@ -99,8 +131,7 @@ class _AiScreenState extends State<AiScreen> {
       _cachedHotspots = await HotspotApiService.getHotspots();
       return _cachedHotspots!;
     } catch (e) {
-      print('Error loading hotspots: $e');
-      return []; // Return empty list if error
+      return [];
     }
   }
 
@@ -195,102 +226,126 @@ class _AiScreenState extends State<AiScreen> {
     });
   }
 
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         // Header
-        AiChatHeader(
-          onLanguageChanged: (language) {
-            setState(() => _selectedLanguage = language);
-          },
+        _animated(
+          AiChatHeader(
+            onLanguageChanged: (language) {
+              setState(() => _selectedLanguage = language);
+            },
+          ),
+          start: 0.0,
+          end: 0.5,
         ),
         // Messages area
         Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            itemCount: _messages.length + (_isTyping ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == _messages.length && _isTyping) {
-                // Typing indicator
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 40),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+          child: _animated(
+            ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              itemCount: _messages.length + (_isTyping ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _messages.length && _isTyping) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 40),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getCardBackgroundColor(),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              _buildDot(_dot1),
+                              const SizedBox(width: 4),
+                              _buildDot(_dot2),
+                              const SizedBox(width: 4),
+                              _buildDot(_dot3),
+                            ],
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.getCardBackgroundColor(),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            _buildDot(0),
-                            const SizedBox(width: 4),
-                            _buildDot(100),
-                            const SizedBox(width: 4),
-                            _buildDot(200),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
+                      ],
+                    ),
+                  );
+                }
 
-              final message = _messages[index];
-              return AiMessageBubble(
-                text: message.text,
-                isUser: message.isUser,
-                timestamp: message.timestamp,
-                citationText: message.citationText,
-                routeHomeData: message.routeHomeData,
-                onCitationTap: () {
-                  // TODO: Navigate to map with incident location
-                },
-              );
-            },
+                final message = _messages[index];
+                return AiMessageBubble(
+                  text: message.text,
+                  isUser: message.isUser,
+                  timestamp: message.timestamp,
+                  citationText: message.citationText,
+                  routeHomeData: message.routeHomeData,
+                );
+              },
+            ),
+            start: 0.1,
+            end: 0.7,
           ),
         ),
         // Quick prompts
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: AiQuickPrompts(
-            onPromptSelected: (prompt) {
-              _inputController.text = prompt;
-            },
+        _animated(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: AiQuickPrompts(
+              onPromptSelected: (prompt) {
+                _inputController.text = prompt;
+              },
+            ),
           ),
+          start: 0.2,
+          end: 0.8,
         ),
         // Input area
-        AiChatInput(
-          controller: _inputController,
-          onSend: _sendMessage,
-          onMicPress: () {
-            // TODO: Implement voice input
-          },
-          selectedLanguage: _selectedLanguage,
+        _animated(
+          AiChatInput(
+            controller: _inputController,
+            onSend: _sendMessage,
+            selectedLanguage: _selectedLanguage,
+          ),
+          start: 0.3,
+          end: 0.9,
         ),
       ],
     );
   }
 
-  Widget _buildDot(int delayMs) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.5, end: 1.0),
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
+  Widget _buildDot(AnimationController controller) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
         return Container(
           width: 6,
           height: 6,
           decoration: BoxDecoration(
             color: AppTheme.getSecondaryTextColor().withOpacity(
-              value.clamp(0.5, 1.0),
+              (0.35 + controller.value * 0.65).clamp(0.35, 1.0),
             ),
             shape: BoxShape.circle,
           ),
