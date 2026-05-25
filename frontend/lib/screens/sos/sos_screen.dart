@@ -307,6 +307,8 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
       contactsNotified: _contactsNotified,
       recordingSeconds: _recordingSeconds,
       locationText: _locationText,
+      activeLat: _activeLat,
+      activeLng: _activeLng,
       onCancel: _onCancel,
     );
   }
