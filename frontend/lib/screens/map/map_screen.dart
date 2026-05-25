@@ -29,6 +29,7 @@ import '../../services/map/location_service.dart';
 import '../../services/map/location_stream_service.dart';
 import '../../services/map/marker_icon_service.dart';
 import '../../utils/safe_route_scorer.dart';
+import '../../utils/app_theme.dart';
 import '../../models/incidents/bulk_incident.dart';
 import '../../services/incidents/bulk_incident_api_service.dart';
 import '../../widgets/map/map_action_buttons.dart';
@@ -139,8 +140,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   static const Duration _hotspotPollInterval = Duration(seconds: 60);
 
   // ─── Map theme preference listener ─────────────────────────────────────────
-  Timer? _themePreferenceListener;
-  String? _lastMapStylePreference;
+  // (driven by AppTheme.themeNotifier — no polling timer needed)
 
   // ─── Debounce: collapse rapid _updateMapElements calls into one frame ──────
   bool _mapUpdateScheduled = false;
@@ -176,30 +176,13 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadPersistedHotspots(); // Show last-known hotspots instantly
     _loadHotspots(); // Fetch fresh hotspots in background
     _startPolling(); // Auto-refresh every 30s (incidents) / 60s (hotspots)
-    _startThemePreferenceListener(); // Listen for map theme changes
+    AppTheme.themeNotifier.addListener(
+      _setMapStyle,
+    ); // Rebuild map style on theme change
   }
 
   /// Listen for map theme preference changes and rebuild map when changed
-  void _startThemePreferenceListener() {
-    _themePreferenceListener?.cancel();
-    _themePreferenceListener = Timer.periodic(Duration(milliseconds: 500), (
-      _,
-    ) async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final currentPreference =
-            prefs.getString('map_style_preference') ?? 'dark';
-        if (_lastMapStylePreference != currentPreference) {
-          _lastMapStylePreference = currentPreference;
-          if (mounted) {
-            _setMapStyle();
-          }
-        }
-      } catch (e) {
-        // Silently ignore preference check errors
-      }
-    });
-  }
+  // (removed — now handled via AppTheme.themeNotifier)
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -236,7 +219,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _locationStreamSubscription?.cancel();
     _incidentPollTimer?.cancel();
     _hotspotPollTimer?.cancel();
-    _themePreferenceListener?.cancel();
+    AppTheme.themeNotifier.removeListener(_setMapStyle);
     super.dispose();
   }
 
@@ -1521,17 +1504,9 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   Future<void> _setMapStyle() async {
     if (_mapController == null) return;
-
-    // Get map style preference from SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final mapStylePreference =
-        prefs.getString('map_style_preference') ?? 'dark';
-
-    // Apply style based on user preference
-    if (mapStylePreference == 'dark') {
+    if (AppTheme.currentMode == AppThemeMode.dark) {
       await _mapController?.setMapStyle(AppColors.darkMapStyle);
     } else {
-      // Light style uses empty string (default Google Maps light style)
       await _mapController?.setMapStyle(
         AppColors.lightMapStyle.isEmpty ? null : AppColors.lightMapStyle,
       );

@@ -5,9 +5,9 @@ import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import '../../screens/auth/onboarding_screen.dart';
 import '../../services/core/connectivity_service.dart';
-import 'map_theme_selector.dart';
 import 'home_location_selector.dart';
 import 'logout_section.dart';
+import 'app_theme_selector.dart';
 
 class ProfileMenuSection extends StatelessWidget {
   const ProfileMenuSection({Key? key}) : super(key: key);
@@ -19,7 +19,43 @@ class ProfileMenuSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section label
+          // ─── APPEARANCE ─────────────────────────────
+          Row(
+            children: [
+              const Icon(
+                Icons.palette_rounded,
+                size: 14,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'APPEARANCE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.secondary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.secondary.withValues(alpha: 0.0),
+                  AppColors.secondary.withValues(alpha: 0.20),
+                  AppColors.secondary.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const AppThemeSelector(),
+          const SizedBox(height: 24),
+          // ─── PREFERENCES ────────────────────────────
           Row(
             children: [
               const Icon(
@@ -46,16 +82,14 @@ class ProfileMenuSection extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.secondary.withOpacity(0.0),
-                  AppColors.secondary.withOpacity(0.20),
-                  AppColors.secondary.withOpacity(0.0),
+                  AppColors.secondary.withValues(alpha: 0.0),
+                  AppColors.secondary.withValues(alpha: 0.20),
+                  AppColors.secondary.withValues(alpha: 0.0),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-          MapThemeSelector(isCompact: true),
-          const SizedBox(height: 10),
           HomeLocationSelector(isCompact: true),
           const SizedBox(height: 10),
           LogoutSection(isCompact: true),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import 'location_picker_map.dart';
@@ -26,35 +24,17 @@ class _LocationSelectorState extends State<LocationSelector> {
   late bool _useCurrentLocation;
   LatLng? _selectedLocation;
   String? _selectedAddressText;
-  late String _lastMapStylePreference;
-  late Timer _themePreferenceListener;
 
   @override
   void initState() {
     super.initState();
     _useCurrentLocation = widget.useCurrentLocation;
     _selectedLocation = widget.currentLocation;
-    _lastMapStylePreference = 'dark';
-    _startThemePreferenceListener();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
   }
 
-  /// Listen for map theme preference changes
-  void _startThemePreferenceListener() {
-    _themePreferenceListener = Timer.periodic(Duration(milliseconds: 500), (
-      _,
-    ) async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final currentPreference =
-            prefs.getString('map_style_preference') ?? 'dark';
-        if (_lastMapStylePreference != currentPreference) {
-          _lastMapStylePreference = currentPreference;
-          if (mounted) setState(() {});
-        }
-      } catch (e) {
-        // Silently ignore preference check errors
-      }
-    });
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -72,7 +52,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   @override
   void dispose() {
-    _themePreferenceListener.cancel();
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     super.dispose();
   }
 

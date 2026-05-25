@@ -1,10 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/app_colors.dart';
 
 enum AppThemeMode { light, dark }
 
 class AppTheme {
   static AppThemeMode currentMode = AppThemeMode.dark;
+
+  /// Reactive notifier — listen to this to rebuild on theme change.
+  static final ValueNotifier<AppThemeMode> themeNotifier = ValueNotifier(
+    AppThemeMode.dark,
+  );
+
+  /// Load persisted theme from SharedPreferences (call once before runApp).
+  static Future<void> initTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString('app_theme_mode');
+    final mode = stored == 'light' ? AppThemeMode.light : AppThemeMode.dark;
+    currentMode = mode;
+    themeNotifier.value = mode;
+  }
+
+  /// Persist + apply a new theme mode.
+  static Future<void> setTheme(AppThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'app_theme_mode',
+      mode == AppThemeMode.dark ? 'dark' : 'light',
+    );
+    currentMode = mode;
+    themeNotifier.value = mode;
+  }
 
   /// Toggle between light and dark mode
   static void toggleTheme() {

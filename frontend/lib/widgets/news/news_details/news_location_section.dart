@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -19,14 +18,17 @@ class NewsLocationSection extends StatefulWidget {
 }
 
 class _NewsLocationSectionState extends State<NewsLocationSection> {
-  String _mapStylePreference = 'dark';
   late String _cachedMapUrl;
 
   @override
   void initState() {
     super.initState();
     _cachedMapUrl = _buildMapUrl();
-    _loadMapStylePreference();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() => _cachedMapUrl = _buildMapUrl());
   }
 
   @override
@@ -34,16 +36,14 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.incident.latitude != widget.incident.latitude ||
         oldWidget.incident.longitude != widget.incident.longitude) {
-      _cachedMapUrl = _buildMapUrl();
+      setState(() => _cachedMapUrl = _buildMapUrl());
     }
   }
 
-  Future<void> _loadMapStylePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _mapStylePreference = prefs.getString('map_style_preference') ?? 'dark';
-      _cachedMapUrl = _buildMapUrl();
-    });
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
   }
 
   String _buildMapUrl() {
@@ -51,7 +51,7 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
     final lng = widget.incident.longitude;
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 
-    if (_mapStylePreference == 'dark') {
+    if (AppTheme.currentMode == AppThemeMode.dark) {
       return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng&zoom=15&size=600x240&style=feature:all|element:labels|visibility:off&style=feature:water|element:geometry|color:0x0d0d0d&style=feature:all|element:geometry|color:0x222222&style=feature:road|element:geometry|color:0x333333&key=$apiKey';
     } else {
       return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng&zoom=15&size=600x240&style=feature:all|element:labels|visibility:off&key=$apiKey';

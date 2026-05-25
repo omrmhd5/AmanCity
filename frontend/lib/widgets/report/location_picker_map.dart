@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:math' as Math;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
 import '../../services/map/geocoding_api_service.dart';
@@ -258,17 +257,12 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     }
   }
 
-  /// Apply map style based on SharedPreferences preference
+  /// Apply map style based on current app theme
   Future<void> _applyMapStyle(GoogleMapController controller) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final mapStylePreference =
-          prefs.getString('map_style_preference') ?? 'dark';
-
-      if (mapStylePreference == 'dark') {
+      if (AppTheme.currentMode == AppThemeMode.dark) {
         await controller.setMapStyle(AppColors.darkMapStyle);
       } else {
-        // Light style uses empty string (default Google Maps light style)
         await controller.setMapStyle(
           AppColors.lightMapStyle.isEmpty ? null : AppColors.lightMapStyle,
         );

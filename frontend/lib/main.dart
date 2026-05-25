@@ -10,6 +10,7 @@ import 'screens/core/home_screen.dart';
 import 'screens/auth/onboarding_screen.dart';
 import 'screens/auth/permissions_screen.dart';
 import 'data/app_colors.dart';
+import 'utils/app_theme.dart';
 import 'utils/navigation_service.dart' as navigation;
 import 'routes/app_routes.dart';
 import 'services/notifications/notification_service.dart';
@@ -75,6 +76,8 @@ void main() async {
     UserLocationSyncService.instance.start();
     ConnectivityService.instance.init();
 
+    await AppTheme.initTheme();
+
     runApp(const MyApp());
   } catch (e, stack) {
     debugPrint('Fatal startup error: $e\n$stack');
@@ -119,17 +122,51 @@ class _ErrorApp extends StatelessWidget {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
+  void _onThemeChange() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
     return MaterialApp(
       title: 'AmanCity',
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: AppColors.lightBackground,
         useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(),
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: AppColors.primary,
+        useMaterial3: true,
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
       ),
       navigatorKey: navigation.Navigator.navigatorKey,
       home: const _StartGate(),
