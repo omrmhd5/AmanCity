@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:math' as Math;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -40,13 +41,28 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   bool _isPickingFile = false;
   String? _geoLocationText;
   String? _geoLocationCity;
+
+  // Geocoding cache (distance-based, unlimited — no time expiry)
+  // Cache is valid when _geoLocationText != null AND location within 10m
+  LatLng? _lastGeocodeLocation;
+  static const double _geocodeReloadDistanceM = 10.0; // 10 meters
+  static const String _geocodeCacheKey = 'cached_geocoding_text';
+  static const String _geocodeCacheLocationKey = 'cached_geocoding_location';
+  static const String _geocodeCacheCityKey = 'cached_geocoding_city';
+
   StreamSubscription<Position>? _locationStreamSubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadUserLocationFromCache();
-    _startFollowingLocation(); // Track location as user moves
+    _initialize();
+  }
+
+  /// Initialize screen - strictly sequential to avoid race conditions
+  Future<void> _initialize() async {
+    await _loadPersistedGeocoding(); // 1. Load geocoding cache from disk
+    await _loadUserLocationFromCache(); // 2. Load location (cache already available)
+    _startFollowingLocation(); // 3. Start stream (both caches loaded)
   }
 
   /// Start following user location in real-time
@@ -61,7 +77,29 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                     _selectedLocation =
                         newLocation; // Report location updates with user
                   });
-                  _updateLocationPreview(newLocation);
+
+                  // Only geocode if moved > 10m from last geocode location
+                  if (_lastGeocodeLocation != null) {
+                    final distanceM = _calculateDistanceMeters(
+                      _lastGeocodeLocation!,
+                      newLocation,
+                    );
+                    if (distanceM >= _geocodeReloadDistanceM) {
+                      // Invalidate cache by clearing text
+                      setState(() {
+                        _geoLocationText = null;
+                        _geoLocationCity = null;
+                      });
+                      _lastGeocodeLocation = newLocation;
+                      _updateLocationPreview(newLocation);
+                    }
+                  } else {
+                    // First time stream fires — lastGeocodeLocation not set yet
+                    _lastGeocodeLocation = newLocation;
+                    // Only geocode if we don't already have cached text
+                    if (_geoLocationText == null)
+                      _updateLocationPreview(newLocation);
+                  }
                 },
                 distanceFilterMeters: 10,
               )
@@ -79,37 +117,35 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     super.dispose();
   }
 
-  /// Load location from cache if available and fresh
+  /// Load location from cache — unlimited, no time expiry (stream keeps it fresh)
   Future<void> _loadUserLocationFromCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cachedLat = prefs.getDouble('user_location_lat');
       final cachedLng = prefs.getDouble('user_location_lng');
-      final cachedTimeStr = prefs.getString('user_location_time');
 
-      if (cachedLat != null && cachedLng != null && cachedTimeStr != null) {
-        final cachedTime = DateTime.parse(cachedTimeStr);
-        final age = DateTime.now().difference(cachedTime);
-
-        if (age.inMinutes < 60) {
-          // Cache is fresh, use it
-          if (mounted) {
-            setState(() {
-              _currentLocation = LatLng(cachedLat, cachedLng);
-              _selectedLocation = _currentLocation;
-              _isLoadingLocation = false;
-            });
-          }
-          // Geocode the initial location
-          await _updateLocationPreview(_currentLocation!);
-          return;
+      if (cachedLat != null && cachedLng != null) {
+        // Use cached location regardless of age — GPS stream will update it
+        if (mounted) {
+          setState(() {
+            _currentLocation = LatLng(cachedLat, cachedLng);
+            _selectedLocation = _currentLocation;
+            _isLoadingLocation = false;
+            _lastGeocodeLocation =
+                _currentLocation; // Set reference for 10m check
+          });
         }
+        // Only geocode if we don't have cached geocoding text
+        if (_geoLocationText == null || _geoLocationCity == null) {
+          await _updateLocationPreview(_currentLocation!);
+        }
+        return;
       }
     } catch (e) {
       // Error loading cached location
     }
 
-    // No valid cache, fetch fresh location
+    // No cached location at all — fetch fresh GPS
     await _getUserLocation();
   }
 
@@ -122,11 +158,15 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
           _currentLocation = LatLng(position.latitude, position.longitude);
           _selectedLocation = _currentLocation;
           _isLoadingLocation = false;
+          _lastGeocodeLocation =
+              _currentLocation; // Set reference for 10m check
         });
       }
 
-      // Geocode the location
-      await _updateLocationPreview(_currentLocation!);
+      // Only geocode if we don't already have cached text
+      if (_geoLocationText == null || _geoLocationCity == null) {
+        await _updateLocationPreview(_currentLocation!);
+      }
 
       // Cache the location
       try {
@@ -147,24 +187,110 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
         setState(() {
           _currentLocation = const LatLng(30.0444, 31.2357);
           _selectedLocation = _currentLocation;
+          _lastGeocodeLocation =
+              _currentLocation; // Set reference for 10m check
         });
       }
-      // Geocode the default location
-      await _updateLocationPreview(_currentLocation!);
+      // Geocode the default location only if no cached text
+      if (_geoLocationText == null || _geoLocationCity == null) {
+        await _updateLocationPreview(_currentLocation!);
+      }
     }
+  }
+
+  /// Calculate distance between two LatLng points in meters
+  double _calculateDistanceMeters(LatLng point1, LatLng point2) {
+    const earthRadius = 6371000; // meters
+    final dLat = (point2.latitude - point1.latitude) * (3.14159 / 180);
+    final dLng = (point2.longitude - point1.longitude) * (3.14159 / 180);
+    final a =
+        (Math.sin(dLat / 2) * Math.sin(dLat / 2)) +
+        Math.cos(point1.latitude * (3.14159 / 180)) *
+            Math.cos(point2.latitude * (3.14159 / 180)) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+    final c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadius * c;
   }
 
   /// Update location preview with geocoded address and city
   Future<void> _updateLocationPreview(LatLng location) async {
+    // Single guard: skip if we already have text AND location is within 10m
+    if (_geoLocationText != null &&
+        _geoLocationCity != null &&
+        _lastGeocodeLocation != null &&
+        _calculateDistanceMeters(_lastGeocodeLocation!, location) <
+            _geocodeReloadDistanceM) {
+      return; // Cache valid
+    }
+
     final result = await GeocodingService.reverseGeocode(
       location.latitude,
       location.longitude,
     );
     if (mounted) {
+      final text = result['text'];
+      final city = result['city'];
       setState(() {
-        _geoLocationText = result['text'];
-        _geoLocationCity = result['city'];
+        _geoLocationText = text;
+        _geoLocationCity = city;
+        _lastGeocodeLocation = location; // Update reference
       });
+      if (text != null && city != null) {
+        await _persistGeocoding(text, city, location);
+      }
+    }
+  }
+
+  /// Load persisted geocoding from SharedPreferences (survives hot reload)
+  Future<void> _loadPersistedGeocoding() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final text = prefs.getString(_geocodeCacheKey);
+      final city = prefs.getString(_geocodeCacheCityKey);
+      final locLat = prefs.getDouble(_geocodeCacheLocationKey + '_lat');
+      final locLng = prefs.getDouble(_geocodeCacheLocationKey + '_lng');
+
+      debugPrint(
+        '[GeoCache] Load → text=$text city=$city lat=$locLat lng=$locLng',
+      );
+
+      if (text == null || city == null || locLat == null || locLng == null)
+        return;
+
+      if (!mounted) return;
+      setState(() {
+        _geoLocationText = text;
+        _geoLocationCity = city;
+        _lastGeocodeLocation = LatLng(locLat, locLng);
+        // No _geocodingCachedTime needed — _geoLocationText != null is the sentinel
+      });
+    } catch (_) {}
+  }
+
+  /// Save geocoding to SharedPreferences (survives hot reload/app restart)
+  Future<void> _persistGeocoding(
+    String text,
+    String city,
+    LatLng location,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_geocodeCacheKey, text);
+      await prefs.setString(_geocodeCacheCityKey, city);
+      await prefs.setDouble(
+        _geocodeCacheLocationKey + '_lat',
+        location.latitude,
+      );
+      await prefs.setDouble(
+        _geocodeCacheLocationKey + '_lng',
+        location.longitude,
+      );
+      debugPrint(
+        '[GeoCache] Saved → text=$text city=$city lat=${location.latitude} lng=${location.longitude}',
+      );
+    } catch (e) {
+      debugPrint('[GeoCache] Save FAILED: $e');
     }
   }
 

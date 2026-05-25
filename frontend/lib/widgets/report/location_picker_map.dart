@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math' as Math;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +34,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   bool _isLoading = true;
   String? _geoLocationText;
   String? _geoLocationCity;
+  LatLng?
+  _lastGeocodeLocation; // Track last geocoded location for distance check
+  static const double _geocodeReloadDistanceM = 10.0; // 10 meters
   StreamSubscription<Position>? _locationStreamSubscription;
   bool _confirmPressed = false;
 
@@ -145,9 +149,17 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     }
   }
 
-  /// Fetch geocoded address for current location
+  /// Fetch geocoded address for current location (with distance-based caching)
   Future<void> _updateLocationPreview() async {
     if (_selectedLocation == null) return;
+
+    // Skip if we already geocoded this location (within 10m)
+    if (_geoLocationText != null &&
+        _lastGeocodeLocation != null &&
+        _calculateDistanceMeters(_lastGeocodeLocation!, _selectedLocation!) <
+            _geocodeReloadDistanceM) {
+      return; // Cache valid
+    }
 
     final result = await GeocodingService.reverseGeocode(
       _selectedLocation!.latitude,
@@ -158,10 +170,26 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       setState(() {
         _geoLocationText = result['text'];
         _geoLocationCity = result['city'];
+        _lastGeocodeLocation = _selectedLocation; // Update reference
       });
       // Notify parent about address update
       widget.onAddressUpdated?.call(_geoLocationText, _geoLocationCity);
     }
+  }
+
+  /// Calculate distance between two LatLng points in meters
+  double _calculateDistanceMeters(LatLng point1, LatLng point2) {
+    const earthRadius = 6371000; // meters
+    final dLat = (point2.latitude - point1.latitude) * (3.14159 / 180);
+    final dLng = (point2.longitude - point1.longitude) * (3.14159 / 180);
+    final a =
+        (Math.sin(dLat / 2) * Math.sin(dLat / 2)) +
+        Math.cos(point1.latitude * (3.14159 / 180)) *
+            Math.cos(point2.latitude * (3.14159 / 180)) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+    final c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadius * c;
   }
 
   void _onMapTapped(LatLng tappedPosition) {
