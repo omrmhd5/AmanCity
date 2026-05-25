@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
 
-class SosStatusChecklist extends StatelessWidget {
+class SosStatusChecklist extends StatefulWidget {
   final bool locationAcquired;
   final bool contactsNotified;
   final int recordingSeconds;
@@ -15,6 +15,33 @@ class SosStatusChecklist extends StatelessWidget {
     required this.recordingSeconds,
     this.locationText,
   }) : super(key: key);
+
+  @override
+  State<SosStatusChecklist> createState() => _SosStatusChecklistState();
+}
+
+class _SosStatusChecklistState extends State<SosStatusChecklist>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _blinkController;
+  late Animation<double> _blinkAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _blinkController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+    _blinkAnim = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _blinkController.dispose();
+    super.dispose();
+  }
 
   String _formatDuration(int seconds) {
     final m = seconds ~/ 60;
@@ -41,59 +68,107 @@ class SosStatusChecklist extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header
+          // Header — section label
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Tracking Status',
+              const Icon(
+                Icons.sensors_rounded,
+                size: 14,
+                color: AppColors.danger,
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'TRACKING STATUS',
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.danger,
+                  letterSpacing: 1.2,
                 ),
               ),
+              const Spacer(),
+              // LIVE badge with blinking dot
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.danger.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'LIVE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.danger,
-                    letterSpacing: 1.2,
+                  border: Border.all(
+                    color: AppColors.danger.withOpacity(0.30),
+                    width: 0.75,
                   ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FadeTransition(
+                      opacity: _blinkAnim,
+                      child: Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: AppColors.danger,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    const Text(
+                      'LIVE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.danger,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          Divider(height: 24, color: Colors.white.withOpacity(0.1)),
+          // Gradient divider
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.0),
+                    Colors.white.withOpacity(0.12),
+                    Colors.white.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
           // Location row
           _StatusRow(
-            iconData: locationAcquired ? Icons.check : Icons.hourglass_top,
-            iconColor: locationAcquired
+            iconData: widget.locationAcquired
+                ? Icons.check
+                : Icons.hourglass_top,
+            iconColor: widget.locationAcquired
                 ? AppColors.success
-                : const Color(0xFFFBBF24),
+                : AppColors.warning,
             title: 'Location Acquired',
-            subtitle: locationAcquired
-                ? (locationText ?? 'Sent to contacts')
+            subtitle: widget.locationAcquired
+                ? (widget.locationText ?? 'Sent to contacts')
                 : 'Acquiring GPS...',
           ),
           const SizedBox(height: 16),
 
           // Contacts row
           _StatusRow(
-            iconData: contactsNotified ? Icons.check : Icons.hourglass_top,
-            iconColor: contactsNotified
+            iconData: widget.contactsNotified
+                ? Icons.check
+                : Icons.hourglass_top,
+            iconColor: widget.contactsNotified
                 ? AppColors.success
-                : const Color(0xFFFBBF24),
+                : AppColors.warning,
             title: 'Contacts Notified',
-            subtitle: contactsNotified
+            subtitle: widget.contactsNotified
                 ? 'WhatsApp alerts sent'
                 : 'Opening WhatsApp...',
           ),
@@ -114,12 +189,15 @@ class SosStatusChecklist extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.danger,
-                      shape: BoxShape.circle,
+                  child: FadeTransition(
+                    opacity: _blinkAnim,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.danger,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
                 ),
@@ -149,7 +227,7 @@ class SosStatusChecklist extends StatelessWidget {
                 ),
               ),
               Text(
-                _formatDuration(recordingSeconds),
+                _formatDuration(widget.recordingSeconds),
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -182,7 +260,8 @@ class _StatusRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           width: 28,
           height: 28,
           decoration: BoxDecoration(
@@ -190,7 +269,15 @@ class _StatusRow extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: iconColor.withOpacity(0.4), width: 1),
           ),
-          child: Icon(iconData, color: iconColor, size: 16),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Icon(
+              iconData,
+              color: iconColor,
+              size: 16,
+              key: ValueKey(iconData),
+            ),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -206,11 +293,15 @@ class _StatusRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white.withOpacity(0.5),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: Text(
+                  subtitle,
+                  key: ValueKey(subtitle),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.5),
+                  ),
                 ),
               ),
             ],

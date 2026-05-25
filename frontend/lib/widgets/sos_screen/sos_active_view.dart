@@ -30,7 +30,6 @@ class _SosActiveViewState extends State<SosActiveView>
   late AnimationController _blinkController;
   late AnimationController _entryController;
   late Animation<double> _blinkAnim;
-  late Animation<double> _entryAnim;
 
   @override
   void initState() {
@@ -48,12 +47,8 @@ class _SosActiveViewState extends State<SosActiveView>
     );
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 600),
     )..forward();
-    _entryAnim = CurvedAnimation(
-      parent: _entryController,
-      curve: Curves.easeOut,
-    );
   }
 
   @override
@@ -64,13 +59,29 @@ class _SosActiveViewState extends State<SosActiveView>
     super.dispose();
   }
 
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final interval = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: interval,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.04),
+          end: Offset.zero,
+        ).animate(interval),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _entryAnim,
-      child: Column(
-        children: [
-          // Header
+    return Column(
+      children: [
+        // Header
+        _animated(
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
             child: Column(
@@ -152,23 +163,33 @@ class _SosActiveViewState extends State<SosActiveView>
               ],
             ),
           ),
-          // Red gradient separator
-          Container(
-            height: 32,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.danger.withOpacity(0.06),
-                  AppColors.danger.withOpacity(0.0),
-                ],
+          start: 0.0,
+          end: 0.5,
+        ),
+        // Gradient divider
+        _animated(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.danger.withOpacity(0.0),
+                    AppColors.danger.withOpacity(0.25),
+                    AppColors.danger.withOpacity(0.0),
+                  ],
+                ),
               ),
             ),
           ),
-          // Radar animation
-          Expanded(
-            child: Center(
+          start: 0.15,
+          end: 0.65,
+        ),
+        // Radar animation
+        Expanded(
+          child: _animated(
+            Center(
               child: SizedBox(
                 width: 240,
                 height: 240,
@@ -200,12 +221,12 @@ class _SosActiveViewState extends State<SosActiveView>
                             boxShadow: [
                               BoxShadow(
                                 color: AppColors.danger.withOpacity(0.6),
-                                blurRadius: 32,
-                                spreadRadius: 6,
+                                blurRadius: 28,
+                                spreadRadius: 4,
                               ),
                             ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.sos_rounded,
                             color: Colors.white,
                             size: 46,
@@ -217,22 +238,30 @@ class _SosActiveViewState extends State<SosActiveView>
                 ),
               ),
             ),
+            start: 0.2,
+            end: 0.7,
           ),
-
-          // Status checklist card
+        ),
+        // Status checklist card
+        _animated(
           SosStatusChecklist(
             locationAcquired: widget.locationAcquired,
             contactsNotified: widget.contactsNotified,
             recordingSeconds: widget.recordingSeconds,
             locationText: widget.locationText,
           ),
-          const SizedBox(height: 24),
-
-          // Slide to cancel
+          start: 0.35,
+          end: 0.85,
+        ),
+        const SizedBox(height: 24),
+        // Slide to cancel
+        _animated(
           SosSlideToCancelWidget(onCancel: widget.onCancel),
-          const SizedBox(height: 28),
-        ],
-      ),
+          start: 0.45,
+          end: 0.95,
+        ),
+        const SizedBox(height: 28),
+      ],
     );
   }
 }
@@ -246,7 +275,7 @@ class _RadarRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = ((progress - delay + 1.0) % 1.0).clamp(0.0, 1.0);
-    if (progress < delay && progress > 0.01) return const SizedBox();
+    if (progress < delay) return const SizedBox();
     final size = p * 240.0;
     final opacity = (1.0 - p).clamp(0.0, 0.8);
     return Container(

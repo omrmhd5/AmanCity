@@ -90,7 +90,7 @@ class SosContactCard extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: isFirst ? AppColors.danger : AppColors.darkGray,
+                    color: isFirst ? AppColors.danger : AppColors.secondary,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: AppTheme.getBackgroundColor(),

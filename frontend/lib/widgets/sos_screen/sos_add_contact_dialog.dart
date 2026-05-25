@@ -23,6 +23,7 @@ class _SosAddContactDialogState extends State<SosAddContactDialog> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   final _formKey = GlobalKey<FormState>();
+  bool _savePressed = false;
 
   @override
   void initState() {
@@ -216,27 +217,38 @@ class _SosAddContactDialogState extends State<SosAddContactDialog> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: _save,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 22,
-                            vertical: 11,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.danger, Color(0xFFC0392B)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                      AnimatedScale(
+                        scale: _savePressed ? 0.97 : 1.0,
+                        duration: Duration(
+                          milliseconds: _savePressed ? 80 : 300,
+                        ),
+                        curve: Curves.easeOut,
+                        child: GestureDetector(
+                          onTap: _save,
+                          onTapDown: (_) => setState(() => _savePressed = true),
+                          onTapUp: (_) => setState(() => _savePressed = false),
+                          onTapCancel: () =>
+                              setState(() => _savePressed = false),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 22,
+                              vertical: 11,
                             ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [AppColors.danger, Color(0xFFC0392B)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'Save',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),

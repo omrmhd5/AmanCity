@@ -115,6 +115,22 @@ class SosHeader extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.secondary.withOpacity(0.0),
+                  AppColors.secondary.withOpacity(0.25),
+                  AppColors.secondary.withOpacity(0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

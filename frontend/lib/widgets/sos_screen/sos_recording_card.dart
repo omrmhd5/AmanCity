@@ -28,65 +28,27 @@ class SosRecordingCard extends StatefulWidget {
 
 class _SosRecordingCardState extends State<SosRecordingCard> {
   bool get _isPlaying => widget.currentlyPlayingId == widget.recording.id;
+  bool _playPressed = false;
+  bool _deletePressed = false;
 
   Future<void> _togglePlay() async {
     final recordingId = widget.recording.id;
     final filePath = widget.recording.path;
 
     if (_isPlaying) {
-      print('[SosRecordingCard:$recordingId] PAUSE');
       await widget.sharedPlayer.pause();
       widget.onPlayStateChange(null);
     } else {
-      print('[SosRecordingCard:$recordingId] PLAY START - path=$filePath');
-
       try {
-        // Check file exists (sync, with explicit logging)
-        print('[SosRecordingCard:$recordingId] [1] creating File object...');
         final file = File(filePath);
-        print('[SosRecordingCard:$recordingId] [2] File object created');
+        if (!file.existsSync()) return;
 
-        print(
-          '[SosRecordingCard:$recordingId] [3] checking existence synchronously...',
-        );
-        final exists = file.existsSync();
-        print('[SosRecordingCard:$recordingId] [4] file exists (sync)=$exists');
-
-        if (exists) {
-          print('[SosRecordingCard:$recordingId] [5] getting file size...');
-          final size = file.lengthSync();
-          print('[SosRecordingCard:$recordingId] [6] file size=$size bytes');
-        } else {
-          print('[SosRecordingCard:$recordingId] [ERROR] file not found!');
-          return;
-        }
-
-        print(
-          '[SosRecordingCard:$recordingId] [7] exited if-block, about to create source',
-        );
-        print(
-          '[SosRecordingCard:$recordingId] [8] creating DeviceFileSource...',
-        );
-
-        DeviceFileSource? source;
-        print('[SosRecordingCard:$recordingId] [9] about to assign source');
-        source = DeviceFileSource(filePath);
-        print('[SosRecordingCard:$recordingId] [10] source created: $source');
-
-        print('[SosRecordingCard:$recordingId] [11] about to call play()...');
-        await widget.sharedPlayer.stop(); // ensure clean state
+        final source = DeviceFileSource(filePath);
+        await widget.sharedPlayer.stop();
         await widget.sharedPlayer.setReleaseMode(ReleaseMode.stop);
         await widget.sharedPlayer.play(source, volume: 1.0);
-        print(
-          '[SosRecordingCard:$recordingId] [12] play() returned successfully',
-        );
-
-        print('[SosRecordingCard:$recordingId] [13] setting play state...');
         widget.onPlayStateChange(recordingId);
-        print('[SosRecordingCard:$recordingId] [14] play state updated');
-      } catch (e, st) {
-        print('[SosRecordingCard:$recordingId] [EXCEPTION] $e');
-        print('[SosRecordingCard:$recordingId] [STACK] $st');
+      } catch (e) {
         rethrow;
       }
     }
@@ -142,30 +104,38 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
             // Play / pause button
             GestureDetector(
               onTap: _togglePlay,
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: _isPlaying
-                      ? const LinearGradient(
-                          colors: [AppColors.secondary, Color(0xFF00897B)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : null,
-                  color: _isPlaying
-                      ? null
-                      : AppColors.secondary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.secondary.withOpacity(0.2),
-                    width: 0.75,
+              onTapDown: (_) => setState(() => _playPressed = true),
+              onTapUp: (_) => setState(() => _playPressed = false),
+              onTapCancel: () => setState(() => _playPressed = false),
+              child: AnimatedScale(
+                scale: _playPressed ? 0.93 : 1.0,
+                duration: Duration(milliseconds: _playPressed ? 80 : 300),
+                curve: Curves.easeOut,
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    gradient: _isPlaying
+                        ? const LinearGradient(
+                            colors: [AppColors.secondary, Color(0xFF00897B)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: _isPlaying
+                        ? null
+                        : AppColors.secondary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.secondary.withOpacity(0.2),
+                      width: 0.75,
+                    ),
                   ),
-                ),
-                child: Icon(
-                  _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: _isPlaying ? Colors.white : AppColors.secondary,
-                  size: 26,
+                  child: Icon(
+                    _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: _isPlaying ? Colors.white : AppColors.secondary,
+                    size: 26,
+                  ),
                 ),
               ),
             ),
@@ -227,21 +197,29 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
             // Delete
             GestureDetector(
               onTap: widget.onDelete,
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppColors.danger.withOpacity(0.15),
-                    width: 0.75,
+              onTapDown: (_) => setState(() => _deletePressed = true),
+              onTapUp: (_) => setState(() => _deletePressed = false),
+              onTapCancel: () => setState(() => _deletePressed = false),
+              child: AnimatedScale(
+                scale: _deletePressed ? 0.93 : 1.0,
+                duration: Duration(milliseconds: _deletePressed ? 80 : 300),
+                curve: Curves.easeOut,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.danger.withOpacity(0.15),
+                      width: 0.75,
+                    ),
                   ),
-                ),
-                child: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: AppColors.danger,
-                  size: 18,
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.danger,
+                    size: 18,
+                  ),
                 ),
               ),
             ),
