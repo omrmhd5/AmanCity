@@ -20,17 +20,29 @@ class NewsLocationSection extends StatefulWidget {
 
 class _NewsLocationSectionState extends State<NewsLocationSection> {
   String _mapStylePreference = 'dark';
+  late String _cachedMapUrl;
 
   @override
   void initState() {
     super.initState();
+    _cachedMapUrl = _buildMapUrl();
     _loadMapStylePreference();
+  }
+
+  @override
+  void didUpdateWidget(NewsLocationSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.incident.latitude != widget.incident.latitude ||
+        oldWidget.incident.longitude != widget.incident.longitude) {
+      _cachedMapUrl = _buildMapUrl();
+    }
   }
 
   Future<void> _loadMapStylePreference() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _mapStylePreference = prefs.getString('map_style_preference') ?? 'dark';
+      _cachedMapUrl = _buildMapUrl();
     });
   }
 
@@ -111,7 +123,7 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
                         Container(
                           decoration: BoxDecoration(
                             image: DecorationImage(
-                              image: NetworkImage(_buildMapUrl()),
+                              image: NetworkImage(_cachedMapUrl),
                               fit: BoxFit.cover,
                             ),
                           ),

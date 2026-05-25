@@ -18,11 +18,21 @@ class LocationSection extends StatefulWidget {
 
 class _LocationSectionState extends State<LocationSection> {
   String _mapStylePreference = 'dark';
+  late String _cachedMapUrl;
 
   @override
   void initState() {
     super.initState();
+    _cachedMapUrl = _buildMapUrl();
     _loadMapStylePreference();
+  }
+
+  @override
+  void didUpdateWidget(LocationSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.incident.position != widget.incident.position) {
+      _cachedMapUrl = _buildMapUrl();
+    }
   }
 
   Future<void> _loadMapStylePreference() async {
@@ -107,7 +117,7 @@ class _LocationSectionState extends State<LocationSection> {
                       Container(
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: NetworkImage(_buildMapUrl()),
+                            image: NetworkImage(_cachedMapUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
