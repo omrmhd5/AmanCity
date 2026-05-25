@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
   String? _homeAddress;
   String? _homeCity;
   bool _isLoading = true;
+  bool _pressed = false;
 
   @override
   void initState() {
@@ -188,61 +190,108 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
 
     return GestureDetector(
       onTap: _openMapPicker,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.getCardBackgroundColor(),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF14B8A6).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.location_on,
-                  color: const Color(0xFF14B8A6),
-                  size: 22,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: Duration(milliseconds: _pressed ? 90 : 300),
+        curve: Curves.easeOut,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.45),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.08),
+                  width: 1,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Home Location',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.getPrimaryTextColor(),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.secondary.withOpacity(0.20),
+                        width: 0.75,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _homeLocation != null
-                          ? (_homeAddress ?? _homeCity ?? 'Location set')
-                          : 'Set your home location',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.getSecondaryTextColor(),
+                    child: const Icon(
+                      Icons.home_rounded,
+                      color: AppColors.secondary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Home Location',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.getPrimaryTextColor(),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _homeLocation != null
+                              ? (_homeAddress ?? _homeCity ?? 'Location set')
+                              : 'Set your home location',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.getSecondaryTextColor(),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_homeCity != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.secondary.withOpacity(0.25),
+                          width: 0.75,
+                        ),
+                      ),
+                      child: Text(
+                        _homeCity!.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.secondary,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 10),
                   ],
-                ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: AppTheme.getSecondaryTextColor(),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.chevron_right,
-                color: AppTheme.getSecondaryTextColor(),
-                size: 20,
-              ),
-            ],
+            ),
           ),
         ),
       ),

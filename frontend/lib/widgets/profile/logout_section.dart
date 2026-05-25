@@ -1,84 +1,130 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../services/auth/auth_service.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
 
-class LogoutSection extends StatelessWidget {
+class LogoutSection extends StatefulWidget {
   final bool isCompact;
 
   const LogoutSection({Key? key, this.isCompact = false}) : super(key: key);
+
+  @override
+  State<LogoutSection> createState() => _LogoutSectionState();
+}
+
+class _LogoutSectionState extends State<LogoutSection> {
+  bool _pressed = false;
 
   void _showLogoutDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.currentMode == AppThemeMode.dark
-                ? AppColors.primary
-                : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Sign Out?',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.getPrimaryTextColor(),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.08),
+                  width: 1,
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                'You\'ll need to log in again to use the app.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppTheme.getSecondaryTextColor(),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: AppTheme.getSecondaryTextColor(),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.danger.withOpacity(0.25),
+                        width: 0.75,
                       ),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.danger,
+                      size: 26,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.danger,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
+                  const SizedBox(height: 16),
+                  Text(
+                    'Sign Out?',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryTextColor(),
                     ),
-                    child: const Text(
-                      'Sign Out',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You\'ll need to log in again to use the app.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.getSecondaryTextColor(),
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: BorderSide(
+                                color: Colors.white.withOpacity(0.10),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: AppTheme.getSecondaryTextColor(),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.danger,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Sign Out',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -105,7 +151,7 @@ class LogoutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isCompact) {
+    if (widget.isCompact) {
       return _buildCompactTile(context);
     } else {
       return _buildFullTile(context);
@@ -115,55 +161,78 @@ class LogoutSection extends StatelessWidget {
   Widget _buildCompactTile(BuildContext context) {
     return GestureDetector(
       onTap: () => _showLogoutDialog(context),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.getCardBackgroundColor(),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.getBorderColor(), width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.logout, color: AppColors.danger, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sign Out',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.getPrimaryTextColor(),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Log out of your account',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.getSecondaryTextColor(),
-                      ),
-                    ),
-                  ],
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: Duration(milliseconds: _pressed ? 90 : 300),
+        curve: Curves.easeOut,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.45),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.08),
+                  width: 1,
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: AppTheme.getSecondaryTextColor(),
-                size: 20,
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.danger.withOpacity(0.20),
+                        width: 0.75,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.danger,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sign Out',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.getPrimaryTextColor(),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Log out of your account',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.getSecondaryTextColor(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: AppColors.danger.withOpacity(0.7),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
