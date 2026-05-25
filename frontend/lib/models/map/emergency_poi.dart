@@ -53,4 +53,54 @@ class EmergencyPOI {
         return 'safeZone';
     }
   }
+
+  /// Convert POI to JSON for SharedPreferences storage
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.toString(), // Serialize enum as string
+      'latitude': position.latitude,
+      'longitude': position.longitude,
+      'name': name,
+      'address': address,
+      'phoneNumber': phoneNumber,
+    };
+  }
+
+  /// Create POI from JSON (for SharedPreferences restoration)
+  factory EmergencyPOI.fromJson(Map<String, dynamic> json) {
+    // Parse type string back to enum
+    final typeStr = (json['type'] as String)
+        .split('.')
+        .last; // Remove "POIType." prefix
+    POIType type;
+    switch (typeStr) {
+      case 'hospital':
+        type = POIType.hospital;
+        break;
+      case 'policeStation':
+        type = POIType.policeStation;
+        break;
+      case 'fireStation':
+        type = POIType.fireStation;
+        break;
+      case 'safeCafe':
+        type = POIType.safeCafe;
+        break;
+      case 'safeZone':
+        type = POIType.safeZone;
+        break;
+      default:
+        type = POIType.hospital;
+    }
+
+    return EmergencyPOI(
+      id: json['id'] as String,
+      type: type,
+      position: LatLng(json['latitude'] as double, json['longitude'] as double),
+      name: json['name'] as String,
+      address: json['address'] as String,
+      phoneNumber: json['phoneNumber'] as String?,
+    );
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as Math;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -65,7 +66,12 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Set<String> _selectedPoiFilters = {}; // Track which filters are selected
   bool _showPOIs = true;
   DateTime? _poisCachedTime;
-  static const int _poiCacheDurationMinutes = 5;
+  LatLng?
+  _lastPoiReloadLocation; // Track last POI reload location for distance check
+  static const double _poiReloadDistanceKm = 7.0; // Reload POI if moved > 7km
+  // POI cache is unlimited - only invalidated by: distance (7km), radius change, or background refresh
+  static const String _poiCacheKey = 'cached_pois';
+  static const String _poiCacheTimeKey = 'cached_pois_time';
 
   // Incident filtering
   Set<String> _selectedIncidentTypes = {}; // Track which incident types to show
@@ -162,6 +168,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadIncidents();
     _loadBulkIncidents();
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
+    _loadPersistedPOIs(); // Load POIs from cache (won't block UI)
     _startRealTimeLocationTracking(); // Start listening for location updates
     _loadPersistedHotspots(); // Show last-known hotspots instantly
     _loadHotspots(); // Fetch fresh hotspots in background
@@ -287,6 +294,23 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               altitudeAccuracy: 0,
             ),
           );
+
+          // Only reload POIs if user moved > 7km from last POI reload location
+          if (_lastPoiReloadLocation != null) {
+            final distance = _calculateDistance(
+              _lastPoiReloadLocation!,
+              newLocation,
+            );
+            if (distance >= _poiReloadDistanceKm) {
+              _poisCachedTime = null;
+              _lastPoiReloadLocation = newLocation;
+              _loadPOIs();
+            }
+          } else {
+            // First time, set the location for next comparison
+            _lastPoiReloadLocation = newLocation;
+          }
+
           _scheduleMapUpdate();
         },
         distanceFilterMeters: _locationDistanceFilterMeters,
@@ -294,6 +318,21 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     } catch (e) {
       // Location permissions or service disabled - not critical
     }
+  }
+
+  /// Calculate distance between two LatLng points in kilometers
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    const earthRadius = 6371; // km
+    final dLat = (point2.latitude - point1.latitude) * (3.14159 / 180);
+    final dLng = (point2.longitude - point1.longitude) * (3.14159 / 180);
+    final a =
+        (Math.sin(dLat / 2) * Math.sin(dLat / 2)) +
+        Math.cos(point1.latitude * (3.14159 / 180)) *
+            Math.cos(point2.latitude * (3.14159 / 180)) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+    final c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadius * c;
   }
 
   /// Cache location to SharedPreferences
@@ -342,6 +381,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             CameraUpdate.newLatLngZoom(_userLocation!, 15.0),
           );
 
+          _lastPoiReloadLocation = LatLng(
+            cachedLat,
+            cachedLng,
+          ); // Set reference for 7km check
           _loadPOIs(); // Load POIs with cached location
           return;
         }
@@ -426,6 +469,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       // Reload POIs for user's location
       _poisCachedTime = null; // Invalidate cache
+      _lastPoiReloadLocation = newLocation; // Set reference for 7km check
       await _loadPOIs();
 
       _updateMapElements();
@@ -438,13 +482,13 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Future<void> _loadPOIs() async {
     // Skip if already in-flight
     if (_isLoadingPOIs) return;
-    // Skip if cache is still fresh
-    if (_poisCachedTime != null) {
-      final age = DateTime.now().difference(_poisCachedTime!);
-      if (age.inMinutes < _poiCacheDurationMinutes) return;
-    }
+
+    // Skip if we already have cached POIs (unlimited cache)
+    if (_poisCachedTime != null) return;
+
     // Don't load if no location
     if (_userLocation == null) return;
+
     // No filters → clear and skip fetch
     if (_selectedPoiFilters.isEmpty) {
       setState(() => _pois = []);
@@ -465,6 +509,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _pois = pois;
         _poisCachedTime = DateTime.now();
       });
+      _persistPOIs(pois); // Save to SharedPreferences (fire-and-forget)
       _scheduleMapUpdate();
     } catch (e) {
       // Error loading POIs
@@ -531,6 +576,37 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         // Don't set _hotspotsCachedTime here — still fetch fresh data in background
       });
       _scheduleMapUpdate();
+    } catch (_) {}
+  }
+
+  /// Load persisted POIs from SharedPreferences (survives hot reload)
+  Future<void> _loadPersistedPOIs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_poiCacheKey);
+      final timeStr = prefs.getString(_poiCacheTimeKey);
+      if (json == null || timeStr == null) return;
+
+      final list = (jsonDecode(json) as List)
+          .map((e) => EmergencyPOI.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _pois = list;
+        _poisCachedTime = DateTime.parse(timeStr); // Mark as cached
+      });
+      _scheduleMapUpdate();
+    } catch (_) {}
+  }
+
+  /// Save POIs to SharedPreferences (survives hot reload/app restart)
+  Future<void> _persistPOIs(List<EmergencyPOI> pois) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonEncode(pois.map((p) => p.toJson()).toList());
+      await prefs.setString(_poiCacheKey, json);
+      await prefs.setString(_poiCacheTimeKey, DateTime.now().toIso8601String());
     } catch (_) {}
   }
 
