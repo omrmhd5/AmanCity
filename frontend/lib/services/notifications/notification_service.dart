@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
 import '../../models/alerts/alert_notification.dart';
+import '../../screens/sos/incoming_sos_alert_screen.dart';
+import '../../utils/navigation_service.dart' as navigation;
 
 /// Must be a top-level function — firebase_messaging requirement
 @pragma('vm:entry-point')
@@ -69,13 +71,18 @@ class NotificationService {
 
     // 6. Foreground message handler
     FirebaseMessaging.onMessage.listen((message) {
+      final type = message.data['type'] as String?;
+      if (type == 'sos_alert') {
+        _handleSosAlert(message.data);
+        return; // Skip local notification — we show full-screen UI
+      }
       _onMessageReceived(message);
       final n = message.notification;
       if (n != null) {
         showLocalNotification(
           title: n.title ?? 'Alert',
           body: n.body ?? '',
-          payload: message.data['incidentId'],
+          payload: _buildPayload(message.data),
           incidentType: message.data['incidentType'],
         );
       }
@@ -83,12 +90,13 @@ class NotificationService {
 
     // 7. Tapped from background (app was minimised)
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      _handleNotificationTap(message.data['incidentId']);
+      _handleMessageTap(message.data);
     });
 
     // 8. App launched from terminated state via notification
     final initial = await _messaging.getInitialMessage();
     if (initial != null) {
+      _handleMessageTap(initial.data);
       _onMessageReceived(initial);
     }
   }
@@ -216,8 +224,51 @@ class NotificationService {
     unreadCount.value = alerts.value.where((a) => !a.isRead).length;
   }
 
-  void _handleNotificationTap(String? incidentId) {
-    // Future: navigate to incident detail via NavigationService
+  void _handleMessageTap(Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    if (type == 'sos_alert') {
+      _handleSosAlert(data);
+    }
+    // Future: handle incidentId tap → navigate to incident detail
+  }
+
+  void _handleSosAlert(Map<String, dynamic> data) {
+    final sessionId = data['sessionId'] as String?;
+    final name = (data['triggerUserName'] as String?) ?? '';
+    final phone = (data['triggerUserPhone'] as String?) ?? '';
+    final lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0;
+    final lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
+    if (sessionId == null || sessionId.isEmpty) return;
+
+    navigation.Navigator.navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => IncomingSosAlertScreen(
+          sessionId: sessionId,
+          triggerUserName: name,
+          triggerUserPhone: phone,
+          lat: lat,
+          lng: lng,
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  String? _buildPayload(Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    if (type == 'sos_alert') return jsonEncode(data);
+    return data['incidentId'] as String?;
+  }
+
+  void _handleNotificationTap(String? payload) {
+    if (payload == null) return;
+    // Try to parse as JSON (SOS alert payload)
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      _handleMessageTap(data);
+    } catch (_) {
+      // Plain incidentId string — future: navigate to incident detail
+    }
   }
 
   Future<void> _loadFromPrefs() async {

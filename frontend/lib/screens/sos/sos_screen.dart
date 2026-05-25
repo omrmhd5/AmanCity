@@ -9,10 +9,10 @@ import '../../widgets/sos_screen/sos_active_view.dart';
 import '../../widgets/sos_screen/sos_header.dart';
 import '../../widgets/sos_screen/sos_hold_button.dart';
 import '../../widgets/sos_screen/sos_utility_toggles.dart';
-import 'sos_contacts_screen.dart';
 import 'sos_history_screen.dart';
+import 'trusted_app_contacts_screen.dart';
 
-enum _SosView { idle, contacts, history }
+enum _SosView { idle, history }
 
 class SosScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -51,8 +51,11 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   bool _viewFromExternal = false;
 
   // Pressed states for management cards
-  bool _contactsPressed = false;
   bool _historyPressed = false;
+  bool _trustedContactsPressed = false;
+
+  String? _sessionId;
+  Timer? _locationUpdateTimer;
 
   Timer? _recordingTimer;
 
@@ -71,9 +74,11 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   void dispose() {
     _entryController.dispose();
     _recordingTimer?.cancel();
+    _locationUpdateTimer?.cancel();
     widget.activateSignal?.removeListener(_onActivateSignal);
     widget.viewSignal?.removeListener(_onViewSignal);
     if (_isActive) {
+      if (_sessionId != null) SosService.endSession(_sessionId!);
       _sosService.stopRecording(lat: _activeLat, lng: _activeLng);
       _sosService.stopFlashStrobe();
       _sosService.stopSiren();
@@ -92,12 +97,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
     final v = widget.viewSignal?.value;
     if (v == null) return;
     widget.viewSignal!.value = null;
-    if (v == 'contacts') {
-      setState(() {
-        _currentView = _SosView.contacts;
-        _viewFromExternal = true;
-      });
-    } else if (v == 'history') {
+    if (v == 'history') {
       setState(() {
         _currentView = _SosView.history;
         _viewFromExternal = true;
@@ -179,6 +179,14 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _acquireAndNotify() async {
+    // Create in-app SOS session immediately so trusted contacts are notified
+    // even before GPS resolves. lat/lng start at 0 and get updated once available.
+    final sessionId = await SosService.createSession(0, 0);
+    if (sessionId != null && mounted) {
+      _sessionId = sessionId;
+      setState(() => _contactsNotified = true);
+    }
+
     final position = await _sosService.getCurrentLocation();
 
     if (!mounted) return;
@@ -196,16 +204,28 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
         _locationText =
             '${lat!.toStringAsFixed(4)}° N, ${lng!.toStringAsFixed(4)}° E';
       });
+
+      // Update the session with the real location immediately
+      if (_sessionId != null) {
+        await SosService.updateLocation(_sessionId!, lat, lng);
+      }
     }
 
-    // Send WhatsApp alerts sequentially
-    final contacts = await _sosService.getContacts();
-    for (int i = 0; i < contacts.length; i++) {
-      if (i > 0) await Future.delayed(const Duration(milliseconds: 600));
-      await _sosService.sendWhatsAppAlert(contacts[i], lat, lng);
+    // Start periodic location update timer for the in-app session
+    if (_sessionId != null) {
+      _locationUpdateTimer = Timer.periodic(const Duration(seconds: 15), (
+        _,
+      ) async {
+        final pos = await _sosService.getCurrentLocation();
+        if (pos != null && _sessionId != null) {
+          await SosService.updateLocation(
+            _sessionId!,
+            pos.latitude,
+            pos.longitude,
+          );
+        }
+      });
     }
-
-    if (mounted) setState(() => _contactsNotified = true);
   }
 
   // ─── Cancel ──────────────────────────────────────────────────────────────────
@@ -213,6 +233,12 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   Future<void> _onCancel() async {
     _recordingTimer?.cancel();
     _recordingTimer = null;
+    _locationUpdateTimer?.cancel();
+    _locationUpdateTimer = null;
+    if (_sessionId != null) {
+      await SosService.endSession(_sessionId!);
+      _sessionId = null;
+    }
     // Stop recording first (with coords so metadata is complete)
     await _sosService.stopRecording(lat: _activeLat, lng: _activeLng);
     await _sosService.stopFlashStrobe();
@@ -240,6 +266,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: widget.onBack == null || _currentView == _SosView.idle,
+
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (_currentView != _SosView.idle) {
@@ -265,21 +292,6 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
         body: SafeArea(
           child: _isActive
               ? _buildActiveView()
-              : _currentView == _SosView.contacts
-              ? SosContactsScreen(
-                  onBack: () {
-                    final fromExternal = _viewFromExternal;
-                    setState(() {
-                      _currentView = _SosView.idle;
-                      _viewFromExternal = false;
-                    });
-                    if (fromExternal) {
-                      widget.onBack?.call();
-                    } else {
-                      _entryController.forward(from: 0);
-                    }
-                  },
-                )
               : _currentView == _SosView.history
               ? SosHistoryScreen(
                   onBack: () {
@@ -428,23 +440,31 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
             start: 0.35,
             end: 0.9,
           ),
-          // Manage Contacts card
+          // Trusted App Contacts card
           _animated(
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: GestureDetector(
-                onTapDown: (_) => setState(() => _contactsPressed = true),
+                onTapDown: (_) =>
+                    setState(() => _trustedContactsPressed = true),
                 onTapUp: (_) {
-                  setState(() => _contactsPressed = false);
-                  setState(() => _currentView = _SosView.contacts);
+                  setState(() => _trustedContactsPressed = false);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const TrustedAppContactsScreen(),
+                    ),
+                  );
                 },
-                onTapCancel: () => setState(() => _contactsPressed = false),
+                onTapCancel: () =>
+                    setState(() => _trustedContactsPressed = false),
                 child: AnimatedScale(
-                  scale: _contactsPressed ? 0.97 : 1.0,
-                  duration: _contactsPressed
+                  scale: _trustedContactsPressed ? 0.97 : 1.0,
+                  duration: _trustedContactsPressed
                       ? const Duration(milliseconds: 80)
                       : const Duration(milliseconds: 300),
-                  curve: _contactsPressed ? Curves.easeIn : Curves.easeOutBack,
+                  curve: _trustedContactsPressed
+                      ? Curves.easeIn
+                      : Curves.easeOutBack,
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -469,7 +489,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                             ),
                           ),
                           child: const Icon(
-                            Icons.people_rounded,
+                            Icons.shield_rounded,
                             color: AppColors.secondary,
                             size: 22,
                           ),
@@ -480,7 +500,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Manage SOS Contacts',
+                                'Trusted App Contacts',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -489,7 +509,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Add trusted contacts to receive emergency alerts',
+                                'In-app contacts who see your live SOS location',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppTheme.getSecondaryTextColor(),
@@ -508,7 +528,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            start: 0.4,
+            start: 0.45,
             end: 1.0,
           ),
           const SizedBox(height: 12),

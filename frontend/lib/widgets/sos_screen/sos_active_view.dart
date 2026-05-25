@@ -36,6 +36,10 @@ class _SosActiveViewState extends State<SosActiveView>
   late AnimationController _entryController;
   late Animation<double> _blinkAnim;
 
+  String? _cachedMapUrl;
+  double? _cachedLat;
+  double? _cachedLng;
+
   @override
   void initState() {
     super.initState();
@@ -84,8 +88,14 @@ class _SosActiveViewState extends State<SosActiveView>
   String _buildMapUrl() {
     final lat = widget.activeLat!;
     final lng = widget.activeLng!;
+    if (lat == _cachedLat && lng == _cachedLng && _cachedMapUrl != null) {
+      return _cachedMapUrl!;
+    }
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
-    return 'https://maps.googleapis.com/maps/api/staticmap'
+    _cachedLat = lat;
+    _cachedLng = lng;
+    _cachedMapUrl =
+        'https://maps.googleapis.com/maps/api/staticmap'
         '?center=$lat,$lng'
         '&zoom=14'
         '&size=640x640'
@@ -94,6 +104,7 @@ class _SosActiveViewState extends State<SosActiveView>
         '&style=feature:all|element:geometry|color:0x0d1b2a'
         '&style=feature:road|element:geometry|color:0x1a3050'
         '&key=$apiKey';
+    return _cachedMapUrl!;
   }
 
   @override

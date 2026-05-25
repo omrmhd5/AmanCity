@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
 
+const trustedContactSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending_sent", "pending_incoming", "accepted"],
+      default: "pending_sent",
+    },
+  },
+  { _id: false },
+);
+
 const userSchema = new mongoose.Schema(
   {
     firebaseUid: {
@@ -12,6 +28,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     email: { type: String, default: "" },
     fcmToken: { type: String, default: null },
+    trustedContacts: { type: [trustedContactSchema], default: [] },
     lastLocation: {
       type: {
         type: String,

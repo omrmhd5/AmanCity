@@ -13,6 +13,7 @@ import '../map/map_screen.dart';
 import '../incidents/report_incident_screen.dart';
 import '../ai_chat/ai_screen.dart';
 import '../sos/sos_screen.dart';
+import '../sos/trusted_app_contacts_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // SOS activation signal — set to true to auto-activate SosScreen
   final ValueNotifier<bool> _sosActivateSignal = ValueNotifier(false);
-  // SOS view signal — set to 'contacts' or 'history' to navigate to sub-view
+  // SOS view signal — set to 'history' to navigate to recordings sub-view
   final ValueNotifier<String?> _sosViewSignal = ValueNotifier(null);
 
   @override
@@ -241,8 +242,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 },
                 onOpenSos: () => _onNavItemTapped(NavItem.sos),
                 onContactsTap: () {
-                  _sosViewSignal.value = 'contacts';
-                  _onNavItemTapped(NavItem.sos);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const TrustedAppContactsScreen(),
+                    ),
+                  );
                 },
                 onRecordingsTap: () {
                   _sosViewSignal.value = 'history';

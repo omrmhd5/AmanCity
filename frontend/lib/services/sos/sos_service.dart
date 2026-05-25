@@ -3,24 +3,26 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:torch_light/torch_light.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../models/sos/sos_contact.dart';
+import '../../config/app_config.dart';
 import '../../models/sos/sos_recording.dart';
+import '../../models/sos/sos_session_info.dart';
 
 class SosService {
   static final SosService _instance = SosService._internal();
   factory SosService() => _instance;
   SosService._internal();
 
-  static const String _contactsKey = 'sos_contacts';
   static const String _recordingsKey = 'sos_recordings';
+  static const _base = '${AppConfig.backendUrl}/sos';
 
   Timer? _flashTimer;
   bool _torchIsOn = false;
@@ -92,9 +94,7 @@ class SosService {
       await player.setAudioContext(_sirenAudioContext);
       await player.setReleaseMode(ReleaseMode.loop);
       await player.play(AssetSource('sos_sound.mp3'), volume: 1.0);
-      print('[SosService] siren started');
     } catch (e) {
-      print('[SosService] startSiren error: $e');
       await player.dispose();
       _sirenPlayer = null;
     }
@@ -115,7 +115,6 @@ class SosService {
     if (_isRecording) return false;
 
     final status = await Permission.microphone.request();
-    print('[SosService] mic permission status: $status');
     if (!status.isGranted) return false;
 
     try {
@@ -260,58 +259,87 @@ class SosService {
     }
   }
 
-  // ─── WhatsApp alert ──────────────────────────────────────────────────────────
+  // ─── SOS Session API ─────────────────────────────────────────────────────────
 
-  Future<void> sendWhatsAppAlert(
-    SosContact contact,
-    double? lat,
-    double? lng,
-  ) async {
-    String message;
-    if (lat != null && lng != null && (lat != 0 || lng != 0)) {
-      final mapsUrl = 'https://www.google.com/maps?q=$lat,$lng';
-      message =
-          '🚨 EMERGENCY SOS ALERT!\n\nI need immediate help! This is my live location:\n$mapsUrl\n\nPlease call me or contact emergency services!';
-    } else {
-      message =
-          '🚨 EMERGENCY SOS ALERT!\n\nI need immediate help! I have triggered my emergency SOS. Please call me or contact emergency services immediately!';
-    }
+  static Future<String?> _idToken() async {
+    return FirebaseAuth.instance.currentUser?.getIdToken();
+  }
 
-    final cleanPhone = contact.phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
-    final encodedMessage = Uri.encodeComponent(message);
-    final url = Uri.parse('https://wa.me/$cleanPhone?text=$encodedMessage');
-
+  /// Creates a new SOS session. Returns the sessionId on success, null on failure.
+  static Future<String?> createSession(double lat, double lng) async {
     try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
+      final token = await _idToken();
+      if (token == null) return null;
+      final res = await http.post(
+        Uri.parse('$_base/sessions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'lat': lat, 'lng': lng}),
+      );
+      if (res.statusCode == 201) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        return data['sessionId'] as String?;
       }
-    } catch (_) {}
-  }
-
-  // ─── Contacts (SharedPreferences) ───────────────────────────────────────────
-
-  Future<List<SosContact>> getContacts() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final json = prefs.getString(_contactsKey);
-      if (json == null) return [];
-      final list = jsonDecode(json) as List;
-      return list
-          .map((e) => SosContact.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return null;
     } catch (_) {
-      return [];
+      return null;
     }
   }
 
-  Future<void> saveContacts(List<SosContact> contacts) async {
+  /// Updates the live location for an active session.
+  static Future<void> updateLocation(
+    String sessionId,
+    double lat,
+    double lng,
+  ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        _contactsKey,
-        jsonEncode(contacts.map((c) => c.toJson()).toList()),
+      final token = await _idToken();
+      if (token == null) return;
+      await http.patch(
+        Uri.parse('$_base/sessions/$sessionId/location'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'lat': lat, 'lng': lng}),
       );
     } catch (_) {}
+  }
+
+  /// Ends the session.
+  static Future<void> endSession(String sessionId) async {
+    try {
+      final token = await _idToken();
+      if (token == null) return;
+      await http.patch(
+        Uri.parse('$_base/sessions/$sessionId/end'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+    } catch (_) {}
+  }
+
+  /// Polls the current state of a session.
+  static Future<SosSessionInfo?> getSession(String sessionId) async {
+    try {
+      final token = await _idToken();
+      if (token == null) return null;
+      final res = await http.get(
+        Uri.parse('$_base/sessions/$sessionId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        return SosSessionInfo.fromJson(data, sessionId);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ─── Stop all ────────────────────────────────────────────────────────────────
