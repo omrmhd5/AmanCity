@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const PlacePhone = require("../model/PlacePhone");
 
 /// Google Places API types mapping
 const PLACE_TYPES_MAP = {
@@ -20,9 +21,9 @@ if (!GOOGLE_API_KEY) {
 /// Query: lat, lng, type (hospital|police|fire|all), radius (meters, default 5000)
 /// Returns: Array of nearby places with {id, name, lat, lng, address, rating, type}
 router.get("/nearby", async (req, res) => {
-  try {
-    const { lat, lng, type = "all", radius = "5000" } = req.query;
+  const { lat, lng, type = "all", radius = "5000" } = req.query;
 
+  try {
     // Validate input
     if (!lat || !lng) {
       return res.status(400).json({
@@ -92,12 +93,26 @@ router.get("/nearby", async (req, res) => {
       return distA - distB;
     });
 
+    // Enrich with phone numbers from DB (cheap lookup, no API cost)
+    const placeIds = allPlaces.map((p) => p.id);
+    const phoneRecords = await PlacePhone.find(
+      { placeId: { $in: placeIds } },
+      { placeId: 1, phoneNumber: 1, _id: 0 },
+    ).lean();
+    const phoneMap = Object.fromEntries(
+      phoneRecords.map((r) => [r.placeId, r.phoneNumber]),
+    );
+    const enrichedPlaces = allPlaces.map((p) => ({
+      ...p,
+      phoneNumber: phoneMap[p.id] ?? null,
+    }));
+
     res.status(200).json({
       success: true,
-      count: allPlaces.length,
+      count: enrichedPlaces.length,
       userLocation: { lat: latitude, lng: longitude },
       searchRadius: searchRadius,
-      places: allPlaces,
+      places: enrichedPlaces,
     });
   } catch (error) {
     res.status(500).json({
@@ -198,7 +213,7 @@ async function searchGeneralPlaces(
       "Content-Type": "application/json",
       "X-Goog-Api-Key": GOOGLE_API_KEY,
       "X-Goog-FieldMask":
-        "places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.types,places.name",
+        "places.displayName,places.formattedAddress,places.location,places.types,places.name",
     },
     body: JSON.stringify(requestBody),
   });
@@ -273,7 +288,7 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": GOOGLE_API_KEY,
       "X-Goog-FieldMask":
-        "places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.name",
+        "places.displayName,places.formattedAddress,places.location,places.name",
     },
     body: JSON.stringify(requestBody),
   });
@@ -281,6 +296,7 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error("Unable to retrieve nearby locations. Please try again.");
+    void errorData;
   }
 
   const data = await response.json();

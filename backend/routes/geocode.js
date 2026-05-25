@@ -5,9 +5,9 @@ const GeocodingService = require("../service/geocodingService");
 /// GET /api/geocode?lat=30.145&lng=31.64
 /// Returns: {text: formatted_address, city: city_name}
 router.get("/", async (req, res) => {
-  try {
-    const { lat, lng } = req.query;
+  const { lat, lng } = req.query;
 
+  try {
     if (!lat || !lng) {
       return res.status(400).json({
         message: "Please provide lat and lng parameters.",

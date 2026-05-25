@@ -8,9 +8,9 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 /// Query: origin_lat, origin_lng, dest_lat, dest_lng
 /// Returns: {success, distance, duration, polyline, bounds}
 router.get("/", async (req, res) => {
-  try {
-    const { origin_lat, origin_lng, dest_lat, dest_lng } = req.query;
+  const { origin_lat, origin_lng, dest_lat, dest_lng } = req.query;
 
+  try {
     // Validate input
     if (!origin_lat || !origin_lng || !dest_lat || !dest_lng) {
       return res.status(400).json({
