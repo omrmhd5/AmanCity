@@ -306,22 +306,24 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
               ),
             )
           else
-            GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _selectedLocation ?? _cairoCenter,
-                zoom: 14.0,
+            RepaintBoundary(
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _selectedLocation ?? _cairoCenter,
+                  zoom: 14.0,
+                ),
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  _applyMapStyle(controller);
+                },
+                markers: _markers,
+                onTap: _onMapTapped,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                zoomControlsEnabled: true,
+                mapToolbarEnabled: false,
+                compassEnabled: true,
               ),
-              onMapCreated: (controller) {
-                _mapController = controller;
-                _applyMapStyle(controller);
-              },
-              markers: _markers,
-              onTap: _onMapTapped,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
-              zoomControlsEnabled: true,
-              mapToolbarEnabled: false,
-              compassEnabled: true,
             ),
           // Search bar
           Positioned(

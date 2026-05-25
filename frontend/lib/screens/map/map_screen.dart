@@ -48,9 +48,11 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   GoogleMapController? _mapController;
   String? selectedFilter;
 
+  // Map layer (isolated from UI state rebuilds)
+  final _mapLayerCtrl = _MapLayerController();
+  Widget? _mapLayerWidget;
+
   // Map data
-  Set<Marker> _markers = {};
-  Set<Circle> _circles = {};
   List<MapIncident> _incidents = [];
   List<EmergencyPOI> _pois = [];
   List<DangerZone> _dangerZones = [];
@@ -101,7 +103,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       10; // Only update if moved 10m+
 
   // Route/Navigation state
-  Set<Polyline> _routePolylines = {};
   LatLng? _routeDestination;
   String? _routeDestinationName;
   bool _isLoadingRoute = false;
@@ -167,8 +168,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     _loadIncidents();
     _loadBulkIncidents();
+    unawaited(
+      _loadPersistedPOIs(),
+    ); // Load POIs from cache (must load before location)
     _loadUserLocationFromCache(); // Try to load cached location first (required before building map)
-    _loadPersistedPOIs(); // Load POIs from cache (won't block UI)
     _startRealTimeLocationTracking(); // Start listening for location updates
     _loadPersistedHotspots(); // Show last-known hotspots instantly
     _loadHotspots(); // Fetch fresh hotspots in background
@@ -229,6 +232,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _mapController?.dispose();
+    _mapLayerCtrl.dispose();
     _locationStreamSubscription?.cancel();
     _incidentPollTimer?.cancel();
     _hotspotPollTimer?.cancel();
@@ -374,6 +378,15 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             );
             _locationLoaded = true;
           });
+          _mapLayerWidget ??= _MapLayerWidget(
+            controller: _mapLayerCtrl,
+            initialCameraPosition: _initialCameraPosition,
+            onMapCreated: (ctrl) {
+              _mapController = ctrl;
+              _setMapStyle();
+            },
+            onLongPress: _onMapLongPressed,
+          );
 
           // Animate camera to cached location
           await Future.delayed(const Duration(milliseconds: 500));
@@ -448,6 +461,15 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         );
         _locationLoaded = true;
       });
+      _mapLayerWidget ??= _MapLayerWidget(
+        controller: _mapLayerCtrl,
+        initialCameraPosition: _initialCameraPosition,
+        onMapCreated: (ctrl) {
+          _mapController = ctrl;
+          _setMapStyle();
+        },
+        onLongPress: _onMapLongPressed,
+      );
 
       // Cache the location
       try {
@@ -768,10 +790,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
 
-    setState(() {
-      _markers = newMarkers;
-      _circles = newCircles;
-    });
+    _mapLayerCtrl.update(newMarkers, newCircles);
   }
 
   /// Search for nearby places matching the search query
@@ -1156,9 +1175,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       );
     }
 
-    setState(() {
-      _routePolylines = polylines;
-    });
+    _mapLayerCtrl.updatePolylines(polylines);
   }
 
   /// Called when user taps a route card
@@ -1168,8 +1185,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   /// Clear the current route
   void _clearRoute() {
+    _mapLayerCtrl.updatePolylines({});
     setState(() {
-      _routePolylines = {};
       _routeDestination = null;
       _routeDestinationName = null;
       _routeDistance = null;
@@ -1220,10 +1237,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   /// Open the safe route in Google Maps with sampled waypoints
   Future<void> _openSafeRouteInGoogleMaps() async {
-    if (_routeDestination == null || _routePolylines.isEmpty) return;
+    if (_routeDestination == null || _mapLayerCtrl.polylines.isEmpty) return;
 
     // Get the polyline points
-    final polyline = _routePolylines.first;
+    final polyline = _mapLayerCtrl.polylines.first;
     final points = polyline.points;
 
     if (points.isEmpty) return;
@@ -1384,26 +1401,8 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     return Stack(
       children: [
         // Google Map - only show when location is loaded
-        if (_locationLoaded)
-          GoogleMap(
-            initialCameraPosition: _initialCameraPosition,
-            onMapCreated: (GoogleMapController controller) {
-              _mapController = controller;
-              // Apply dark/light theme to map
-              _setMapStyle();
-            },
-            markers: _markers,
-            circles: _circles,
-            polylines: _routePolylines,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-            compassEnabled: true,
-            trafficEnabled: false,
-            buildingsEnabled: true,
-            onLongPress: _onMapLongPressed,
-          )
+        if (_locationLoaded && _mapLayerWidget != null)
+          _mapLayerWidget!
         else
           Container(
             color: AppColors.primary,
@@ -1613,6 +1612,101 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       onIncidentTapped: (incident) async {
         await _drawRouteToIncident(incident);
       },
+    );
+  }
+}
+
+// ─── Map Layer: Controller + Widget ─────────────────────────────────────────
+// These classes isolate the GoogleMap widget from MapScreen's UI state.
+// Only map data changes (markers, circles, polylines) cause GoogleMap to rebuild.
+// UI-only setState calls (search, loading, route card) are completely ignored.
+
+/// Holds the data the GoogleMap widget needs.
+/// Call [update] or [updatePolylines] to push new data — only [_MapLayerWidget]
+/// will rebuild, not the full MapScreen.
+class _MapLayerController extends ChangeNotifier {
+  Set<Marker> markers = {};
+  Set<Circle> circles = {};
+  Set<Polyline> polylines = {};
+
+  void update(Set<Marker> m, Set<Circle> c, [Set<Polyline>? p]) {
+    markers = m;
+    circles = c;
+    if (p != null) polylines = p;
+    notifyListeners();
+  }
+
+  void updatePolylines(Set<Polyline> p) {
+    polylines = p;
+    notifyListeners();
+  }
+}
+
+/// Isolated GoogleMap widget — only rebuilds when [_MapLayerController] fires.
+///
+/// MapScreen stores a single instance in [MapScreenState._mapLayerWidget].
+/// Returning the same Widget object reference from build() makes Flutter's
+/// reconciler skip element.update() entirely → GoogleMap never rebuilds from
+/// parent setState().
+class _MapLayerWidget extends StatefulWidget {
+  const _MapLayerWidget({
+    required this.controller,
+    required this.initialCameraPosition,
+    required this.onMapCreated,
+    required this.onLongPress,
+  });
+
+  final _MapLayerController controller;
+  final CameraPosition initialCameraPosition;
+  final void Function(GoogleMapController) onMapCreated;
+  final void Function(LatLng) onLongPress;
+
+  @override
+  State<_MapLayerWidget> createState() => _MapLayerWidgetState();
+}
+
+class _MapLayerWidgetState extends State<_MapLayerWidget> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onDataChanged);
+  }
+
+  @override
+  void didUpdateWidget(_MapLayerWidget old) {
+    super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      old.controller.removeListener(_onDataChanged);
+      widget.controller.addListener(_onDataChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onDataChanged);
+    super.dispose();
+  }
+
+  void _onDataChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GoogleMap(
+      initialCameraPosition: widget.initialCameraPosition,
+      onMapCreated: widget.onMapCreated,
+      markers: widget.controller.markers,
+      circles: widget.controller.circles,
+      polylines: widget.controller.polylines,
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      zoomControlsEnabled: false,
+      mapToolbarEnabled: false,
+      compassEnabled: true,
+      trafficEnabled: false,
+      buildingsEnabled: true,
+      onLongPress: widget.onLongPress,
     );
   }
 }
