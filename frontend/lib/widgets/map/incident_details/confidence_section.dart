@@ -95,9 +95,7 @@ class ConfidenceSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.currentMode == AppThemeMode.dark
-                ? AppColors.secondary.withOpacity(0.08)
-                : AppColors.secondary.withOpacity(0.05),
+            color: AppTheme.getCardBackgroundColor(),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.getBorderColor(), width: 1),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class SosSlideToCancelWidget extends StatefulWidget {
   final VoidCallback onCancel;
@@ -20,6 +21,22 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
   static const double _threshold = 0.8;
 
   @override
+  void initState() {
+    super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -31,7 +48,7 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
               Icon(
                 Icons.swipe_right_alt_rounded,
                 size: 13,
-                color: Colors.white.withOpacity(0.4),
+                color: AppTheme.getSecondaryTextColor(),
               ),
               const SizedBox(width: 6),
               Text(
@@ -39,7 +56,7 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white.withOpacity(0.4),
+                  color: AppTheme.getSecondaryTextColor(),
                   letterSpacing: 1.8,
                 ),
               ),
@@ -86,14 +103,23 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.10),
-                            Colors.white.withOpacity(0.07),
-                          ],
+                          colors: AppTheme.currentMode == AppThemeMode.dark
+                              ? [
+                                  Colors.white.withOpacity(0.10),
+                                  Colors.white.withOpacity(0.07),
+                                ]
+                              : [
+                                  AppTheme.getPrimaryTextColor().withOpacity(
+                                    0.12,
+                                  ),
+                                  AppTheme.getPrimaryTextColor().withOpacity(
+                                    0.06,
+                                  ),
+                                ],
                         ),
                         borderRadius: BorderRadius.circular(29),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.08),
+                          color: AppTheme.getBorderColor(),
                           width: 1,
                         ),
                       ),
@@ -117,10 +143,10 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
                           Center(
                             child: Opacity(
                               opacity: (1.0 - progress * 2.5).clamp(0.0, 0.5),
-                              child: const Text(
+                              child: Text(
                                 'MARK AS SAFE',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppTheme.getPrimaryTextColor(),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 2,

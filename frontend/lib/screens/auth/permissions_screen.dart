@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../services/core/connectivity_service.dart';
 import '../../main.dart';
 
@@ -100,7 +101,18 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     super.initState();
     // Bypass connectivity checks — permissions screen doesn't need the backend.
     ConnectivityService.instance.setBypass(true);
+    AppTheme.themeNotifier.addListener(_onThemeChange);
     _checkExistingPermissions();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
   }
 
   Future<void> _checkExistingPermissions() async {
@@ -163,25 +175,28 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2742),
+        backgroundColor: AppTheme.getCardBackgroundColor(),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           '$permName Required',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppTheme.getPrimaryTextColor(),
             fontWeight: FontWeight.bold,
           ),
         ),
         content: Text(
           '$permName is required for core safety features. Please enable it in your app settings.',
-          style: TextStyle(color: Colors.white.withOpacity(0.7), height: 1.5),
+          style: TextStyle(
+            color: AppTheme.getSecondaryTextColor(),
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              style: TextStyle(color: AppTheme.getSecondaryTextColor()),
             ),
           ),
           ElevatedButton(
@@ -220,16 +235,16 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   @override
   Widget build(BuildContext context) {
     if (_checking) {
-      return const Scaffold(
-        backgroundColor: AppColors.primary,
-        body: Center(
+      return Scaffold(
+        backgroundColor: AppTheme.getBackgroundColor(),
+        body: const Center(
           child: CircularProgressIndicator(color: AppColors.secondary),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,10 +255,10 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'System Access',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppTheme.getPrimaryTextColor(),
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
@@ -253,7 +268,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                   Text(
                     'Authorize the following permissions to enable full safety functionality.',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.52),
+                      color: AppTheme.getSecondaryTextColor(),
                       fontSize: 14,
                       height: 1.5,
                     ),
@@ -329,7 +344,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                   Icon(
                     Icons.verified_user_outlined,
                     size: 13,
-                    color: Colors.white.withOpacity(0.3),
+                    color: AppTheme.getSecondaryTextColor(),
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -337,7 +352,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       letterSpacing: 1.4,
-                      color: Colors.white.withOpacity(0.3),
+                      color: AppTheme.getSecondaryTextColor(),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -382,17 +397,23 @@ class _PermCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: isDone
-              ? const Color(0xFF112B25)
+              ? (AppTheme.currentMode == AppThemeMode.dark
+                    ? const Color(0xFF112B25)
+                    : AppColors.secondary.withOpacity(0.08))
               : isActive
-              ? const Color(0xFF112244)
-              : const Color(0xFF0D1B30),
+              ? (AppTheme.currentMode == AppThemeMode.dark
+                    ? const Color(0xFF112244)
+                    : const Color(0xFF3B82F6).withOpacity(0.08))
+              : (AppTheme.currentMode == AppThemeMode.dark
+                    ? const Color(0xFF0D1B30)
+                    : Colors.white),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isDone
                 ? AppColors.secondary
                 : isActive
                 ? const Color(0xFF3B82F6)
-                : const Color(0xFF1E3260),
+                : AppTheme.getBorderColor(),
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -429,7 +450,9 @@ class _PermCard extends StatelessWidget {
                     child: Text(
                       item.title,
                       style: TextStyle(
-                        color: isDone ? Colors.white70 : Colors.white,
+                        color: isDone
+                            ? AppTheme.getSecondaryTextColor()
+                            : AppTheme.getPrimaryTextColor(),
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -472,8 +495,8 @@ class _PermCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   item.reason,
-                  style: const TextStyle(
-                    color: Color(0xFF90A4BE),
+                  style: TextStyle(
+                    color: AppTheme.getSecondaryTextColor(),
                     fontSize: 13,
                     height: 1.5,
                   ),

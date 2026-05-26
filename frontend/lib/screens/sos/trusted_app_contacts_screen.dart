@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../models/sos/trusted_app_contact.dart';
 import '../../services/sos/trusted_contacts_api_service.dart';
 
@@ -22,11 +23,17 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
   @override
   void initState() {
     super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
     _loadContacts();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -129,17 +136,23 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
     final isSearchActive = _searchCtrl.text.trim().length >= 2;
 
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppTheme.getBackgroundColor(),
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppTheme.getBackgroundColor(),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: AppTheme.getPrimaryTextColor(),
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Trusted Contacts',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: AppTheme.getPrimaryTextColor(),
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       body: Column(
@@ -149,19 +162,19 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
             child: TextField(
               controller: _searchCtrl,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppTheme.getPrimaryTextColor()),
               decoration: InputDecoration(
                 hintText: 'Search by name or phone…',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                hintStyle: TextStyle(color: AppTheme.getSecondaryTextColor()),
                 prefixIcon: Icon(
                   Icons.search,
-                  color: Colors.white.withOpacity(0.5),
+                  color: AppTheme.getSecondaryTextColor(),
                 ),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
                         icon: Icon(
                           Icons.close,
-                          color: Colors.white.withOpacity(0.5),
+                          color: AppTheme.getSecondaryTextColor(),
                         ),
                         onPressed: () {
                           _searchCtrl.clear();
@@ -170,10 +183,21 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.08),
+                fillColor: AppTheme.getCardBackgroundColor(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(color: AppTheme.getBorderColor()),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppTheme.getBorderColor()),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: AppColors.secondary,
+                    width: 1.5,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -263,7 +287,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: AppTheme.getSecondaryTextColor(),
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
@@ -277,7 +301,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Text(
         text,
-        style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 14),
+        style: TextStyle(color: AppTheme.getSecondaryTextColor(), fontSize: 14),
       ),
     );
   }
@@ -335,8 +359,9 @@ class _ContactTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: AppTheme.getCardBackgroundColor(),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.getBorderColor()),
       ),
       child: Row(
         children: [
@@ -351,8 +376,8 @@ class _ContactTile extends StatelessWidget {
             child: Center(
               child: Text(
                 _initials,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppTheme.getPrimaryTextColor(),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -367,8 +392,8 @@ class _ContactTile extends StatelessWidget {
               children: [
                 Text(
                   contact.name.isEmpty ? 'Unknown' : contact.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppTheme.getPrimaryTextColor(),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -376,7 +401,7 @@ class _ContactTile extends StatelessWidget {
                   Text(
                     contact.phone,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.45),
+                      color: AppTheme.getSecondaryTextColor(),
                       fontSize: 12,
                     ),
                   ),
@@ -395,11 +420,7 @@ class _ContactTile extends StatelessWidget {
             const SizedBox(width: 4),
             _iconBtn(Icons.close, const Color(0xFFFF3B3B), onDecline),
           ] else if (onRemove != null)
-            _iconBtn(
-              Icons.remove_circle_outline,
-              Colors.white.withOpacity(0.3),
-              onRemove,
-            ),
+            _iconBtn(Icons.remove_circle_outline, AppColors.danger, onRemove),
         ],
       ),
     );
@@ -441,8 +462,9 @@ class _SearchResultTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: AppTheme.getCardBackgroundColor(),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.getBorderColor()),
       ),
       child: Row(
         children: [
@@ -456,8 +478,8 @@ class _SearchResultTile extends StatelessWidget {
             child: Center(
               child: Text(
                 _initials,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppTheme.getPrimaryTextColor(),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -470,8 +492,8 @@ class _SearchResultTile extends StatelessWidget {
               children: [
                 Text(
                   contact.name.isEmpty ? 'Unknown' : contact.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppTheme.getPrimaryTextColor(),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -479,7 +501,7 @@ class _SearchResultTile extends StatelessWidget {
                   Text(
                     contact.phone,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.45),
+                      color: AppTheme.getSecondaryTextColor(),
                       fontSize: 12,
                     ),
                   ),

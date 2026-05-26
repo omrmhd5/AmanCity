@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 
 class SosStatusChecklist extends StatefulWidget {
   final bool locationAcquired;
@@ -35,10 +36,16 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
     _blinkAnim = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
     );
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _blinkController.dispose();
     super.dispose();
   }
@@ -55,9 +62,11 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.92),
+        color: AppTheme.currentMode == AppThemeMode.dark
+            ? AppColors.primary.withOpacity(0.92)
+            : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        border: Border.all(color: AppTheme.getBorderColor(), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -135,9 +144,9 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.0),
-                    Colors.white.withOpacity(0.12),
-                    Colors.white.withOpacity(0.0),
+                    AppTheme.getBorderColor().withOpacity(0.0),
+                    AppTheme.getBorderColor(),
+                    AppTheme.getBorderColor().withOpacity(0.0),
                   ],
                 ),
               ),
@@ -207,12 +216,12 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Audio Recording',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppTheme.getPrimaryTextColor(),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -220,7 +229,7 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
                       'Capturing audio evidence...',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white.withOpacity(0.5),
+                        color: AppTheme.getSecondaryTextColor(),
                       ),
                     ),
                   ],
@@ -286,10 +295,10 @@ class _StatusRow extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: AppTheme.getPrimaryTextColor(),
                 ),
               ),
               const SizedBox(height: 2),
@@ -300,7 +309,7 @@ class _StatusRow extends StatelessWidget {
                   key: ValueKey(subtitle),
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.5),
+                    color: AppTheme.getSecondaryTextColor(),
                   ),
                 ),
               ),

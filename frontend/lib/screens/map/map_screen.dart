@@ -1308,7 +1308,24 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => BulkIncidentDetailSheet(bulk: bulk),
+      builder: (context) => BulkIncidentDetailSheet(
+        bulk: bulk,
+        onNavigate: (selectedBulk) async {
+          await _drawRouteToIncident(
+            MapIncident(
+              id: selectedBulk.id,
+              type: selectedBulk.type,
+              position: selectedBulk.center,
+              title: selectedBulk.type,
+              description: '',
+              timestamp: selectedBulk.firstReportedAt,
+              addressText: selectedBulk.locationText,
+              city: selectedBulk.city,
+              isMerged: false,
+            ),
+          );
+        },
+      ),
     );
   }
 

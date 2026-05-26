@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../shared/custom_text_field.dart';
 import '../../shared/custom_button.dart';
 import '../terms_checkbox.dart';
-import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
 
 class StepPassword extends StatefulWidget {
@@ -79,10 +78,6 @@ class _StepPasswordState extends State<StepPassword> {
             onPressed: widget.onRegister,
             isLoading: widget.isLoading,
             icon: Icons.check,
-            backgroundColor: AppTheme.currentMode == AppThemeMode.dark
-                ? AppColors.secondary
-                : AppColors.primary,
-            textColor: AppColors.white,
           ),
           const SizedBox(height: 16),
           Center(

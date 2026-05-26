@@ -9,6 +9,7 @@ import '../../services/map/geocoding_api_service.dart';
 import '../../services/map/places_api_service.dart';
 import '../../services/map/location_stream_service.dart';
 import '../map/navigation/search_results_dropdown.dart';
+import '../shared/custom_search_bar.dart';
 
 class LocationPickerMap extends StatefulWidget {
   final LatLng? initialLocation;
@@ -324,67 +325,30 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
             top: 12,
             left: 16,
             right: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.currentMode == AppThemeMode.dark
-                    ? AppColors.primary
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.getBorderColor()),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: searchController,
-                onChanged: (query) {
-                  if (query.isEmpty) {
-                    setState(() => _showSearchResults = false);
-                  } else {
-                    _searchPlaces(query);
-                    setState(() => _showSearchResults = true);
-                  }
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search location...',
-                  hintStyle: TextStyle(
-                    color: AppTheme.getSecondaryTextColor(),
-                    fontSize: 14,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: AppTheme.getSecondaryTextColor(),
-                    size: 20,
-                  ),
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () {
-                            searchController.clear();
-                            setState(() => _showSearchResults = false);
-                          },
-                          child: Icon(
-                            Icons.close,
-                            color: AppTheme.getSecondaryTextColor(),
-                            size: 20,
-                          ),
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 0,
-                  ),
-                  isDense: true,
-                ),
-                style: TextStyle(
-                  color: AppTheme.getPrimaryTextColor(),
-                  fontSize: 14,
-                ),
-              ),
+            child: CustomSearchBar(
+              hintText: 'Search location...',
+              controller: searchController,
+              onChanged: (query) {
+                if (query.isEmpty) {
+                  setState(() => _showSearchResults = false);
+                } else {
+                  _searchPlaces(query);
+                  setState(() => _showSearchResults = true);
+                }
+              },
+              suffix: searchController.text.isNotEmpty
+                  ? GestureDetector(
+                      onTap: () {
+                        searchController.clear();
+                        setState(() => _showSearchResults = false);
+                      },
+                      child: Icon(
+                        Icons.close,
+                        color: AppTheme.getSecondaryTextColor(),
+                        size: 20,
+                      ),
+                    )
+                  : null,
             ),
           ),
           // Search results dropdown

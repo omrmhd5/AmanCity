@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../data/app_colors.dart';
 import '../../models/incidents/bulk_incident.dart';
 import '../../models/incidents/map_incident.dart';
@@ -14,8 +15,9 @@ import './incident_detail_sheet.dart';
 
 class BulkIncidentDetailSheet extends StatefulWidget {
   final BulkIncident bulk;
+  final Future<void> Function(BulkIncident)? onNavigate;
 
-  const BulkIncidentDetailSheet({Key? key, required this.bulk})
+  const BulkIncidentDetailSheet({Key? key, required this.bulk, this.onNavigate})
     : super(key: key);
 
   @override
@@ -148,11 +150,25 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: GestureDetector(
                   onTapDown: (_) => setState(() => _navigatePressed = true),
-                  onTapUp: (_) {
+                  onTapUp: (_) async {
                     setState(() => _navigatePressed = false);
-                    // Navigate to cluster center
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
+                    if (widget.onNavigate != null) {
+                      await widget.onNavigate!(bulk);
+                      if (mounted && Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
+                    } else {
+                      final lat = bulk.center.latitude;
+                      final lng = bulk.center.longitude;
+                      final url = Uri.parse(
+                        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+                      );
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      }
+                      if (mounted && Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
                     }
                   },
                   onTapCancel: () => setState(() => _navigatePressed = false),

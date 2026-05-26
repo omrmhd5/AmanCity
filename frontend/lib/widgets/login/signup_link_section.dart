@@ -30,9 +30,7 @@ class SignUpLinkSection extends StatelessWidget {
               text: 'Sign Up',
               size: 13,
               weight: FontWeight.w600,
-              color: AppTheme.currentMode == AppThemeMode.dark
-                  ? AppColors.secondary
-                  : AppColors.primary,
+              color: AppColors.secondary,
             ),
           ),
         ],

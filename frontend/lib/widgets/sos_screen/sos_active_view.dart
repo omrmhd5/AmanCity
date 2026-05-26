@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import 'sos_slide_to_cancel.dart';
 import 'sos_status_checklist.dart';
 
@@ -58,10 +59,19 @@ class _SosActiveViewState extends State<SosActiveView>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     )..forward();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) {
+      _cachedMapUrl = null; // force map URL regeneration with new theme style
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _radarController.dispose();
     _blinkController.dispose();
     _entryController.dispose();
@@ -94,15 +104,19 @@ class _SosActiveViewState extends State<SosActiveView>
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
     _cachedLat = lat;
     _cachedLng = lng;
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
+    final styleParams = isDark
+        ? '&style=feature:all|element:labels|visibility:off'
+              '&style=feature:water|element:geometry|color:0x060e1a'
+              '&style=feature:all|element:geometry|color:0x0d1b2a'
+              '&style=feature:road|element:geometry|color:0x1a3050'
+        : '&style=feature:all|element:labels|visibility:off';
     _cachedMapUrl =
         'https://maps.googleapis.com/maps/api/staticmap'
         '?center=$lat,$lng'
         '&zoom=14'
         '&size=640x640'
-        '&style=feature:all|element:labels|visibility:off'
-        '&style=feature:water|element:geometry|color:0x060e1a'
-        '&style=feature:all|element:geometry|color:0x0d1b2a'
-        '&style=feature:road|element:geometry|color:0x1a3050'
+        '$styleParams'
         '&key=$apiKey';
     return _cachedMapUrl!;
   }
@@ -111,8 +125,10 @@ class _SosActiveViewState extends State<SosActiveView>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Layer 0: dark base
-        const Positioned.fill(child: ColoredBox(color: Color(0xFF0B1E3C))),
+        // Layer 0: base background
+        Positioned.fill(
+          child: ColoredBox(color: AppTheme.getBackgroundColor()),
+        ),
         // Layer 1: user location map (fades in once GPS acquired)
         Positioned.fill(
           child: AnimatedOpacity(
@@ -130,7 +146,7 @@ class _SosActiveViewState extends State<SosActiveView>
             ),
           ),
         ),
-        // Layer 2: gradient overlay — map visible at top, solid dark at bottom
+        // Layer 2: gradient overlay — map visible at top, solid at bottom
         Positioned.fill(
           child: Container(
             decoration: BoxDecoration(
@@ -138,8 +154,8 @@ class _SosActiveViewState extends State<SosActiveView>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF0B1E3C).withOpacity(0.15),
-                  const Color(0xFF0B1E3C).withOpacity(0.97),
+                  AppTheme.getBackgroundColor().withOpacity(0.15),
+                  AppTheme.getBackgroundColor().withOpacity(0.97),
                 ],
                 stops: const [0.0, 0.65],
               ),
@@ -207,7 +223,7 @@ class _SosActiveViewState extends State<SosActiveView>
                         style: TextStyle(
                           fontSize: 44,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: AppTheme.getPrimaryTextColor(),
                           letterSpacing: 6,
                           shadows: [
                             Shadow(
@@ -231,7 +247,7 @@ class _SosActiveViewState extends State<SosActiveView>
                         'Help request broadcasted',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white.withOpacity(0.65),
+                          color: AppTheme.getSecondaryTextColor(),
                         ),
                       ),
                     ],

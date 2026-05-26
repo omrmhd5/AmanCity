@@ -53,12 +53,10 @@ class StepSuccess extends StatelessWidget {
           Text(
             email,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppTheme.currentMode == AppThemeMode.dark
-                  ? AppColors.secondary
-                  : AppColors.primary,
+              color: AppColors.secondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -75,10 +73,6 @@ class StepSuccess extends StatelessWidget {
             text: 'Back to Login',
             onPressed: onGoToLogin,
             icon: Icons.login,
-            backgroundColor: AppTheme.currentMode == AppThemeMode.dark
-                ? AppColors.secondary
-                : AppColors.primary,
-            textColor: AppColors.white,
           ),
         ],
       ),

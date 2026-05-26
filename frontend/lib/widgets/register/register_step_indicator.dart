@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
-import '../../utils/app_theme.dart';
 
 class RegisterStepIndicator extends StatelessWidget {
   final int currentStep;
@@ -14,9 +13,7 @@ class RegisterStepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = AppTheme.currentMode == AppThemeMode.dark
-        ? AppColors.secondary
-        : AppColors.primary;
+    const activeColor = AppColors.secondary;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

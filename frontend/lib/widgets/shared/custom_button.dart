@@ -79,7 +79,7 @@ class CustomButton extends StatelessWidget {
     } else {
       switch (type) {
         case ButtonType.primary:
-          return AppColors.primary;
+          return AppColors.secondary;
         case ButtonType.secondary:
           return AppColors.secondary;
         case ButtonType.tertiary:

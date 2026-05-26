@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
+import '../../services/map/geocoding_api_service.dart';
 import '../../services/sos/sos_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/sos_screen/sos_active_view.dart';
@@ -203,6 +204,14 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
         _activeLng = lng;
         _locationText =
             '${lat!.toStringAsFixed(4)}° N, ${lng!.toStringAsFixed(4)}° E';
+      });
+
+      // Geocode in background and update locationText with address
+      GeocodingService.reverseGeocode(lat, lng).then((result) {
+        final address = result['text'];
+        if (address != null && address.isNotEmpty && mounted) {
+          setState(() => _locationText = address);
+        }
       });
 
       // Update the session with the real location immediately

@@ -101,7 +101,7 @@ class StepPhone extends StatelessWidget {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(
-                        color: AppColors.primary,
+                        color: AppColors.secondary,
                         width: 2,
                       ),
                     ),
@@ -119,10 +119,6 @@ class StepPhone extends StatelessWidget {
             text: 'Continue',
             onPressed: onNext,
             icon: Icons.arrow_forward,
-            backgroundColor: AppTheme.currentMode == AppThemeMode.dark
-                ? AppColors.secondary
-                : AppColors.primary,
-            textColor: AppColors.white,
           ),
           const SizedBox(height: 16),
           Center(

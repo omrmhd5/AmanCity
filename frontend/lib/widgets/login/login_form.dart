@@ -86,7 +86,7 @@ class _LoginFormState extends State<LoginForm> {
               text: 'Forgot Password?',
               size: 13,
               weight: FontWeight.w500,
-              color: AppColors.primary,
+              color: AppColors.secondary,
             ),
           ),
         ),

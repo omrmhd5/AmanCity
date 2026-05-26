@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../services/core/connectivity_service.dart';
 import 'permissions_screen.dart';
 
@@ -49,6 +50,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.initState();
     // Bypass connectivity checks — onboarding doesn't need the backend.
     ConnectivityService.instance.setBypass(true);
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   static final _pages = [
@@ -130,6 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _pageController.dispose();
     super.dispose();
   }
@@ -137,7 +144,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: SafeArea(
         child: Column(
           children: [
@@ -159,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Text(
                       'Skip',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                        color: AppTheme.getSecondaryTextColor(),
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -197,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           color: isActive
                               ? AppColors.secondary
-                              : Colors.white.withOpacity(0.22),
+                              : AppTheme.getBorderColor(),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       );
@@ -270,8 +277,8 @@ class _OnboardingPageWidget extends StatelessWidget {
               children: [
                 Text(
                   data.title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppTheme.getPrimaryTextColor(),
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
@@ -282,7 +289,7 @@ class _OnboardingPageWidget extends StatelessWidget {
                 Text(
                   data.description,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: AppTheme.getSecondaryTextColor(),
                     fontSize: 15,
                     height: 1.6,
                   ),
@@ -308,8 +315,8 @@ class _IllustrationCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withOpacity(0.04),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        color: AppTheme.getCardBackgroundColor(),
+        border: Border.all(color: AppTheme.getBorderColor()),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/custom_text_field.dart';
 import '../../shared/custom_button.dart';
-import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
 
 class StepEmail extends StatelessWidget {
@@ -52,10 +51,6 @@ class StepEmail extends StatelessWidget {
             text: 'Continue',
             onPressed: onNext,
             icon: Icons.arrow_forward,
-            backgroundColor: AppTheme.currentMode == AppThemeMode.dark
-                ? AppColors.secondary
-                : AppColors.primary,
-            textColor: AppColors.white,
           ),
           const SizedBox(height: 16),
           Center(

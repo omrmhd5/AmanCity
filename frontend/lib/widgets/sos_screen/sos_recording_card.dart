@@ -4,6 +4,7 @@ import 'dart:io';
 
 import '../../data/app_colors.dart';
 import '../../models/sos/sos_recording.dart';
+import '../../services/map/geocoding_api_service.dart';
 import '../../utils/app_theme.dart';
 
 class SosRecordingCard extends StatefulWidget {
@@ -30,6 +31,21 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
   bool get _isPlaying => widget.currentlyPlayingId == widget.recording.id;
   bool _playPressed = false;
   bool _deletePressed = false;
+  String? _locationText;
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.recording;
+    if (r.latitude != null && r.longitude != null) {
+      GeocodingService.reverseGeocode(r.latitude!, r.longitude!).then((result) {
+        final address = result['text'];
+        if (address != null && address.isNotEmpty && mounted) {
+          setState(() => _locationText = address);
+        }
+      });
+    }
+  }
 
   Future<void> _togglePlay() async {
     final recordingId = widget.recording.id;
@@ -179,8 +195,9 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
-                            '${recording.latitude!.toStringAsFixed(4)}, '
-                            '${recording.longitude!.toStringAsFixed(4)}',
+                            _locationText ??
+                                '${recording.latitude!.toStringAsFixed(4)}, '
+                                    '${recording.longitude!.toStringAsFixed(4)}',
                             style: TextStyle(
                               color: AppTheme.getSecondaryTextColor(),
                               fontSize: 12,

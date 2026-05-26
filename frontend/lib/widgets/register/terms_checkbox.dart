@@ -30,20 +30,12 @@ class TermsCheckBox extends StatelessWidget {
                 onChanged(newValue ?? false);
               },
               fillColor: MaterialStateProperty.all(
-                isChecked
-                    ? (AppTheme.currentMode == AppThemeMode.dark
-                          ? Colors.white
-                          : AppColors.primary)
-                    : Colors.transparent,
+                isChecked ? AppColors.secondary : Colors.transparent,
               ),
-              checkColor: AppTheme.currentMode == AppThemeMode.dark
-                  ? AppColors.primary
-                  : AppColors.white,
+              checkColor: Colors.white,
               side: BorderSide(
                 color: isChecked
-                    ? (AppTheme.currentMode == AppThemeMode.dark
-                          ? Colors.white
-                          : AppColors.primary)
+                    ? AppColors.secondary
                     : const Color(0xFF404A5C),
                 width: 1.5,
               ),
