@@ -70,12 +70,12 @@ class _EvidenceTypeSelectorState extends State<EvidenceTypeSelector> {
             decoration: BoxDecoration(
               color: isSelected
                   ? AppColors.secondary.withOpacity(0.12)
-                  : AppTheme.getBackgroundColor().withOpacity(0.5),
+                  : AppTheme.getCardBackgroundColor(),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isSelected
                     ? AppColors.secondary
-                    : AppTheme.getBorderColor().withOpacity(0.15),
+                    : AppTheme.getBorderColor(),
                 width: isSelected ? 1.5 : 0.75,
               ),
               boxShadow: [

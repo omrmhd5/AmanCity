@@ -87,12 +87,12 @@ class _ToggleButtonState extends State<_ToggleButton> {
           decoration: BoxDecoration(
             color: widget.isActive
                 ? AppColors.danger.withOpacity(0.10)
-                : AppTheme.getBackgroundColor().withOpacity(0.5),
+                : AppTheme.getCardBackgroundColor(),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: widget.isActive
                   ? AppColors.danger.withOpacity(0.40)
-                  : AppTheme.getBorderColor().withOpacity(0.15),
+                  : AppTheme.getBorderColor(),
               width: widget.isActive ? 1.5 : 0.75,
             ),
           ),

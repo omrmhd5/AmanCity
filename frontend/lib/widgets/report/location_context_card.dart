@@ -59,11 +59,8 @@ class _LocationContextCardState extends State<LocationContextCard>
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.getBackgroundColor().withOpacity(0.5),
-        border: Border.all(
-          color: AppTheme.getBorderColor().withOpacity(0.15),
-          width: 0.75,
-        ),
+        color: AppTheme.getCardBackgroundColor(),
+        border: Border.all(color: AppTheme.getBorderColor(), width: 0.75),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(

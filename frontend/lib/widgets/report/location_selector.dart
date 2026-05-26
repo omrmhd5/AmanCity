@@ -126,11 +126,11 @@ class _LocationSelectorState extends State<LocationSelector> {
                     decoration: BoxDecoration(
                       color: _useCurrentLocation
                           ? AppColors.secondary.withOpacity(0.12)
-                          : AppTheme.getBackgroundColor().withOpacity(0.5),
+                          : AppTheme.getCardBackgroundColor(),
                       border: Border.all(
                         color: _useCurrentLocation
                             ? AppColors.secondary
-                            : AppTheme.getBorderColor().withOpacity(0.15),
+                            : AppTheme.getBorderColor(),
                         width: _useCurrentLocation ? 1.5 : 0.75,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -174,11 +174,11 @@ class _LocationSelectorState extends State<LocationSelector> {
                     decoration: BoxDecoration(
                       color: !_useCurrentLocation
                           ? AppColors.secondary.withOpacity(0.12)
-                          : AppTheme.getBackgroundColor().withOpacity(0.5),
+                          : AppTheme.getCardBackgroundColor(),
                       border: Border.all(
                         color: !_useCurrentLocation
                             ? AppColors.secondary
-                            : AppTheme.getBorderColor().withOpacity(0.15),
+                            : AppTheme.getBorderColor(),
                         width: !_useCurrentLocation ? 1.5 : 0.75,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -219,9 +219,9 @@ class _LocationSelectorState extends State<LocationSelector> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppTheme.getBackgroundColor().withOpacity(0.5),
+                  color: AppTheme.getCardBackgroundColor(),
                   border: Border.all(
-                    color: AppTheme.getBorderColor().withOpacity(0.15),
+                    color: AppTheme.getBorderColor(),
                     width: 0.75,
                   ),
                   borderRadius: BorderRadius.circular(12),

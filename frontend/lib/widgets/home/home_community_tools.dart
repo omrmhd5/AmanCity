@@ -80,12 +80,9 @@ class _HomeCommunityToolsState extends State<HomeCommunityTools> {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: AppTheme.getBackgroundColor().withOpacity(0.5),
+            color: AppTheme.getCardBackgroundColor(),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.getBorderColor().withOpacity(0.15),
-              width: 0.75,
-            ),
+            border: Border.all(color: AppTheme.getBorderColor(), width: 0.75),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),

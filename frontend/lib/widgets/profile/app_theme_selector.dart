@@ -164,12 +164,12 @@ class _ThemeOptionCardState extends State<_ThemeOptionCard> {
           decoration: BoxDecoration(
             color: widget.isActive
                 ? AppColors.secondary.withValues(alpha: 0.12)
-                : Colors.white.withValues(alpha: 0.04),
+                : AppTheme.getCardBackgroundColor(),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: widget.isActive
                   ? AppColors.secondary.withValues(alpha: 0.55)
-                  : Colors.white.withValues(alpha: 0.08),
+                  : AppTheme.getBorderColor(),
               width: widget.isActive ? 1.5 : 1,
             ),
             boxShadow: widget.isActive

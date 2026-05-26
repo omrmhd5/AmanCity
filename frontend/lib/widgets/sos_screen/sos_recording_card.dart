@@ -88,12 +88,12 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.getBackgroundColor().withOpacity(0.5),
+        color: AppTheme.getCardBackgroundColor(),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: _isPlaying
               ? AppColors.secondary.withOpacity(0.5)
-              : AppTheme.getBorderColor().withOpacity(0.15),
+              : AppTheme.getBorderColor(),
           width: _isPlaying ? 1 : 0.75,
         ),
       ),

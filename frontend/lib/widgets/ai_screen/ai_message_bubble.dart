@@ -94,7 +94,9 @@ class AiMessageBubble extends StatelessWidget {
                         size: 13,
                         weight: FontWeight.w400,
                         color: isUser
-                            ? Colors.white
+                            ? (AppTheme.currentMode == AppThemeMode.dark
+                                  ? Colors.white
+                                  : AppColors.darkText)
                             : AppTheme.getPrimaryTextColor(),
                       ),
                       if (citationText != null && !isUser) ...[
