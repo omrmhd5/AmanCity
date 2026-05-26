@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../widgets/shared/bottom_navbar.dart';
 import '../../widgets/home/home_header.dart';
 import '../../widgets/home/home_hero.dart';
@@ -42,10 +43,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+    _applySystemUI();
+  }
+
+  void _onThemeChange() {
+    _applySystemUI();
+    if (mounted) setState(() {});
+  }
+
+  void _applySystemUI() {
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
+    SystemChrome.setSystemUIOverlayStyle(
+      isDark
+          ? SystemUiOverlayStyle.light.copyWith(
+              statusBarColor: Colors.transparent,
+              systemNavigationBarColor: AppColors.primary,
+              systemNavigationBarIconBrightness: Brightness.light,
+            )
+          : SystemUiOverlayStyle.dark.copyWith(
+              statusBarColor: Colors.transparent,
+              systemNavigationBarColor: AppColors.lightBackground,
+              systemNavigationBarIconBrightness: Brightness.dark,
+            ),
+    );
   }
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _entryController.dispose();
     _sosActivateSignal.dispose();
     _sosViewSignal.dispose();
