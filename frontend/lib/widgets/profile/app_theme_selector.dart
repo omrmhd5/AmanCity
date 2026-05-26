@@ -43,12 +43,9 @@ class _AppThemeSelectorState extends State<AppThemeSelector> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.45),
+            color: AppTheme.getCardBackgroundColor(),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 1,
-            ),
+            border: Border.all(color: AppTheme.getBorderColor(), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

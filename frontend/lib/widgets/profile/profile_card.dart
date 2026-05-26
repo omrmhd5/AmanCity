@@ -31,6 +31,11 @@ class _ProfileCardState extends State<ProfileCard>
       CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
     );
     _loadHomeCity();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadHomeCity() async {
@@ -41,6 +46,7 @@ class _ProfileCardState extends State<ProfileCard>
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _blinkController.dispose();
     super.dispose();
   }
@@ -84,10 +90,10 @@ class _ProfileCardState extends State<ProfileCard>
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.45),
+                  color: AppTheme.getCardBackgroundColor(),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.08),
+                    color: AppTheme.getBorderColor(),
                     width: 1,
                   ),
                 ),

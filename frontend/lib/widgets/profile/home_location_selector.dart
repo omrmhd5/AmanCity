@@ -28,6 +28,17 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
   void initState() {
     super.initState();
     _loadHomeLocation();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
   }
 
   /// Load saved home location from SharedPreferences
@@ -204,12 +215,9 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.45),
+                color: AppTheme.getCardBackgroundColor(),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 1,
-                ),
+                border: Border.all(color: AppTheme.getBorderColor(), width: 1),
               ),
               child: Row(
                 children: [

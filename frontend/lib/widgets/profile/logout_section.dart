@@ -16,6 +16,22 @@ class LogoutSection extends StatefulWidget {
 class _LogoutSectionState extends State<LogoutSection> {
   bool _pressed = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
   void _showLogoutDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -27,12 +43,11 @@ class _LogoutSectionState extends State<LogoutSection> {
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.85),
+                color: AppTheme.currentMode == AppThemeMode.dark
+                    ? AppColors.primary.withOpacity(0.85)
+                    : Colors.white.withOpacity(0.95),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 1,
-                ),
+                border: Border.all(color: AppTheme.getBorderColor(), width: 1),
               ),
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -175,12 +190,9 @@ class _LogoutSectionState extends State<LogoutSection> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.45),
+                color: AppTheme.getCardBackgroundColor(),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 1,
-                ),
+                border: Border.all(color: AppTheme.getBorderColor(), width: 1),
               ),
               child: Row(
                 children: [

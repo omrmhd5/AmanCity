@@ -113,6 +113,22 @@ class _ResetOnboardingTile extends StatefulWidget {
 class _ResetOnboardingTileState extends State<_ResetOnboardingTile> {
   bool _pressed = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
   Future<void> _resetOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('onboarding_complete');
@@ -143,12 +159,9 @@ class _ResetOnboardingTileState extends State<_ResetOnboardingTile> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.45),
+                color: AppTheme.getCardBackgroundColor(),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 1,
-                ),
+                border: Border.all(color: AppTheme.getBorderColor(), width: 1),
               ),
               child: Row(
                 children: [
