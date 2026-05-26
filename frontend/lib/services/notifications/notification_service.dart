@@ -9,6 +9,7 @@ import '../../config/app_config.dart';
 import '../../models/alerts/alert_notification.dart';
 import '../../screens/sos/incoming_sos_alert_screen.dart';
 import '../../utils/navigation_service.dart' as navigation;
+import '../sos/sos_service.dart';
 
 /// Must be a top-level function — firebase_messaging requirement
 @pragma('vm:entry-point')
@@ -26,11 +27,17 @@ class NotificationService {
   static const _channelId = 'nearby_alerts';
   static const _channelName = 'Nearby Alerts';
   static const _channelDesc = 'Alerts for incidents near your location';
+  static const _sosChannelId = 'sos_alerts';
+  static const _sosChannelName = 'SOS Alerts';
+  static const _sosChannelDesc = 'Emergency SOS alerts from trusted contacts';
   static const _prefsKey = 'notification_alerts';
   static const _maxAlerts = 50;
 
   final ValueNotifier<List<AlertNotification>> alerts = ValueNotifier([]);
   final ValueNotifier<int> unreadCount = ValueNotifier(0);
+
+  // Emits sessionId when that SOS session is marked safe/ended
+  final sosEndedNotifier = ValueNotifier<String?>(null);
 
   // -------------------------------------------------------------------------
   // Init
@@ -53,18 +60,26 @@ class NotificationService {
       },
     );
 
-    // 4. Create the Android notification channel
+    // 4. Create Android notification channels
     const channel = AndroidNotificationChannel(
       _channelId,
       _channelName,
       description: _channelDesc,
       importance: Importance.high,
     );
-    await _localNotifications
+    const sosChannel = AndroidNotificationChannel(
+      _sosChannelId,
+      _sosChannelName,
+      description: _sosChannelDesc,
+      importance: Importance.max,
+      playSound: true,
+    );
+    final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
+        >();
+    await androidPlugin?.createNotificationChannel(channel);
+    await androidPlugin?.createNotificationChannel(sosChannel);
 
     // 5. Load persisted alerts
     await _loadFromPrefs();
@@ -75,6 +90,10 @@ class NotificationService {
       if (type == 'sos_alert') {
         _handleSosAlert(message.data);
         return; // Skip local notification — we show full-screen UI
+      }
+      if (type == 'sos_ended') {
+        _handleSosEnded(message.data);
+        return;
       }
       _onMessageReceived(message);
       final n = message.notification;
@@ -133,18 +152,22 @@ class NotificationService {
     required String body,
     String? payload,
     String? incidentType,
+    bool isSos = false,
   }) {
+    final channelId = isSos ? _sosChannelId : _channelId;
+    final channelName = isSos ? _sosChannelName : _channelName;
+    final channelDesc = isSos ? _sosChannelDesc : _channelDesc;
     _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title,
       body,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          _channelId,
-          _channelName,
-          channelDescription: _channelDesc,
-          importance: Importance.high,
-          priority: Priority.high,
+          channelId,
+          channelName,
+          channelDescription: channelDesc,
+          importance: isSos ? Importance.max : Importance.high,
+          priority: isSos ? Priority.max : Priority.high,
           icon: '@mipmap/ic_launcher',
         ),
         iOS: const DarwinNotificationDetails(),
@@ -202,6 +225,10 @@ class NotificationService {
       incidentId: message.data['incidentId'],
       incidentType: message.data['incidentType'],
     );
+    _addAlert(alert);
+  }
+
+  void _addAlert(AlertNotification alert) {
     final list = [alert, ...alerts.value];
     if (list.length > _maxAlerts) list.removeLast();
     alerts.value = list;
@@ -215,6 +242,16 @@ class NotificationService {
         return AlertType.nearbyIncident;
       case 'hotspotEntry':
         return AlertType.hotspotEntry;
+      case 'contactRequest':
+      case 'contact_request':
+        return AlertType.contactRequest;
+      case 'contactAccepted':
+      case 'contact_accepted':
+        return AlertType.contactAccepted;
+      case 'sos_alert':
+        return AlertType.sosAlert;
+      case 'sos_ended':
+        return AlertType.sosEnded;
       default:
         return AlertType.system;
     }
@@ -228,8 +265,35 @@ class NotificationService {
     final type = data['type'] as String?;
     if (type == 'sos_alert') {
       _handleSosAlert(data);
+    } else if (type == 'sos_ended') {
+      _handleSosEnded(data);
     }
     // Future: handle incidentId tap → navigate to incident detail
+  }
+
+  void _handleSosEnded(Map<String, dynamic> data) {
+    final sessionId = data['sessionId'] as String?;
+    if (sessionId == null || sessionId.isEmpty) return;
+    SosService().stopAlertSound();
+    sosEndedNotifier.value = sessionId;
+
+    // Update sos_alert inbox entry to read + add a "safe" entry
+    final name = (data['triggerUserName'] as String?) ?? '';
+    _addAlert(
+      AlertNotification(
+        id: 'sos_ended_$sessionId',
+        title: '✅ ${name.isNotEmpty ? name : "A contact"} is now safe',
+        body: 'They have cancelled their SOS alert.',
+        alertType: AlertType.sosEnded,
+        timestamp: DateTime.now(),
+        isRead: false,
+      ),
+    );
+
+    // Reset so the same sessionId can trigger again if needed
+    Future.delayed(const Duration(seconds: 1), () {
+      if (sosEndedNotifier.value == sessionId) sosEndedNotifier.value = null;
+    });
   }
 
   void _handleSosAlert(Map<String, dynamic> data) {
@@ -239,6 +303,28 @@ class NotificationService {
     final lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0;
     final lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
     if (sessionId == null || sessionId.isEmpty) return;
+
+    // Fire a high-priority local notification so the user always hears/sees it
+    showLocalNotification(
+      title: '🆘 ${name.isNotEmpty ? name : "A contact"} is in danger!',
+      body: 'Tap to view their live location and call for help.',
+      payload: jsonEncode(data),
+      isSos: true,
+    );
+
+    // Add to alerts inbox
+    _addAlert(
+      AlertNotification(
+        id: 'sos_${sessionId}',
+        title: '🆘 ${name.isNotEmpty ? name : "A contact"} is in danger!',
+        body: 'Tap to view their live location and call for help.',
+        alertType: AlertType.sosAlert,
+        timestamp: DateTime.now(),
+      ),
+    );
+
+    // Play alert sound on the receiver's device
+    SosService().playAlertSound();
 
     navigation.Navigator.navigatorKey.currentState?.push(
       MaterialPageRoute(

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -105,22 +107,113 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
   Future<void> _remove(TrustedAppContact contact) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Remove Contact'),
-        content: Text('Remove ${contact.name} from your trusted contacts?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Remove',
-              style: TextStyle(color: Color(0xFFFF3B3B)),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.currentMode == AppThemeMode.dark
+                    ? AppColors.primary.withOpacity(0.85)
+                    : Colors.white.withOpacity(0.95),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.getBorderColor(), width: 1),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.danger.withOpacity(0.25),
+                        width: 0.75,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.person_remove_rounded,
+                      color: AppColors.danger,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Remove Contact?',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryTextColor(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Remove ${contact.name} from your trusted contacts?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.getSecondaryTextColor(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: BorderSide(
+                                color: Colors.white.withOpacity(0.10),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: AppTheme.getSecondaryTextColor(),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.danger,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Remove',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
     if (confirmed != true || !mounted) return;

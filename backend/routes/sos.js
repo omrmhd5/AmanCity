@@ -60,7 +60,7 @@ router.post("/sessions", async (req, res) => {
     if (usersWithTokens.length > 0) {
       await sendPushToUsers(
         usersWithTokens,
-        `🆘 SOS from ${triggerUser.name || "a contact"}`,
+        `🆘 ${triggerUser.name || "a contact"} is in danger!`,
         "Tap to see their live location.",
         {
           type: "sos_alert",
@@ -137,7 +137,7 @@ router.patch("/sessions/:id/end", async (req, res) => {
     if (usersWithTokens.length > 0) {
       await sendPushToUsers(
         usersWithTokens,
-        `✅ SOS ended — ${triggerUser?.name || "Your contact"} is safe`,
+        `✅ SOS ended, ${triggerUser?.name || "Your contact"} is safe`,
         "The SOS alert has been deactivated.",
         {
           type: "sos_ended",

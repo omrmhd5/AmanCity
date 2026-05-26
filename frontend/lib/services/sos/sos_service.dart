@@ -32,6 +32,7 @@ class SosService {
   String? _currentRecordingPath;
   int _recordingStartMs = 0;
   AudioPlayer? _sirenPlayer;
+  AudioPlayer? _alertPlayer; // receiver-side alert sound
 
   // ─── Flashlight strobe ──────────────────────────────────────────────────────
 
@@ -104,6 +105,48 @@ class SosService {
   Future<void> stopSiren() async {
     final player = _sirenPlayer;
     _sirenPlayer = null;
+    try {
+      await player?.stop();
+      await player?.dispose();
+    } catch (_) {}
+  }
+
+  // ─── Alert sound (receiver side) ────────────────────────────────────────────
+
+  static final AudioContext _alertAudioContext = AudioContext(
+    iOS: AudioContextIOS(
+      category: AVAudioSessionCategory.playAndRecord,
+      options: {
+        AVAudioSessionOptions.defaultToSpeaker,
+        AVAudioSessionOptions.allowBluetooth,
+        AVAudioSessionOptions.mixWithOthers,
+      },
+    ),
+    android: AudioContextAndroid(
+      stayAwake: true,
+      contentType: AndroidContentType.music,
+      usageType: AndroidUsageType.alarm,
+      audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+    ),
+  );
+
+  Future<void> playAlertSound() async {
+    await stopAlertSound();
+    final player = AudioPlayer();
+    _alertPlayer = player;
+    try {
+      await player.setAudioContext(_alertAudioContext);
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.play(AssetSource('sos_sound.mp3'), volume: 1.0);
+    } catch (e) {
+      await player.dispose();
+      _alertPlayer = null;
+    }
+  }
+
+  Future<void> stopAlertSound() async {
+    final player = _alertPlayer;
+    _alertPlayer = null;
     try {
       await player?.stop();
       await player?.dispose();

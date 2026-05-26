@@ -560,6 +560,14 @@ class _AlertCardState extends State<_AlertCard> {
         return Colors.red.shade600;
       case AlertType.hotspotEntry:
         return Colors.orange.shade600;
+      case AlertType.contactRequest:
+        return Colors.purple.shade600;
+      case AlertType.contactAccepted:
+        return Colors.green.shade600;
+      case AlertType.sosAlert:
+        return const Color(0xFFFF3B3B);
+      case AlertType.sosEnded:
+        return Colors.teal.shade600;
       case AlertType.system:
         return Colors.blue.shade600;
     }
@@ -576,6 +584,14 @@ class _AlertCardState extends State<_AlertCard> {
         return Icons.warning_amber_rounded;
       case AlertType.hotspotEntry:
         return Icons.local_fire_department;
+      case AlertType.contactRequest:
+        return Icons.person_add_rounded;
+      case AlertType.contactAccepted:
+        return Icons.check_circle_rounded;
+      case AlertType.sosAlert:
+        return Icons.sos_rounded;
+      case AlertType.sosEnded:
+        return Icons.shield_rounded;
       case AlertType.system:
         return Icons.info_outline;
     }

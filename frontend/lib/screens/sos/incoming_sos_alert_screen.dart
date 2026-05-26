@@ -5,6 +5,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/app_colors.dart';
+import '../../services/notifications/notification_service.dart';
+import '../../services/sos/sos_service.dart';
 import 'live_tracking_screen.dart';
 
 class IncomingSosAlertScreen extends StatefulWidget {
@@ -55,11 +57,23 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
         '&style=element:geometry%7Ccolor:0x1a2744'
         '&style=element:labels.text.fill%7Ccolor:0x9ca5b3'
         '&key=$apiKey';
+
+    // Auto-dismiss when the sender marks safe
+    NotificationService.instance.sosEndedNotifier.addListener(_onSosEnded);
+  }
+
+  void _onSosEnded() {
+    final endedId = NotificationService.instance.sosEndedNotifier.value;
+    if (endedId == widget.sessionId && mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
   void dispose() {
+    NotificationService.instance.sosEndedNotifier.removeListener(_onSosEnded);
     _pulseController.dispose();
+    SosService().stopAlertSound();
     super.dispose();
   }
 

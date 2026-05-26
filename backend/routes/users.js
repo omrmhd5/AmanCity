@@ -88,7 +88,7 @@ router.post("/trusted-contacts/request", async (req, res) => {
     if (toUser.fcmToken) {
       await sendPushToUsers(
         [{ fcmToken: toUser.fcmToken }],
-        `👤 Contact request from ${fromUser.name || "someone"}`,
+        `👤 SOS Contact request from ${fromUser.name || "someone"}`,
         "Open the app to accept or decline.",
         {
           type: "contact_request",
@@ -119,7 +119,7 @@ router.patch("/trusted-contacts/:contactId/respond", async (req, res) => {
       const receiver = await findUserByFirebaseUid(decoded.uid);
       await sendPushToUsers(
         [{ fcmToken: fromUser.fcmToken }],
-        `✅ ${receiver?.name || "Someone"} accepted your contact request`,
+        `✅ ${receiver?.name || "Someone"} accepted your SOS contact request`,
         "You can now send SOS alerts to each other.",
         {
           type: "contact_accepted",
@@ -128,7 +128,11 @@ router.patch("/trusted-contacts/:contactId/respond", async (req, res) => {
         },
       );
     }
-    res.status(200).json({ message: accept ? "Accepted." : "Declined." });
+    res.status(200).json({
+      message: accept
+        ? "✅ SOS contact request accepted."
+        : "❌ SOS contact request declined.",
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -140,7 +144,7 @@ router.delete("/trusted-contacts/:contactId", async (req, res) => {
   if (!decoded) return;
   try {
     await removeTrustedContact(decoded.uid, req.params.contactId);
-    res.status(200).json({ message: "Contact removed." });
+    res.status(200).json({ message: "❌ SOS contact removed." });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

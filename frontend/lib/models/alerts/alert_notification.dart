@@ -1,4 +1,12 @@
-enum AlertType { nearbyIncident, hotspotEntry, system }
+enum AlertType {
+  nearbyIncident,
+  hotspotEntry,
+  contactRequest,
+  contactAccepted,
+  sosAlert,
+  sosEnded,
+  system,
+}
 
 class AlertNotification {
   final String id;
