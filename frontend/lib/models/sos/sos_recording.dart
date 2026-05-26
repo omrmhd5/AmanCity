@@ -5,6 +5,7 @@ class SosRecording {
   final int durationSeconds;
   final double? latitude;
   final double? longitude;
+  final String? address;
 
   const SosRecording({
     required this.id,
@@ -13,6 +14,7 @@ class SosRecording {
     required this.durationSeconds,
     this.latitude,
     this.longitude,
+    this.address,
   });
 
   factory SosRecording.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class SosRecording {
       durationSeconds: json['durationSeconds'] as int,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      address: json['address'] as String?,
     );
   }
 
@@ -34,6 +37,7 @@ class SosRecording {
       'durationSeconds': durationSeconds,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (address != null) 'address': address,
     };
   }
 

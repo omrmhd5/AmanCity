@@ -15,6 +15,7 @@ import 'package:torch_light/torch_light.dart';
 import '../../config/app_config.dart';
 import '../../models/sos/sos_recording.dart';
 import '../../models/sos/sos_session_info.dart';
+import '../map/geocoding_api_service.dart';
 
 class SosService {
   static final SosService _instance = SosService._internal();
@@ -161,6 +162,13 @@ class SosService {
       final durationSeconds =
           ((DateTime.now().millisecondsSinceEpoch - _recordingStartMs) / 1000)
               .round();
+      String? address;
+      if (lat != null && lng != null) {
+        try {
+          final result = await GeocodingService.reverseGeocode(lat, lng);
+          address = result['text'];
+        } catch (_) {}
+      }
       final recording = SosRecording(
         id: _recordingStartMs.toString(),
         path: path,
@@ -168,6 +176,7 @@ class SosService {
         durationSeconds: durationSeconds,
         latitude: lat,
         longitude: lng,
+        address: address,
       );
       await _saveRecordingMetadata(recording);
     }
