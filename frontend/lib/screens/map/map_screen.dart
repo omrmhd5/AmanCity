@@ -512,7 +512,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         _pois = pois;
-        _poisCachedTime = DateTime.now();
+        // Only mark as cached if API actually returned POIs
+        if (pois.isNotEmpty) {
+          _poisCachedTime = DateTime.now();
+        }
       });
       _persistPOIs(pois); // Save to SharedPreferences (fire-and-forget)
       _scheduleMapUpdate();
@@ -599,7 +602,10 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         _pois = list;
-        _poisCachedTime = DateTime.parse(timeStr); // Mark as cached
+        // Only mark as cached if we actually loaded POIs (not empty)
+        if (list.isNotEmpty) {
+          _poisCachedTime = DateTime.parse(timeStr); // Mark as cached
+        }
       });
       _scheduleMapUpdate();
     } catch (_) {}
@@ -607,6 +613,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   /// Save POIs to SharedPreferences (survives hot reload/app restart)
   Future<void> _persistPOIs(List<EmergencyPOI> pois) async {
+    if (pois.isEmpty) return; // Don't persist empty results
     try {
       final prefs = await SharedPreferences.getInstance();
       final json = jsonEncode(pois.map((p) => p.toJson()).toList());

@@ -65,21 +65,17 @@ router.get("/nearby", async (req, res) => {
       });
     }
 
-    // Fetch places for each type
-    const allPlaces = [];
-
-    for (const searchType of searchTypes) {
-      try {
-        const places = await searchNearbyPlaces(
-          latitude,
-          longitude,
-          searchType,
-          searchRadius,
-        );
-        allPlaces.push(...places);
-      } catch (error) {
-        // Continue with other types even if one fails
-      }
+    // Fetch all place types in a single API call
+    let allPlaces = [];
+    try {
+      allPlaces = await searchNearbyPlaces(
+        latitude,
+        longitude,
+        searchTypes,
+        searchRadius,
+      );
+    } catch (error) {
+      // API call failed
     }
 
     // Sort by distance (closest first) - using simple lat/lng distance
@@ -185,6 +181,7 @@ async function searchGeneralPlaces(
   radius = 5000,
   maxResults = 20,
 ) {
+  console.log(`[DEBUG] API call: Google Places Text Search for "${query}"`);
   if (!GOOGLE_API_KEY) {
     throw new Error(
       "Location services are not configured. Please contact support.",
@@ -251,25 +248,37 @@ async function searchGeneralPlaces(
     };
   });
 }
-/// Uses Google Places API searchNearby endpoint
-async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
+/// Uses Google Places API searchNearby endpoint - supports multiple types in single call
+async function searchNearbyPlaces(
+  latitude,
+  longitude,
+  searchTypes,
+  radius = 5000,
+) {
+  console.log(
+    `[DEBUG] API call: Google Places Nearby Search for types=${searchTypes.join(",")} at (${latitude}, ${longitude})`,
+  );
   if (!GOOGLE_API_KEY) {
     throw new Error(
       "Location services are not configured. Please contact support.",
     );
   }
 
-  const maxResults = 20; // Fixed at 20 results per type
+  const maxResults = 20; // Fixed at 20 results total
 
-  const googlePlaceType = PLACE_TYPES_MAP[type];
-  if (!googlePlaceType) {
-    throw new Error("The selected location type is not recognized.");
+  // Map search types to Google Places types
+  const googlePlaceTypes = searchTypes
+    .map((type) => PLACE_TYPES_MAP[type])
+    .filter((type) => type); // Remove nulls
+
+  if (googlePlaceTypes.length === 0) {
+    throw new Error("No valid location types specified.");
   }
 
   const url = "https://places.googleapis.com/v1/places:searchNearby";
 
   const requestBody = {
-    includedTypes: [googlePlaceType],
+    includedTypes: googlePlaceTypes,
     maxResultCount: maxResults,
     locationRestriction: {
       circle: {
@@ -288,7 +297,7 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": GOOGLE_API_KEY,
       "X-Goog-FieldMask":
-        "places.displayName,places.formattedAddress,places.location,places.name",
+        "places.displayName,places.formattedAddress,places.location,places.name,places.types",
     },
     body: JSON.stringify(requestBody),
   });
@@ -302,15 +311,29 @@ async function searchNearbyPlaces(latitude, longitude, type, radius = 5000) {
   const data = await response.json();
 
   // Map Google Places API response to our format
-  return (data.places || []).map((place) => ({
-    id: place.name, // Google returns full resource name like "places/ChIJ..."
-    name: place.displayName?.text || place.name || "Unknown",
-    lat: place.location?.latitude || 0,
-    lng: place.location?.longitude || 0,
-    address: place.formattedAddress || "",
-    phoneNumber: place.nationalPhoneNumber || null,
-    type: type, // Our internal type (hospital, police, fire)
-  }));
+  return (data.places || []).map((place) => {
+    // Determine the POI type based on Google types
+    let poiType = null;
+    const types = place.types || [];
+
+    if (types.includes("hospital")) {
+      poiType = "hospital";
+    } else if (types.includes("police")) {
+      poiType = "police";
+    } else if (types.includes("fire_station")) {
+      poiType = "fire";
+    }
+
+    return {
+      id: place.name, // Google returns full resource name like "places/ChIJ..."
+      name: place.displayName?.text || place.name || "Unknown",
+      lat: place.location?.latitude || 0,
+      lng: place.location?.longitude || 0,
+      address: place.formattedAddress || "",
+      phoneNumber: null, // Phone will be enriched from DB
+      type: poiType, // Our internal type (hospital, police, fire)
+    };
+  });
 }
 
 module.exports = router;
