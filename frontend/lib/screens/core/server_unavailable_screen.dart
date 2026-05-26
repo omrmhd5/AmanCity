@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../services/core/connectivity_service.dart';
 
 class ServerUnavailableScreen extends StatefulWidget {
@@ -13,6 +14,22 @@ class ServerUnavailableScreen extends StatefulWidget {
 class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
   bool _checking = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
   Future<void> _retry() async {
     setState(() => _checking = true);
     await ConnectivityService.instance.retry();
@@ -21,8 +38,17 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
+    final iconContainerColor = isDark
+        ? Colors.white.withOpacity(0.06)
+        : AppColors.secondary.withOpacity(0.08);
+    final iconContainerBorder = isDark
+        ? Colors.white.withOpacity(0.12)
+        : AppColors.secondary.withOpacity(0.2);
+    final iconColor = isDark ? Colors.white70 : AppColors.secondary;
+
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -36,25 +62,22 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                   height: 96,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.06),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
-                      width: 1.5,
-                    ),
+                    color: iconContainerColor,
+                    border: Border.all(color: iconContainerBorder, width: 1.5),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.cloud_off_rounded,
                     size: 42,
-                    color: Colors.white70,
+                    color: iconColor,
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Title
-                const Text(
+                Text(
                   'Server Unavailable',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppTheme.getPrimaryTextColor(),
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
@@ -67,7 +90,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                 Text(
                   'AmanCity servers are temporarily unreachable. We\'ll keep trying automatically.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.55),
+                    color: AppTheme.getSecondaryTextColor(),
                     fontSize: 15,
                     height: 1.6,
                   ),
@@ -117,7 +140,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                 Text(
                   'Auto-retrying every 15 seconds',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
+                    color: AppTheme.getSecondaryTextColor().withOpacity(0.6),
                     fontSize: 12,
                   ),
                 ),

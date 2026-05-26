@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../services/core/connectivity_service.dart';
 
 class NoInternetScreen extends StatefulWidget {
@@ -12,6 +13,22 @@ class NoInternetScreen extends StatefulWidget {
 class _NoInternetScreenState extends State<NoInternetScreen> {
   bool _checking = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
+  }
+
+  @override
+  void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
+
   Future<void> _retry() async {
     setState(() => _checking = true);
     await ConnectivityService.instance.retry();
@@ -20,8 +37,17 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
+    final iconContainerColor = isDark
+        ? Colors.white.withOpacity(0.06)
+        : AppColors.secondary.withOpacity(0.08);
+    final iconContainerBorder = isDark
+        ? Colors.white.withOpacity(0.12)
+        : AppColors.secondary.withOpacity(0.2);
+    final iconColor = isDark ? Colors.white70 : AppColors.secondary;
+
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -35,25 +61,22 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
                   height: 96,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.06),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
-                      width: 1.5,
-                    ),
+                    color: iconContainerColor,
+                    border: Border.all(color: iconContainerBorder, width: 1.5),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.wifi_off_rounded,
                     size: 42,
-                    color: Colors.white70,
+                    color: iconColor,
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Title
-                const Text(
+                Text(
                   'No Internet Connection',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppTheme.getPrimaryTextColor(),
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
@@ -66,7 +89,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
                 Text(
                   'Please check your Wi-Fi or mobile data and try again.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.55),
+                    color: AppTheme.getSecondaryTextColor(),
                     fontSize: 15,
                     height: 1.6,
                   ),

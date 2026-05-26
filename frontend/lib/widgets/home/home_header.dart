@@ -24,12 +24,18 @@ class _HomeHeaderState extends State<HomeHeader>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat();
+    AppTheme.themeNotifier.addListener(_onThemeChange);
   }
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     _pulseController.dispose();
     super.dispose();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   String _greeting() {
@@ -109,8 +115,8 @@ class _HomeHeaderState extends State<HomeHeader>
                         color: AppTheme.getBackgroundColor().withOpacity(0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppTheme.getBorderColor().withOpacity(0.15),
-                          width: 0.75,
+                          color: AppTheme.getBorderColor(),
+                          width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
