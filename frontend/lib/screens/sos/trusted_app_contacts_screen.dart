@@ -234,11 +234,14 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
         backgroundColor: AppTheme.getBackgroundColor(),
         elevation: 0,
         leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
           icon: Icon(
             Icons.arrow_back_ios_new,
             color: AppTheme.getPrimaryTextColor(),
+            size: 25,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),
         title: Text(
           'Trusted Contacts',

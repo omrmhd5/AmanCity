@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/app_colors.dart';
+import '../../utils/app_theme.dart';
 import '../../models/sos/sos_session_info.dart';
 import '../../services/sos/sos_service.dart';
 
@@ -161,19 +162,17 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
               child: Row(
                 children: [
                   // Back button
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xCC080F1E),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.white,
-                        size: 18,
-                      ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: AppTheme.getPrimaryTextColor(),
+                      size: 25,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
                     ),
                   ),
                   const SizedBox(width: 12),

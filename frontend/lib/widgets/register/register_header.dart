@@ -22,7 +22,7 @@ class RegisterHeader extends StatelessWidget {
                   icon: Icon(
                     Icons.arrow_back_ios_new,
                     color: AppTheme.getPrimaryTextColor(),
-                    size: 20,
+                    size: 25,
                   ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(

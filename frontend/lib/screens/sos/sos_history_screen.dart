@@ -158,26 +158,19 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => widget.onBack != null
+                  IconButton(
+                    onPressed: () => widget.onBack != null
                         ? widget.onBack!()
                         : Navigator.pop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppTheme.getBackgroundColor().withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppTheme.getBorderColor().withOpacity(0.15),
-                          width: 0.75,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: AppTheme.getPrimaryTextColor(),
-                        size: 18,
-                      ),
+                    icon: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: AppTheme.getPrimaryTextColor(),
+                      size: 25,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
                     ),
                   ),
                   const Spacer(),

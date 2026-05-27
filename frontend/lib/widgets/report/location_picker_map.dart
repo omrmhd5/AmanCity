@@ -281,8 +281,14 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         backgroundColor: AppTheme.getBackgroundColor(),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.getPrimaryTextColor()),
           onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: AppTheme.getPrimaryTextColor(),
+            size: 25,
+          ),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),
         title: Text(
           'Select Location',
