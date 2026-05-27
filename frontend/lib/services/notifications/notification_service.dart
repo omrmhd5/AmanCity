@@ -446,12 +446,9 @@ class NotificationService with WidgetsBindingObserver {
   }
 
   void _handleMessageTap(Map<String, dynamic> data) {
-    final type = data['type'] as String?;
-    if (type == 'sos_alert') {
-      _handleSosAlert(data);
-    } else if (type == 'sos_ended') {
-      _handleSosEnded(data);
-    }
+    // SOS types: notification tap just opens the app.
+    // State (tile visibility, active session) is fully governed by
+    // pending_sos_session in SharedPreferences via _onAppResumed → _loadFromPrefs.
     // Future: handle incidentId tap → navigate to incident detail
   }
 
@@ -538,6 +535,8 @@ class NotificationService with WidgetsBindingObserver {
     );
 
     // Play the custom siren (foreground only — background uses system alarm via FCM handler)
+    // Stop the phone alarm first in case this path was reached via notification tap.
+    FlutterRingtonePlayer().stop();
     SosService().playAlertSound();
 
     navigation.Navigator.navigatorKey.currentState?.push(
@@ -580,7 +579,28 @@ class NotificationService with WidgetsBindingObserver {
 
   // Awaits prefs load (which restores activeIncomingSession) before checking.
   Future<void> _onAppResumed() async {
+    FlutterRingtonePlayer().stop();
     await _loadFromPrefs();
+
+    // If an active SOS session was restored from prefs and the screen isn't
+    // already in the stack, push it now so the receiver sees it immediately.
+    final session = activeIncomingSession.value;
+    if (session != null && !_incomingScreenActive) {
+      _incomingScreenActive = true;
+      SosService().playAlertSound();
+      navigation.Navigator.navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => IncomingSosAlertScreen(
+            sessionId: session.sessionId,
+            triggerUserName: session.senderName,
+            triggerUserPhone: session.senderPhone,
+            lat: session.lat,
+            lng: session.lng,
+          ),
+          fullscreenDialog: true,
+        ),
+      );
+    }
   }
 
   Future<void> _loadFromPrefs() async {

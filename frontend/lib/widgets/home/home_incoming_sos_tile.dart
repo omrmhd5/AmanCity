@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../screens/sos/incoming_sos_alert_screen.dart';
 import '../../services/notifications/notification_service.dart';
+import '../../services/sos/sos_service.dart';
 import '../../utils/app_theme.dart';
 
 /// Displays a red "Incoming SOS Alert" re-access tile whenever a trusted
@@ -23,6 +24,7 @@ class _HomeIncomingSosTileState extends State<HomeIncomingSosTile> {
 
   void _onTap(IncomingSosSession session) {
     NotificationService.instance.reopenIncomingAlert();
+    SosService().playAlertSound();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => IncomingSosAlertScreen(
