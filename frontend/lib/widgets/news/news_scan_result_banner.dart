@@ -66,11 +66,7 @@ class NewsScanResultBanner extends StatelessWidget {
           ),
           GestureDetector(
             onTap: onDismiss,
-            child: Icon(
-              Icons.close,
-              size: 18,
-              color: AppTheme.getSecondaryTextColor(),
-            ),
+            child: Icon(Icons.close, size: 18, color: Colors.red),
           ),
         ],
       ),

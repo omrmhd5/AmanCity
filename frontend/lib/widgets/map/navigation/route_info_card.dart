@@ -154,11 +154,7 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        size: 20,
-                        color: AppTheme.getSecondaryTextColor(),
-                      ),
+                      icon: Icon(Icons.close, size: 20, color: Colors.red),
                       onPressed: widget.onClose,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(

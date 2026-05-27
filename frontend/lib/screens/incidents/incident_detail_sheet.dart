@@ -77,17 +77,11 @@ class IncidentDetailScreen extends StatelessWidget {
                 timestamp: incident.timestamp,
                 typeColor: incident.typeColor,
                 onBackPressed: () => Navigator.pop(context),
-                onSharePressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Share functionality coming soon'),
-                    ),
-                  );
-                },
               ),
               // Main content
               Expanded(
                 child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(

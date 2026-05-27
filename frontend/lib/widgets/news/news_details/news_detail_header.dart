@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
+import '../../../data/app_colors.dart';
 import '../../../data/incident_types_config.dart';
 import '../../shared/custom_text.dart';
 
@@ -26,27 +27,6 @@ class NewsDetailHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: onBackPressed,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppTheme.getBackgroundColor().withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.getBorderColor().withOpacity(0.15),
-                      width: 0.75,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: AppTheme.getPrimaryTextColor(),
-                    size: 22,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
@@ -57,6 +37,15 @@ class NewsDetailHeader extends StatelessWidget {
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: onBackPressed,
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.secondary,
+                  size: 28,
                 ),
               ),
             ],

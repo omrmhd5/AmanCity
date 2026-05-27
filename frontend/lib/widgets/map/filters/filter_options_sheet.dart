@@ -131,10 +131,10 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: AppTheme.getSecondaryTextColor(),
-                        size: 20,
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 28,
+                        color: AppColors.secondary,
                       ),
                     ),
                   ],
@@ -156,6 +156,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
               // Content
               Expanded(
                 child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

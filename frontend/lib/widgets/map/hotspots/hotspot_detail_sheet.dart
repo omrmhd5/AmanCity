@@ -43,6 +43,7 @@ class HotspotDetailSheet extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -79,11 +80,11 @@ class HotspotDetailSheet extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: Navigator.of(context).pop,
-                        child: Icon(
-                          Icons.close,
-                          color: AppTheme.getSecondaryTextColor(),
-                          size: 20,
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 28,
+                          color: AppColors.secondary,
                         ),
                       ),
                     ],

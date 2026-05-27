@@ -77,19 +77,38 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle bar
+              // Header row with title on left and close button on right
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppTheme.getBorderColor(),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.layers_rounded,
+                      size: 18,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Bulk Incident',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.getPrimaryTextColor(),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 28,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
               // Teal gradient divider
               Container(
                 height: 1,
@@ -106,6 +125,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
               // Main content
               Flexible(
                 child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +184,10 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
                         'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
                       );
                       if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                       if (mounted && Navigator.canPop(context)) {
                         Navigator.pop(context);

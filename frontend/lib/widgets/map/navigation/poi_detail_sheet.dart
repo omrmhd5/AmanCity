@@ -75,11 +75,7 @@ class _POIDetailSheetState extends State<POIDetailSheet> {
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: AppTheme.getSecondaryTextColor(),
-                        size: 20,
-                      ),
+                      child: Icon(Icons.close, color: Colors.red, size: 20),
                     ),
                   ],
                 ),

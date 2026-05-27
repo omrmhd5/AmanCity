@@ -11,7 +11,6 @@ class IncidentDetailHeader extends StatelessWidget {
   final DateTime? timestamp;
   final Color? typeColor;
   final VoidCallback onBackPressed;
-  final VoidCallback onSharePressed;
 
   const IncidentDetailHeader({
     Key? key,
@@ -22,7 +21,6 @@ class IncidentDetailHeader extends StatelessWidget {
     this.timestamp,
     this.typeColor,
     required this.onBackPressed,
-    required this.onSharePressed,
   }) : super(key: key);
 
   @override
@@ -47,27 +45,7 @@ class IncidentDetailHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: onBackPressed,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.getCardBackgroundColor(),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppTheme.getBorderColor(),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 22,
-                    color: AppTheme.getPrimaryTextColor(),
-                  ),
-                ),
-              ),
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -92,22 +70,11 @@ class IncidentDetailHeader extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: onSharePressed,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.secondary.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.ios_share,
-                    size: 18,
-                    color: AppColors.secondary,
-                  ),
+                onTap: onBackPressed,
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 28,
+                  color: AppColors.secondary,
                 ),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:math' as Math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -342,87 +343,95 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
     return showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: AppTheme.getBackgroundColor(),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 10),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.getBorderColor(),
-                borderRadius: BorderRadius.circular(2),
+      builder: (ctx) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.getBackgroundColor().withOpacity(0.8),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
             ),
-            // Title row
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    isPhoto
-                        ? Icons.photo_camera_rounded
-                        : Icons.videocam_rounded,
-                    size: 17,
-                    color: AppColors.secondary,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 10),
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.getBorderColor(),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isPhoto ? 'Select Photo' : 'Select Video',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.getPrimaryTextColor(),
+                ),
+                // Title row
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isPhoto
+                            ? Icons.photo_camera_rounded
+                            : Icons.videocam_rounded,
+                        size: 17,
+                        color: AppColors.secondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isPhoto ? 'Select Photo' : 'Select Video',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.getPrimaryTextColor(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Teal gradient divider
+                Container(
+                  height: 1,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.secondary.withOpacity(0.0),
+                        AppColors.secondary.withOpacity(0.3),
+                        AppColors.secondary.withOpacity(0.0),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            // Teal gradient divider
-            Container(
-              height: 1,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.secondary.withOpacity(0.0),
-                    AppColors.secondary.withOpacity(0.3),
-                    AppColors.secondary.withOpacity(0.0),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _sourceOption(
+                        icon: isPhoto
+                            ? Icons.camera_alt_rounded
+                            : Icons.videocam_rounded,
+                        label: 'Camera',
+                        onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _sourceOption(
+                        icon: isPhoto
+                            ? Icons.photo_library_rounded
+                            : Icons.video_library_rounded,
+                        label: 'Gallery',
+                        onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                      ),
+                    ),
                   ],
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: _sourceOption(
-                    icon: isPhoto
-                        ? Icons.camera_alt_rounded
-                        : Icons.videocam_rounded,
-                    label: 'Camera',
-                    onTap: () => Navigator.pop(ctx, ImageSource.camera),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _sourceOption(
-                    icon: isPhoto
-                        ? Icons.photo_library_rounded
-                        : Icons.video_library_rounded,
-                    label: 'Gallery',
-                    onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-                  ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

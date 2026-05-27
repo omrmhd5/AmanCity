@@ -496,9 +496,8 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                         curve: Curves.easeOutCubic,
                                         child: Icon(
                                           Icons.keyboard_arrow_up_rounded,
-                                          color:
-                                              AppTheme.getSecondaryTextColor(),
-                                          size: 22,
+                                          color: AppColors.secondary,
+                                          size: 30,
                                         ),
                                       ),
                                     ],

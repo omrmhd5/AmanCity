@@ -54,7 +54,7 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
               ),
               Icon(
                 _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                color: AppTheme.getSecondaryTextColor(),
+                color: AppColors.secondary,
                 size: 20,
               ),
             ],
@@ -108,10 +108,7 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
                 const Spacer(),
                 Text(
                   '${(report.confidence * 100).round()}%',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
+                  style: TextStyle(fontSize: 11, color: AppColors.secondary),
                 ),
               ],
             ),
