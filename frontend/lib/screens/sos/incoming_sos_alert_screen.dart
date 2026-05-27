@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/app_colors.dart';
@@ -74,6 +75,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     NotificationService.instance.sosEndedNotifier.removeListener(_onSosEnded);
     _pulseController.dispose();
     SosService().stopAlertSound();
+    FlutterRingtonePlayer().stop();
     super.dispose();
   }
 

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
@@ -14,10 +15,109 @@ import '../sos/sos_service.dart';
 /// Must be a top-level function — firebase_messaging requirement
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Firebase is already initialized in main.dart before this runs.
+  // Ensure Flutter bindings are ready so platform plugins work in this isolate.
+  WidgetsFlutterBinding.ensureInitialized();
+  if (message.data['type'] == 'sos_alert') {
+    await FlutterRingtonePlayer().playAlarm(looping: false);
+  }
+
+  // Persist the alert to SharedPreferences so it appears in the inbox
+  // when the user opens the app (background + terminated both hit this).
+  await _persistBackgroundAlert(message);
 }
 
-class NotificationService {
+/// Saves a background/terminated FCM message directly to SharedPreferences
+/// using the same key and JSON format as NotificationService.
+/// Covers ALL notification types including sos_ended.
+Future<void> _persistBackgroundAlert(RemoteMessage message) async {
+  try {
+    const prefsKey = 'notification_alerts';
+    const maxAlerts = 50;
+    final prefs = await SharedPreferences.getInstance();
+
+    final type = message.data['type'] as String?;
+    final n = message.notification;
+
+    final String id;
+    final String title;
+    final String body;
+    final AlertType alertType;
+
+    if (type == 'sos_ended') {
+      // Use deterministic id — same as _handleSosEnded — so dedup catches it
+      final sessionId = (message.data['sessionId'] as String?) ?? '';
+      final name = (message.data['triggerUserName'] as String?) ?? '';
+      id = 'sos_ended_$sessionId';
+      title = '✅ ${name.isNotEmpty ? name : "A contact"} is now safe';
+      body = 'They have cancelled their SOS alert.';
+      alertType = AlertType.sosEnded;
+    } else {
+      id = message.messageId ?? DateTime.now().toIso8601String();
+      title = n?.title ?? message.data['title'] as String? ?? 'Alert';
+      body = n?.body ?? message.data['body'] as String? ?? '';
+      switch (type) {
+        case 'sos_alert':
+          alertType = AlertType.sosAlert;
+          break;
+        case 'contact_request':
+          alertType = AlertType.contactRequest;
+          break;
+        case 'contact_accepted':
+          alertType = AlertType.contactAccepted;
+          break;
+        case 'nearbyIncident':
+          alertType = AlertType.nearbyIncident;
+          break;
+        case 'hotspotEntry':
+          alertType = AlertType.hotspotEntry;
+          break;
+        default:
+          alertType = AlertType.system;
+      }
+    }
+
+    final alert = AlertNotification(
+      id: id,
+      title: title,
+      body: body,
+      alertType: alertType,
+      timestamp: DateTime.now(),
+      distanceKm: message.data['distanceKm'] != null
+          ? double.tryParse(message.data['distanceKm'].toString())
+          : null,
+      incidentId: message.data['incidentId'] as String?,
+      incidentType: message.data['incidentType'] as String?,
+      isRead: false,
+    );
+
+    // Honour the user's "clear all" — filter out alerts older than cleared_at
+    const clearedAtKey = 'notification_cleared_at';
+    final clearedAtRaw = prefs.getString(clearedAtKey);
+    final clearedAt = clearedAtRaw != null
+        ? DateTime.tryParse(clearedAtRaw)
+        : null;
+
+    final raw = prefs.getString(prefsKey);
+    final List rawExisting = raw != null ? jsonDecode(raw) as List : [];
+    final List existing = clearedAt != null
+        ? rawExisting.where((e) {
+            final ts = (e as Map<String, dynamic>)['timestamp'] as String?;
+            if (ts == null) return false;
+            final dt = DateTime.tryParse(ts);
+            return dt != null && dt.isAfter(clearedAt);
+          }).toList()
+        : rawExisting;
+
+    // Deduplicate: skip if this id was already written (e.g. FCM delivered twice)
+    if (existing.any((e) => (e as Map<String, dynamic>)['id'] == alert.id))
+      return;
+    final updated = [alert.toJson(), ...existing];
+    if (updated.length > maxAlerts) updated.removeLast();
+    await prefs.setString(prefsKey, jsonEncode(updated));
+  } catch (_) {}
+}
+
+class NotificationService with WidgetsBindingObserver {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
@@ -31,7 +131,11 @@ class NotificationService {
   static const _sosChannelName = 'SOS Alerts';
   static const _sosChannelDesc = 'Emergency SOS alerts from trusted contacts';
   static const _prefsKey = 'notification_alerts';
+  static const _clearedAtKey = 'notification_cleared_at';
   static const _maxAlerts = 50;
+
+  // In-memory copy of the last explicit clear time (also persisted via _clearedAtKey)
+  DateTime? _clearedAt;
 
   final ValueNotifier<List<AlertNotification>> alerts = ValueNotifier([]);
   final ValueNotifier<int> unreadCount = ValueNotifier(0);
@@ -81,8 +185,10 @@ class NotificationService {
     await androidPlugin?.createNotificationChannel(channel);
     await androidPlugin?.createNotificationChannel(sosChannel);
 
-    // 5. Load persisted alerts
+    // 5. Load persisted alerts + register lifecycle observer so we re-sync
+    //    with SharedPreferences when the app returns from background
     await _loadFromPrefs();
+    WidgetsBinding.instance.addObserver(this);
 
     // 6. Foreground message handler
     FirebaseMessaging.onMessage.listen((message) {
@@ -110,6 +216,7 @@ class NotificationService {
     // 7. Tapped from background (app was minimised)
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       _handleMessageTap(message.data);
+      _onMessageReceived(message); // ensure it lands in the inbox
     });
 
     // 8. App launched from terminated state via notification
@@ -201,9 +308,11 @@ class NotificationService {
   }
 
   void clearAll() {
+    _clearedAt = DateTime.now();
     alerts.value = [];
     unreadCount.value = 0;
     _saveToPrefs();
+    _saveClearedAt();
   }
 
   // -------------------------------------------------------------------------
@@ -212,11 +321,14 @@ class NotificationService {
 
   void _onMessageReceived(RemoteMessage message) {
     final n = message.notification;
-    if (n == null) return;
+    // Use notification fields if available, fall back to data payload
+    final title = n?.title ?? message.data['title'] as String?;
+    final body = n?.body ?? message.data['body'] as String?;
+    if (title == null && body == null) return;
     final alert = AlertNotification(
       id: message.messageId ?? DateTime.now().toIso8601String(),
-      title: n.title ?? 'Alert',
-      body: n.body ?? '',
+      title: title ?? 'Alert',
+      body: body ?? '',
       alertType: _parseAlertType(message.data['type']),
       timestamp: DateTime.now(),
       distanceKm: message.data['distanceKm'] != null
@@ -229,6 +341,8 @@ class NotificationService {
   }
 
   void _addAlert(AlertNotification alert) {
+    // Skip if we already have this alert (background handler may have already persisted it)
+    if (alerts.value.any((a) => a.id == alert.id)) return;
     final list = [alert, ...alerts.value];
     if (list.length > _maxAlerts) list.removeLast();
     alerts.value = list;
@@ -275,9 +389,8 @@ class NotificationService {
     final sessionId = data['sessionId'] as String?;
     if (sessionId == null || sessionId.isEmpty) return;
     SosService().stopAlertSound();
+    FlutterRingtonePlayer().stop();
     sosEndedNotifier.value = sessionId;
-
-    // Update sos_alert inbox entry to read + add a "safe" entry
     final name = (data['triggerUserName'] as String?) ?? '';
     _addAlert(
       AlertNotification(
@@ -323,7 +436,7 @@ class NotificationService {
       ),
     );
 
-    // Play alert sound on the receiver's device
+    // Play the custom siren (foreground only — background uses system alarm via FCM handler)
     SosService().playAlertSound();
 
     navigation.Navigator.navigatorKey.currentState?.push(
@@ -357,16 +470,53 @@ class NotificationService {
     }
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // When the app comes to the foreground, re-read SharedPreferences.
+    // The background isolate may have written new alerts while the app was paused.
+    if (state == AppLifecycleState.resumed) _loadFromPrefs();
+  }
+
   Future<void> _loadFromPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      // Force re-read from disk so we pick up what the background isolate wrote.
+      await prefs.reload();
+
+      // Restore the cleared_at boundary (needed after app restart).
+      final clearedAtRaw = prefs.getString(_clearedAtKey);
+      if (clearedAtRaw != null) {
+        _clearedAt = DateTime.tryParse(clearedAtRaw) ?? _clearedAt;
+      }
+
       final raw = prefs.getString(_prefsKey);
       if (raw == null) return;
       final List decoded = jsonDecode(raw) as List;
-      alerts.value = decoded
+      var loaded = decoded
           .map((e) => AlertNotification.fromJson(e as Map<String, dynamic>))
           .toList();
+
+      // Filter out anything the user already cleared.
+      final clearedAt = _clearedAt;
+      if (clearedAt != null) {
+        loaded = loaded.where((a) => a.timestamp.isAfter(clearedAt)).toList();
+      }
+
+      alerts.value = loaded;
       _updateUnreadCount();
+      // Re-save to disk to actually delete the filtered-out (old) alerts.
+      // This frees up storage instead of just hiding them.
+      await _saveToPrefs();
+    } catch (_) {}
+  }
+
+  Future<void> _saveClearedAt() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ts = _clearedAt;
+      if (ts != null) {
+        await prefs.setString(_clearedAtKey, ts.toIso8601String());
+      }
     } catch (_) {}
   }
 
