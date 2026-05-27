@@ -49,20 +49,36 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    late User user;
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
-      final user = cred.user!;
+      user = cred.user!;
       await user.updateDisplayName(name.trim());
-      await _syncUserToBackend(user, name: name.trim(), phone: phone.trim());
-      await user.sendEmailVerification();
-      await _auth.signOut(); // counteract Firebase's auto-login after signup
-      return user;
     } on FirebaseAuthException catch (e) {
       throw _friendlyErrorMessage(e.code);
     }
+
+    // Sync to backend — non-fatal, errors are logged
+    await _syncUserToBackend(user, name: name.trim(), phone: phone.trim());
+
+    // Send verification email — non-fatal
+    try {
+      await user.sendEmailVerification();
+    } catch (e) {
+      // Silently fail — user can resend from login screen
+    }
+
+    // Always sign out after registration so the user must verify first
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      // Silently fail — user is already considered signed out
+    }
+
+    return user;
   }
 
   // ---------------------------------------------------------------------------
@@ -129,10 +145,9 @@ class AuthService {
         nonce: nonce,
       );
 
-      final oauthCredential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-        rawNonce: rawNonce,
-      );
+      final oauthCredential = OAuthProvider(
+        'apple.com',
+      ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
 
       final cred = await _auth.signInWithCredential(oauthCredential);
       final user = cred.user!;
@@ -189,7 +204,7 @@ class AuthService {
           'email': user.email ?? '',
         }),
       );
-    } catch (_) {
+    } catch (e) {
       // Non-fatal — user is still authenticated locally
     }
   }
