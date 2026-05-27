@@ -10,6 +10,7 @@ import '../../widgets/sos_screen/sos_active_view.dart';
 import '../../widgets/sos_screen/sos_header.dart';
 import '../../widgets/sos_screen/sos_hold_button.dart';
 import '../../widgets/sos_screen/sos_utility_toggles.dart';
+import '../../widgets/home/home_incoming_sos_tile.dart';
 import 'sos_history_screen.dart';
 import 'trusted_app_contacts_screen.dart';
 
@@ -445,6 +446,15 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
+            ),
+            start: 0.35,
+            end: 0.9,
+          ),
+          // Incoming SOS re-access tile — visible while a session is active
+          _animated(
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: HomeIncomingSosTile(),
             ),
             start: 0.35,
             end: 0.9,

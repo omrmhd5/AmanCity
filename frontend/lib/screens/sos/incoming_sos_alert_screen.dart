@@ -73,6 +73,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   @override
   void dispose() {
     NotificationService.instance.sosEndedNotifier.removeListener(_onSosEnded);
+    NotificationService.instance.onIncomingAlertScreenClosed();
     _pulseController.dispose();
     SosService().stopAlertSound();
     FlutterRingtonePlayer().stop();
@@ -371,7 +372,10 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
 
   Widget _buildIgnoreButton() {
     return TextButton(
-      onPressed: () => Navigator.of(context).pop(),
+      onPressed: () {
+        NotificationService.instance.dismissIncomingAlert();
+        Navigator.of(context).pop();
+      },
       child: Text(
         'Ignore',
         style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 14),

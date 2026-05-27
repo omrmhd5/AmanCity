@@ -114,7 +114,51 @@ Future<void> _persistBackgroundAlert(RemoteMessage message) async {
     final updated = [alert.toJson(), ...existing];
     if (updated.length > maxAlerts) updated.removeLast();
     await prefs.setString(prefsKey, jsonEncode(updated));
+
+    // Persist/clear active SOS session so the main isolate can restore it on resume
+    const sosPendingKey = 'pending_sos_session';
+    if (type == 'sos_alert') {
+      final sessionId = message.data['sessionId'] as String?;
+      if (sessionId != null && sessionId.isNotEmpty) {
+        await prefs.setString(sosPendingKey, jsonEncode({
+          'sessionId': sessionId,
+          'senderName': (message.data['triggerUserName'] as String?) ?? '',
+          'senderPhone': (message.data['triggerUserPhone'] as String?) ?? '',
+          'lat': double.tryParse(message.data['lat']?.toString() ?? '') ?? 0.0,
+          'lng': double.tryParse(message.data['lng']?.toString() ?? '') ?? 0.0,
+        }));
+      }
+    } else if (type == 'sos_ended') {
+      final sessionId = (message.data['sessionId'] as String?) ?? '';
+      final pendingRaw = prefs.getString(sosPendingKey);
+      if (pendingRaw != null) {
+        try {
+          final pendingJson = jsonDecode(pendingRaw) as Map<String, dynamic>;
+          if (pendingJson['sessionId'] == sessionId) {
+            await prefs.remove(sosPendingKey);
+          }
+        } catch (_) {}
+      }
+    }
   } catch (_) {}
+}
+
+/// Holds the data for an active incoming SOS session so the UI can re-open
+/// the alert screen without requiring a new FCM message.
+class IncomingSosSession {
+  final String sessionId;
+  final String senderName;
+  final String senderPhone;
+  final double lat;
+  final double lng;
+
+  const IncomingSosSession({
+    required this.sessionId,
+    required this.senderName,
+    required this.senderPhone,
+    required this.lat,
+    required this.lng,
+  });
 }
 
 class NotificationService with WidgetsBindingObserver {
@@ -132,6 +176,7 @@ class NotificationService with WidgetsBindingObserver {
   static const _sosChannelDesc = 'Emergency SOS alerts from trusted contacts';
   static const _prefsKey = 'notification_alerts';
   static const _clearedAtKey = 'notification_cleared_at';
+  static const _sosPendingSessionKey = 'pending_sos_session';
   static const _maxAlerts = 50;
 
   // In-memory copy of the last explicit clear time (also persisted via _clearedAtKey)
@@ -142,6 +187,15 @@ class NotificationService with WidgetsBindingObserver {
 
   // Emits sessionId when that SOS session is marked safe/ended
   final sosEndedNotifier = ValueNotifier<String?>(null);
+
+  // ---- Incoming SOS re-access state ----------------------------------------
+  // Non-null while a remote SOS is active (cleared when the session ends).
+  final ValueNotifier<IncomingSosSession?> activeIncomingSession =
+      ValueNotifier(null);
+  // Sessions that have already ended — guards against stale notification taps.
+  final Set<String> _endedSessionIds = {};
+  // True while IncomingSosAlertScreen is in the navigator stack.
+  bool _incomingScreenActive = false;
 
   // -------------------------------------------------------------------------
   // Init
@@ -315,6 +369,22 @@ class NotificationService with WidgetsBindingObserver {
     _saveClearedAt();
   }
 
+  /// Call when the user presses Ignore on the incoming SOS screen.
+  void dismissIncomingAlert() {
+    _incomingScreenActive = false;
+  }
+
+  /// Call from IncomingSosAlertScreen.dispose() to track that the screen
+  /// is no longer in the navigator stack.
+  void onIncomingAlertScreenClosed() {
+    _incomingScreenActive = false;
+  }
+
+  /// Call when re-opening the incoming SOS alert from the tile in SosScreen.
+  void reopenIncomingAlert() {
+    _incomingScreenActive = true;
+  }
+
   // -------------------------------------------------------------------------
   // Private helpers
   // -------------------------------------------------------------------------
@@ -407,6 +477,14 @@ class NotificationService with WidgetsBindingObserver {
     Future.delayed(const Duration(seconds: 1), () {
       if (sosEndedNotifier.value == sessionId) sosEndedNotifier.value = null;
     });
+
+    // Clear incoming SOS state for this session
+    _endedSessionIds.add(sessionId);
+    if (activeIncomingSession.value?.sessionId == sessionId) {
+      activeIncomingSession.value = null;
+    }
+    _incomingScreenActive = false;
+    _clearSosPendingSession(sessionId);
   }
 
   void _handleSosAlert(Map<String, dynamic> data) {
@@ -416,6 +494,29 @@ class NotificationService with WidgetsBindingObserver {
     final lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0;
     final lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
     if (sessionId == null || sessionId.isEmpty) return;
+
+    // Guard: session already ended — ignore stale notification
+    if (_endedSessionIds.contains(sessionId)) return;
+    // Guard: screen is already showing for this session — no duplicate push
+    if (activeIncomingSession.value?.sessionId == sessionId &&
+        _incomingScreenActive)
+      return;
+
+    // Track this as the active incoming session
+    activeIncomingSession.value = IncomingSosSession(
+      sessionId: sessionId,
+      senderName: name,
+      senderPhone: phone,
+      lat: lat,
+      lng: lng,
+    );
+    _incomingScreenActive = true;
+    _saveSosPendingSession(
+        sessionId: sessionId,
+        senderName: name,
+        senderPhone: phone,
+        lat: lat,
+        lng: lng);
 
     // Fire a high-priority local notification so the user always hears/sees it
     showLocalNotification(
@@ -474,7 +575,12 @@ class NotificationService with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // When the app comes to the foreground, re-read SharedPreferences.
     // The background isolate may have written new alerts while the app was paused.
-    if (state == AppLifecycleState.resumed) _loadFromPrefs();
+    if (state == AppLifecycleState.resumed) _onAppResumed();
+  }
+
+  // Awaits prefs load (which restores activeIncomingSession) before checking.
+  Future<void> _onAppResumed() async {
+    await _loadFromPrefs();
   }
 
   Future<void> _loadFromPrefs() async {
@@ -487,6 +593,25 @@ class NotificationService with WidgetsBindingObserver {
       final clearedAtRaw = prefs.getString(_clearedAtKey);
       if (clearedAtRaw != null) {
         _clearedAt = DateTime.tryParse(clearedAtRaw) ?? _clearedAt;
+      }
+
+      // Restore active incoming SOS session written by the background isolate.
+      // Must run before the early-return below so it works even with no stored alerts.
+      final sosRaw = prefs.getString(_sosPendingSessionKey);
+      if (sosRaw != null && activeIncomingSession.value == null) {
+        try {
+          final json = jsonDecode(sosRaw) as Map<String, dynamic>;
+          final sessionId = json['sessionId'] as String?;
+          if (sessionId != null && !_endedSessionIds.contains(sessionId)) {
+            activeIncomingSession.value = IncomingSosSession(
+              sessionId: sessionId,
+              senderName: (json['senderName'] as String?) ?? '',
+              senderPhone: (json['senderPhone'] as String?) ?? '',
+              lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
+              lng: (json['lng'] as num?)?.toDouble() ?? 0.0,
+            );
+          }
+        } catch (_) {}
       }
 
       final raw = prefs.getString(_prefsKey);
@@ -527,6 +652,37 @@ class NotificationService with WidgetsBindingObserver {
         _prefsKey,
         jsonEncode(alerts.value.map((a) => a.toJson()).toList()),
       );
+    } catch (_) {}
+  }
+
+  Future<void> _saveSosPendingSession({
+    required String sessionId,
+    required String senderName,
+    required String senderPhone,
+    required double lat,
+    required double lng,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_sosPendingSessionKey, jsonEncode({
+        'sessionId': sessionId,
+        'senderName': senderName,
+        'senderPhone': senderPhone,
+        'lat': lat,
+        'lng': lng,
+      }));
+    } catch (_) {}
+  }
+
+  Future<void> _clearSosPendingSession(String sessionId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_sosPendingSessionKey);
+      if (raw == null) return;
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      if (json['sessionId'] == sessionId) {
+        await prefs.remove(_sosPendingSessionKey);
+      }
     } catch (_) {}
   }
 }

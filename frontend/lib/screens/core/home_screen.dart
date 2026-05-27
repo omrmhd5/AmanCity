@@ -15,6 +15,7 @@ import '../incidents/report_incident_screen.dart';
 import '../ai_chat/ai_screen.dart';
 import '../sos/sos_screen.dart';
 import '../sos/trusted_app_contacts_screen.dart';
+import '../../widgets/home/home_incoming_sos_tile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -252,6 +253,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               end: 0.75,
             ),
             const SizedBox(height: 10),
+            _animated(const HomeIncomingSosTile(), start: 0.2, end: 0.8),
+            const SizedBox(height: 12),
             _animated(
               HomeReportCard(onTap: () => _onNavItemTapped(NavItem.news)),
               start: 0.2,
