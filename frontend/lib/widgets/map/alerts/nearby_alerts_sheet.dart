@@ -39,7 +39,7 @@ class NearbyAlertsSheet extends StatefulWidget {
 
 class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+  late AnimationController _staggerController;
   late ScrollController _scrollController;
   bool _isExpanded = false;
   bool _showAllTypes = false;
@@ -53,10 +53,10 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+    _staggerController = AnimationController(
+      duration: const Duration(milliseconds: 400),
       vsync: this,
-    );
+    )..forward();
     _scrollController = ScrollController();
     widget.onScrollControllerReady?.call(_scrollController);
     widget.onSheetReady?.call(_toggleSheet);
@@ -64,53 +64,30 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _staggerController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _toggleSheet() {
-    if (_isExpanded) {
-      _animationController.animateTo(
-        0.0,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-      );
-      setState(() => _isExpanded = false);
-    } else {
-      _animationController.animateTo(
-        1.0,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-      );
-      setState(() => _isExpanded = true);
-    }
-  }
-
-  void _onDragUpdate(DragUpdateDetails details) {
-    final range = _maxHeight - _minHeight;
-    final newValue = (_animationController.value - details.delta.dy / range)
-        .clamp(0.0, 1.0);
-    _animationController.value = newValue;
-  }
-
-  void _onDragEnd(DragEndDetails details) {
-    final velocity = details.primaryVelocity ?? 0;
-    bool expand;
-    if (velocity < -300) {
-      expand = true;
-    } else if (velocity > 300) {
-      expand = false;
-    } else {
-      expand = _animationController.value >= 0.5;
-    }
-
-    _animationController.animateTo(
-      expand ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOutCubic,
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOut),
     );
-    setState(() => _isExpanded = expand);
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
+  }
+
+  void _toggleSheet() {
+    setState(() => _isExpanded = !_isExpanded);
   }
 
   List<dynamic> _getAllAlertsWithin10km() {
@@ -326,505 +303,479 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   Widget build(BuildContext context) {
     final maxH = _maxHeight;
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        final currentHeight =
-            _minHeight + (_animationController.value * (maxH - _minHeight));
-
-        return SizedBox(
-          height: currentHeight,
-          child: GestureDetector(
-            onVerticalDragUpdate: _onDragUpdate,
-            onVerticalDragEnd: _onDragEnd,
-            child: ClipRRect(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      height: _isExpanded ? maxH : _minHeight,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            decoration: BoxDecoration(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(28),
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.18),
+                  blurRadius: 24,
+                  offset: const Offset(0, -6),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Base glass fill
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.getBackgroundColor().withOpacity(0.8),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.18),
-                        blurRadius: 24,
-                        offset: const Offset(0, -6),
-                      ),
-                    ],
                   ),
-                  child: Stack(
-                    children: [
-                      // Base glass fill
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.getBackgroundColor().withOpacity(
-                              0.8,
-                            ),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
-                          ),
-                        ),
+                ),
+                // Inner sheen gradient
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(28),
                       ),
-                      // Inner sheen gradient
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.white.withOpacity(0.05),
-                                Colors.transparent,
-                              ],
-                              stops: const [0.0, 0.35],
-                            ),
-                          ),
-                        ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withOpacity(0.05),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.35],
                       ),
-                      // Specular top strip
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: 44,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.white.withOpacity(0.07),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
+                    ),
+                  ),
+                ),
+                // Specular top strip
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 44,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(28),
                       ),
-                      // Content
-                      Column(
-                        children: [
-                          // Handle + Header
-                          GestureDetector(
-                            onTap: _toggleSheet,
-                            behavior: HitTestBehavior.opaque,
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(
-                                16,
-                                10,
-                                16,
-                                10,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withOpacity(0.07),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Content
+                Column(
+                  children: [
+                    // Handle + Header
+                    _animated(
+                      GestureDetector(
+                        onTap: _toggleSheet,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                          child: Column(
+                            children: [
+                              // Handle bar
+                              Container(
+                                width: 36,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.getBorderColor(),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
-                              child: Column(
+                              const SizedBox(height: 10),
+                              Row(
                                 children: [
-                                  // Handle bar
-                                  Container(
-                                    width: 36,
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.getBorderColor(),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
+                                  Icon(
+                                    Icons.notifications_active_rounded,
+                                    size: 18,
+                                    color: AppColors.secondary,
                                   ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.notifications_active_rounded,
-                                        size: 18,
-                                        color: AppColors.secondary,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            CustomText(
-                                              text: 'Nearby Alerts',
-                                              size: 16,
-                                              weight: FontWeight.w800,
-                                              color:
-                                                  AppTheme.getPrimaryTextColor(),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            RichText(
-                                              text: TextSpan(
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w400,
-                                                  color:
-                                                      AppTheme.getSecondaryTextColor(),
-                                                ),
-                                                children: [
-                                                  TextSpan(
-                                                    text:
-                                                        '${_getFilteredAlerts().length}',
-                                                    style: TextStyle(
-                                                      color:
-                                                          AppColors.secondary,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                  TextSpan(
-                                                    text:
-                                                        ' of ${_getAllAlertsWithin10km().length} within 10 km',
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        CustomText(
+                                          text: 'Nearby Alerts',
+                                          size: 16,
+                                          weight: FontWeight.w800,
+                                          color: AppTheme.getPrimaryTextColor(),
                                         ),
-                                      ),
-                                      AnimatedRotation(
-                                        turns: _isExpanded ? 0.5 : 0.0,
-                                        duration: const Duration(
-                                          milliseconds: 300,
-                                        ),
-                                        curve: Curves.easeOutCubic,
-                                        child: Icon(
-                                          Icons.keyboard_arrow_up_rounded,
-                                          color: AppColors.secondary,
-                                          size: 30,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Teal gradient divider
-                          Container(
-                            height: 1,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.secondary.withOpacity(0.0),
-                                  AppColors.secondary.withOpacity(0.3),
-                                  AppColors.secondary.withOpacity(0.0),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Scrollable content
-                          Expanded(
-                            child: SingleChildScrollView(
-                              controller: _scrollController,
-                              physics: const BouncingScrollPhysics(),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Search Bar
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      12,
-                                      16,
-                                      8,
-                                    ),
-                                    child: CustomSearchBar(
-                                      hintText: 'Search incidents...',
-                                      onChanged: (value) {
-                                        setState(() => _searchQuery = value);
-                                      },
-                                    ),
-                                  ),
-                                  // Filters section label
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      8,
-                                      16,
-                                      8,
-                                    ),
-                                    child: _sectionLabel(
-                                      Icons.tune_rounded,
-                                      'Filters',
-                                    ),
-                                  ),
-                                  // Filter Chips
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      0,
-                                      16,
-                                      8,
-                                    ),
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      physics: const BouncingScrollPhysics(),
-                                      child: Row(
-                                        children: [
-                                          // "All" chip
-                                          CustomFilterChip(
-                                            label: 'All',
-                                            isSelected: _selectedFilter == null,
-                                            selectedColor: AppColors.secondary,
-                                            onTap: () => setState(
-                                              () => _selectedFilter = null,
-                                            ),
-                                            fontSize: 12,
-                                            iconSize: 14,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 14,
-                                              vertical: 9,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          // Incident type chips
-                                          ...List.generate(
-                                            _showAllTypes
-                                                ? IncidentTypesConfig
-                                                      .allTypes
-                                                      .length
-                                                : (IncidentTypesConfig
-                                                              .allTypes
-                                                              .length <
-                                                          9
-                                                      ? IncidentTypesConfig
-                                                            .allTypes
-                                                            .length
-                                                      : 9),
-                                            (index) {
-                                              final config = IncidentTypesConfig
-                                                  .allTypes[index];
-                                              final isSelected =
-                                                  _selectedFilter == config.key;
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 6,
-                                                ),
-                                                child: CustomFilterChip(
-                                                  label: config.displayName,
-                                                  icon: config.icon,
-                                                  isSelected: isSelected,
-                                                  selectedColor: config.color,
-                                                  iconColor: config.color,
-                                                  onTap: () => setState(() {
-                                                    _selectedFilter = isSelected
-                                                        ? null
-                                                        : config.key;
-                                                  }),
-                                                  fontSize: 12,
-                                                  iconSize: 14,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 14,
-                                                        vertical: 9,
-                                                      ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          // Show More button
-                                          if (!_showAllTypes &&
-                                              IncidentTypesConfig
-                                                      .allTypes
-                                                      .length >
-                                                  9)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 6,
-                                              ),
-                                              child: GestureDetector(
-                                                onTap: () => setState(
-                                                  () => _showAllTypes = true,
-                                                ),
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 7,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                      color:
-                                                          AppColors.secondary,
-                                                      width: 1.5,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          16,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    '+${IncidentTypesConfig.allTypes.length - 9}',
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color:
-                                                          AppColors.secondary,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  // Alerts section label
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      8,
-                                      16,
-                                      10,
-                                    ),
-                                    child: _sectionLabel(
-                                      Icons.warning_amber_rounded,
-                                      'Alerts',
-                                    ),
-                                  ),
-                                  // Alerts list
-                                  if (_getFilteredAlerts().isEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 32,
-                                      ),
-                                      child: Center(
-                                        child: Column(
-                                          children: [
-                                            Icon(
-                                              Icons.search_off_rounded,
-                                              size: 36,
-                                              color:
-                                                  AppTheme.getSecondaryTextColor()
-                                                      .withOpacity(0.4),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            CustomText(
-                                              text: 'No alerts found',
-                                              size: 14,
-                                              weight: FontWeight.w500,
+                                        const SizedBox(height: 2),
+                                        RichText(
+                                          text: TextSpan(
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w400,
                                               color:
                                                   AppTheme.getSecondaryTextColor(),
                                             ),
-                                          ],
+                                            children: [
+                                              TextSpan(
+                                                text:
+                                                    '${_getFilteredAlerts().length}',
+                                                style: TextStyle(
+                                                  color: AppColors.secondary,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    ' of ${_getAllAlertsWithin10km().length} within 10 km',
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                  else
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        16,
-                                        0,
-                                        16,
-                                        100,
-                                      ),
-                                      child: Column(
-                                        children: List.generate(
-                                          _getFilteredAlerts().length,
-                                          (index) {
-                                            final item =
-                                                _getFilteredAlerts()[index];
-
-                                            if (item is BulkIncident) {
-                                              final bulk = item;
-                                              final distanceKm =
-                                                  widget.userLocation != null
-                                                  ? LocationService.calculateDistance(
-                                                      lat1: widget
-                                                          .userLocation!
-                                                          .latitude,
-                                                      lng1: widget
-                                                          .userLocation!
-                                                          .longitude,
-                                                      lat2:
-                                                          bulk.center.latitude,
-                                                      lng2:
-                                                          bulk.center.longitude,
-                                                    )
-                                                  : 0.0;
-
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                  bottom: 12,
-                                                ),
-                                                child: NearbyBulkAlertCard(
-                                                  incidentType: bulk.type,
-                                                  count: bulk.count,
-                                                  timeAgo: _getTimeAgo(
-                                                    bulk.lastUpdatedAt,
-                                                  ),
-                                                  distance:
-                                                      LocationService.formatDistance(
-                                                        distanceKm,
-                                                      ) +
-                                                      ' away',
-                                                  borderColor: bulk.typeColor,
-                                                  icon: bulk.typeIcon,
-                                                  avgConfidence:
-                                                      bulk.avgConfidence,
-                                                  locationText:
-                                                      bulk.locationText,
-                                                  hasHumanReports:
-                                                      bulk.hasHumanReports,
-                                                  hasOsintReports:
-                                                      bulk.hasOsintReports,
-                                                  onTap: () =>
-                                                      _showBulkDetails(bulk),
-                                                ),
-                                              );
-                                            } else {
-                                              final alert =
-                                                  item as Map<String, dynamic>;
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                  bottom: 12,
-                                                ),
-                                                child: NearbyAlertCard(
-                                                  incidentType: alert['type'],
-                                                  title: alert['title'],
-                                                  timeAgo: alert['timeAgo'],
-                                                  distance: alert['distance'],
-                                                  borderColor: alert['color'],
-                                                  icon: alert['icon'],
-                                                  confidence:
-                                                      alert['confidence'] ??
-                                                      0.0,
-                                                  locationText:
-                                                      alert['location']?['text']
-                                                          as String?,
-                                                  onTap: () =>
-                                                      _showIncidentDetails(
-                                                        alert,
-                                                      ),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                        ),
-                                      ),
+                                      ],
                                     ),
+                                  ),
+                                  AnimatedRotation(
+                                    turns: _isExpanded ? 0.5 : 0.0,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOutCubic,
+                                    child: Icon(
+                                      Icons.keyboard_arrow_up_rounded,
+                                      color: AppColors.secondary,
+                                      size: 30,
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                      start: 0.0,
+                      end: 0.5,
+                    ),
+                    // Teal gradient divider
+                    _animated(
+                      Container(
+                        height: 1,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.secondary.withOpacity(0.0),
+                              AppColors.secondary.withOpacity(0.3),
+                              AppColors.secondary.withOpacity(0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                      start: 0.05,
+                      end: 0.55,
+                    ),
+                    // Scrollable content
+                    Expanded(
+                      child: _animated(
+                        SingleChildScrollView(
+                          controller: _scrollController,
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Search Bar
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  12,
+                                  16,
+                                  8,
+                                ),
+                                child: CustomSearchBar(
+                                  hintText: 'Search incidents...',
+                                  onChanged: (value) {
+                                    setState(() => _searchQuery = value);
+                                  },
+                                ),
+                              ),
+                              // Filters section label
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  8,
+                                  16,
+                                  8,
+                                ),
+                                child: _sectionLabel(
+                                  Icons.tune_rounded,
+                                  'Filters',
+                                ),
+                              ),
+                              // Filter Chips
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  8,
+                                ),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  child: Row(
+                                    children: [
+                                      // "All" chip
+                                      CustomFilterChip(
+                                        label: 'All',
+                                        isSelected: _selectedFilter == null,
+                                        selectedColor: AppColors.secondary,
+                                        onTap: () => setState(
+                                          () => _selectedFilter = null,
+                                        ),
+                                        fontSize: 12,
+                                        iconSize: 14,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 9,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      // Incident type chips
+                                      ...List.generate(
+                                        _showAllTypes
+                                            ? IncidentTypesConfig
+                                                  .allTypes
+                                                  .length
+                                            : (IncidentTypesConfig
+                                                          .allTypes
+                                                          .length <
+                                                      9
+                                                  ? IncidentTypesConfig
+                                                        .allTypes
+                                                        .length
+                                                  : 9),
+                                        (index) {
+                                          final config = IncidentTypesConfig
+                                              .allTypes[index];
+                                          final isSelected =
+                                              _selectedFilter == config.key;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              right: 6,
+                                            ),
+                                            child: CustomFilterChip(
+                                              label: config.displayName,
+                                              icon: config.icon,
+                                              isSelected: isSelected,
+                                              selectedColor: config.color,
+                                              iconColor: config.color,
+                                              onTap: () => setState(() {
+                                                _selectedFilter = isSelected
+                                                    ? null
+                                                    : config.key;
+                                              }),
+                                              fontSize: 12,
+                                              iconSize: 14,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                    vertical: 9,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      // Show More button
+                                      if (!_showAllTypes &&
+                                          IncidentTypesConfig.allTypes.length >
+                                              9)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 6,
+                                          ),
+                                          child: GestureDetector(
+                                            onTap: () => setState(
+                                              () => _showAllTypes = true,
+                                            ),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 7,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: AppColors.secondary,
+                                                  width: 1.5,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Text(
+                                                '+${IncidentTypesConfig.allTypes.length - 9}',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.secondary,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // Alerts section label
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  8,
+                                  16,
+                                  10,
+                                ),
+                                child: _sectionLabel(
+                                  Icons.warning_amber_rounded,
+                                  'Alerts',
+                                ),
+                              ),
+                              // Alerts list
+                              if (_getFilteredAlerts().isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 32,
+                                  ),
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.search_off_rounded,
+                                          size: 36,
+                                          color:
+                                              AppTheme.getSecondaryTextColor()
+                                                  .withOpacity(0.4),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        CustomText(
+                                          text: 'No alerts found',
+                                          size: 14,
+                                          weight: FontWeight.w500,
+                                          color:
+                                              AppTheme.getSecondaryTextColor(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    100,
+                                  ),
+                                  child: Column(
+                                    children: List.generate(
+                                      _getFilteredAlerts().length,
+                                      (index) {
+                                        final item =
+                                            _getFilteredAlerts()[index];
+
+                                        if (item is BulkIncident) {
+                                          final bulk = item;
+                                          final distanceKm =
+                                              widget.userLocation != null
+                                              ? LocationService.calculateDistance(
+                                                  lat1: widget
+                                                      .userLocation!
+                                                      .latitude,
+                                                  lng1: widget
+                                                      .userLocation!
+                                                      .longitude,
+                                                  lat2: bulk.center.latitude,
+                                                  lng2: bulk.center.longitude,
+                                                )
+                                              : 0.0;
+
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 12,
+                                            ),
+                                            child: NearbyBulkAlertCard(
+                                              incidentType: bulk.type,
+                                              count: bulk.count,
+                                              timeAgo: _getTimeAgo(
+                                                bulk.lastUpdatedAt,
+                                              ),
+                                              distance:
+                                                  LocationService.formatDistance(
+                                                    distanceKm,
+                                                  ) +
+                                                  ' away',
+                                              borderColor: bulk.typeColor,
+                                              icon: bulk.typeIcon,
+                                              avgConfidence: bulk.avgConfidence,
+                                              locationText: bulk.locationText,
+                                              hasHumanReports:
+                                                  bulk.hasHumanReports,
+                                              hasOsintReports:
+                                                  bulk.hasOsintReports,
+                                              onTap: () =>
+                                                  _showBulkDetails(bulk),
+                                            ),
+                                          );
+                                        } else {
+                                          final alert =
+                                              item as Map<String, dynamic>;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 12,
+                                            ),
+                                            child: NearbyAlertCard(
+                                              incidentType: alert['type'],
+                                              title: alert['title'],
+                                              timeAgo: alert['timeAgo'],
+                                              distance: alert['distance'],
+                                              borderColor: alert['color'],
+                                              icon: alert['icon'],
+                                              confidence:
+                                                  alert['confidence'] ?? 0.0,
+                                              locationText:
+                                                  alert['location']?['text']
+                                                      as String?,
+                                              onTap: () =>
+                                                  _showIncidentDetails(alert),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        start: 0.1,
+                        end: 0.85,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -18,9 +18,11 @@ class SosHistoryScreen extends StatefulWidget {
   State<SosHistoryScreen> createState() => _SosHistoryScreenState();
 }
 
-class _SosHistoryScreenState extends State<SosHistoryScreen> {
+class _SosHistoryScreenState extends State<SosHistoryScreen>
+    with SingleTickerProviderStateMixin {
   final SosService _sosService = SosService();
   final AudioPlayer _player = AudioPlayer();
+  late AnimationController _entryController;
 
   List<SosRecording> _recordings = [];
   bool _loading = true;
@@ -32,6 +34,10 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     _loadRecordings();
     _playerCompleteSubscription = _player.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _currentlyPlayingId = null);
@@ -42,11 +48,29 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
 
   @override
   void dispose() {
+    _entryController.dispose();
     _playerCompleteSubscription.cancel();
     _playerStateSubscription.cancel();
     _playerPositionSubscription.cancel();
     _player.dispose();
     super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   Future<void> _loadRecordings() async {
@@ -242,122 +266,138 @@ class _SosHistoryScreenState extends State<SosHistoryScreen> {
         child: Column(
           children: [
             // Custom header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => widget.onBack != null
-                        ? widget.onBack!()
-                        : Navigator.pop(context),
-                    icon: Icon(
-                      Icons.arrow_back_ios_new,
-                      color: AppTheme.getPrimaryTextColor(),
-                      size: 25,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    'SOS Recordings',
-                    style: TextStyle(
-                      color: AppTheme.getPrimaryTextColor(),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_recordings.isNotEmpty)
+            _animated(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Row(
+                  children: [
                     IconButton(
-                      onPressed: _confirmDeleteAll,
+                      onPressed: () => widget.onBack != null
+                          ? widget.onBack!()
+                          : Navigator.pop(context),
                       icon: Icon(
-                        Icons.delete_sweep_rounded,
-                        color: AppColors.danger,
-                        size: 24,
+                        Icons.arrow_back_ios_new,
+                        color: AppTheme.getPrimaryTextColor(),
+                        size: 25,
                       ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
                         minWidth: 32,
                         minHeight: 32,
                       ),
-                      tooltip: 'Delete all',
-                    )
-                  else
-                    const SizedBox(width: 40),
-                ],
-              ),
-            ),
-            // Teal gradient divider
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.secondary.withOpacity(0.0),
-                      AppColors.secondary.withOpacity(0.3),
-                      AppColors.secondary.withOpacity(0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Section label
-            if (!_loading && _recordings.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.mic_rounded,
-                      size: 15,
-                      color: AppColors.secondary,
                     ),
-                    const SizedBox(width: 6),
+                    const Spacer(),
                     Text(
-                      'RECORDINGS',
+                      'SOS Recordings',
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.getSecondaryTextColor(),
-                        letterSpacing: 1.2,
+                        color: AppTheme.getPrimaryTextColor(),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                    const Spacer(),
+                    if (_recordings.isNotEmpty)
+                      IconButton(
+                        onPressed: _confirmDeleteAll,
+                        icon: Icon(
+                          Icons.delete_sweep_rounded,
+                          color: AppColors.danger,
+                          size: 24,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        tooltip: 'Delete all',
+                      )
+                    else
+                      const SizedBox(width: 40),
                   ],
                 ),
               ),
-            Expanded(
-              child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
+              start: 0.0,
+              end: 0.5,
+            ),
+            // Teal gradient divider
+            _animated(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.secondary.withOpacity(0.0),
+                        AppColors.secondary.withOpacity(0.3),
+                        AppColors.secondary.withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              start: 0.05,
+              end: 0.5,
+            ),
+            // Section label
+            if (!_loading && _recordings.isNotEmpty)
+              _animated(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.mic_rounded,
+                        size: 15,
                         color: AppColors.secondary,
                       ),
-                    )
-                  : _recordings.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.only(top: 4, bottom: 24),
-                      itemCount: _recordings.length,
-                      itemBuilder: (context, index) {
-                        final rec = _recordings[index];
-                        return SosRecordingCard(
-                          recording: rec,
-                          sharedPlayer: _player,
-                          currentlyPlayingId: _currentlyPlayingId,
-                          onDelete: () => _confirmDelete(rec),
-                          onPlayStateChange: (id) {
-                            if (mounted)
-                              setState(() => _currentlyPlayingId = id);
-                          },
-                        );
-                      },
-                    ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'RECORDINGS',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.getSecondaryTextColor(),
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                start: 0.1,
+                end: 0.6,
+              ),
+            Expanded(
+              child: _animated(
+                _loading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.secondary,
+                        ),
+                      )
+                    : _recordings.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 4, bottom: 24),
+                        itemCount: _recordings.length,
+                        itemBuilder: (context, index) {
+                          final rec = _recordings[index];
+                          return SosRecordingCard(
+                            recording: rec,
+                            sharedPlayer: _player,
+                            currentlyPlayingId: _currentlyPlayingId,
+                            onDelete: () => _confirmDelete(rec),
+                            onPlayStateChange: (id) {
+                              if (mounted)
+                                setState(() => _currentlyPlayingId = id);
+                            },
+                          );
+                        },
+                      ),
+                start: 0.2,
+                end: 0.75,
+              ),
             ),
           ],
         ),

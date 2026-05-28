@@ -15,16 +15,22 @@ class TrustedAppContactsScreen extends StatefulWidget {
       _TrustedAppContactsScreenState();
 }
 
-class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
+class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
+    with SingleTickerProviderStateMixin {
   List<TrustedAppContact> _contacts = [];
   List<TrustedAppContact> _searchResults = [];
   bool _loading = true;
   bool _searching = false;
   final TextEditingController _searchCtrl = TextEditingController();
+  late AnimationController _entryController;
 
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     AppTheme.themeNotifier.addListener(_onThemeChange);
     _loadContacts();
   }
@@ -35,9 +41,27 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
 
   @override
   void dispose() {
+    _entryController.dispose();
     AppTheme.themeNotifier.removeListener(_onThemeChange);
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   Future<void> _loadContacts() async {
@@ -254,123 +278,133 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen> {
       body: Column(
         children: [
           // Search bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: TextField(
-              controller: _searchCtrl,
-              style: TextStyle(color: AppTheme.getPrimaryTextColor()),
-              decoration: InputDecoration(
-                hintText: 'Search by name or phone…',
-                hintStyle: TextStyle(color: AppTheme.getSecondaryTextColor()),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: AppTheme.getSecondaryTextColor(),
-                ),
-                suffixIcon: _searchCtrl.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.close,
-                          color: AppTheme.getSecondaryTextColor(),
-                        ),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _searchResults = []);
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppTheme.getCardBackgroundColor(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.getBorderColor()),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.getBorderColor()),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: AppColors.secondary,
-                    width: 1.5,
+          _animated(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: TextField(
+                controller: _searchCtrl,
+                style: TextStyle(color: AppTheme.getPrimaryTextColor()),
+                decoration: InputDecoration(
+                  hintText: 'Search by name or phone…',
+                  hintStyle: TextStyle(color: AppTheme.getSecondaryTextColor()),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: AppTheme.getSecondaryTextColor(),
                   ),
+                  suffixIcon: _searchCtrl.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: AppTheme.getSecondaryTextColor(),
+                          ),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _searchResults = []);
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppTheme.getCardBackgroundColor(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppTheme.getBorderColor()),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppTheme.getBorderColor()),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.secondary,
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                onChanged: _search,
               ),
-              onChanged: _search,
             ),
+            start: 0.0,
+            end: 0.5,
           ),
 
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      // Search results
-                      if (isSearchActive) ...[
-                        _sectionHeader('Search Results'),
-                        if (_searching)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else if (_searchResults.isEmpty)
-                          _emptyHint('No users found.')
-                        else
-                          ..._searchResults.map(
-                            (c) => _SearchResultTile(
+            child: _animated(
+              _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        // Search results
+                        if (isSearchActive) ...[
+                          _sectionHeader('Search Results'),
+                          if (_searching)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          else if (_searchResults.isEmpty)
+                            _emptyHint('No users found.')
+                          else
+                            ..._searchResults.map(
+                              (c) => _SearchResultTile(
+                                contact: c,
+                                onAdd: () => _sendRequest(c),
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Incoming requests
+                        if (!isSearchActive && incoming.isNotEmpty) ...[
+                          _sectionHeader('Pending Requests'),
+                          ...incoming.map(
+                            (c) => _ContactTile(
                               contact: c,
-                              onAdd: () => _sendRequest(c),
+                              onAccept: () => _respond(c, true),
+                              onDecline: () => _respond(c, false),
                             ),
                           ),
-                        const SizedBox(height: 16),
-                      ],
+                          const SizedBox(height: 16),
+                        ],
 
-                      // Incoming requests
-                      if (!isSearchActive && incoming.isNotEmpty) ...[
-                        _sectionHeader('Pending Requests'),
-                        ...incoming.map(
-                          (c) => _ContactTile(
-                            contact: c,
-                            onAccept: () => _respond(c, true),
-                            onDecline: () => _respond(c, false),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Sent requests
-                      if (!isSearchActive && sent.isNotEmpty) ...[
-                        _sectionHeader('Sent Requests'),
-                        ...sent.map(
-                          (c) => _ContactTile(
-                            contact: c,
-                            onRemove: () => _remove(c),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Accepted contacts
-                      if (!isSearchActive) ...[
-                        _sectionHeader('Trusted Contacts (${accepted.length})'),
-                        if (accepted.isEmpty)
-                          _emptyHint(
-                            'No trusted contacts yet.\nSearch for users above to add them.',
-                          )
-                        else
-                          ...accepted.map(
+                        // Sent requests
+                        if (!isSearchActive && sent.isNotEmpty) ...[
+                          _sectionHeader('Sent Requests'),
+                          ...sent.map(
                             (c) => _ContactTile(
                               contact: c,
                               onRemove: () => _remove(c),
                             ),
                           ),
-                      ],
+                          const SizedBox(height: 16),
+                        ],
 
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+                        // Accepted contacts
+                        if (!isSearchActive) ...[
+                          _sectionHeader(
+                            'Trusted Contacts (${accepted.length})',
+                          ),
+                          if (accepted.isEmpty)
+                            _emptyHint(
+                              'No trusted contacts yet.\nSearch for users above to add them.',
+                            )
+                          else
+                            ...accepted.map(
+                              (c) => _ContactTile(
+                                contact: c,
+                                onRemove: () => _remove(c),
+                              ),
+                            ),
+                        ],
+
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+              start: 0.1,
+              end: 0.7,
+            ),
           ),
         ],
       ),

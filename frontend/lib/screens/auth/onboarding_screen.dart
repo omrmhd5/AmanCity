@@ -41,13 +41,19 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends State<OnboardingScreen>
+    with SingleTickerProviderStateMixin {
   final _pageController = PageController();
   int _currentPage = 0;
+  late AnimationController _entryController;
 
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     // Bypass connectivity checks — onboarding doesn't need the backend.
     ConnectivityService.instance.setBypass(true);
     AppTheme.themeNotifier.addListener(_onThemeChange);
@@ -136,9 +142,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void dispose() {
+    _entryController.dispose();
     AppTheme.themeNotifier.removeListener(_onThemeChange);
     _pageController.dispose();
     super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   @override
@@ -149,103 +173,115 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             // ── Header: logo + skip ───────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 16, 0),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(
-                      'assets/logos/AmanCity_Logo_Only.png',
-                      height: 34,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: _goToPermissions,
-                    child: Text(
-                      'Skip',
-                      style: TextStyle(
-                        color: AppTheme.getSecondaryTextColor(),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+            _animated(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 16, 0),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/logos/AmanCity_Logo_Only.png',
+                        height: 34,
                       ),
                     ),
-                  ),
-                ],
+                    const Spacer(),
+                    TextButton(
+                      onPressed: _goToPermissions,
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                          color: AppTheme.getSecondaryTextColor(),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              start: 0.0,
+              end: 0.5,
             ),
 
             // ── Pages ────────────────────────────────────────────
             Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (i) => setState(() => _currentPage = i),
-                itemCount: _pages.length,
-                itemBuilder: (_, i) => _OnboardingPageWidget(data: _pages[i]),
+              child: _animated(
+                PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (i) => setState(() => _currentPage = i),
+                  itemCount: _pages.length,
+                  itemBuilder: (_, i) => _OnboardingPageWidget(data: _pages[i]),
+                ),
+                start: 0.1,
+                end: 0.65,
               ),
             ),
 
             // ── Footer: dots + button ─────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
-              child: Column(
-                children: [
-                  // Dots
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_pages.length, (i) {
-                      final isActive = i == _currentPage;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: isActive ? 28 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.secondary
-                              : AppTheme.getBorderColor(),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Next / Get Started
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _next,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _currentPage == _pages.length - 1
-                                ? 'Get Started'
-                                : 'Next',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+            _animated(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+                child: Column(
+                  children: [
+                    // Dots
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(_pages.length, (i) {
+                        final isActive = i == _currentPage;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: isActive ? 28 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? AppColors.secondary
+                                : AppTheme.getBorderColor(),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, size: 18),
-                        ],
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Next / Get Started
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _next,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _currentPage == _pages.length - 1
+                                  ? 'Get Started'
+                                  : 'Next',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded, size: 18),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              start: 0.25,
+              end: 0.8,
             ),
           ],
         ),

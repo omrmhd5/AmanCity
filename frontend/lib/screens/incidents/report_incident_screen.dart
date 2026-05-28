@@ -21,15 +21,19 @@ import '../../widgets/report/prediction_result_dialog.dart';
 import '../../widgets/report/location_selector.dart';
 
 class ReportIncidentScreen extends StatefulWidget {
-  const ReportIncidentScreen({Key? key, this.onReported}) : super(key: key);
-
   final VoidCallback? onReported;
+  final ValueNotifier<int>? activationSignal;
+
+  const ReportIncidentScreen({Key? key, this.onReported, this.activationSignal})
+    : super(key: key);
 
   @override
   State<ReportIncidentScreen> createState() => _ReportIncidentScreenState();
 }
 
-class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
+class _ReportIncidentScreenState extends State<ReportIncidentScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _entryController;
   EvidenceType? _selectedEvidenceType;
   LatLng? _currentLocation;
   LatLng? _selectedLocation;
@@ -56,7 +60,33 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+    widget.activationSignal?.addListener(_onActivation);
     _initialize();
+  }
+
+  void _onActivation() {
+    _entryController.forward(from: 0);
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   /// Initialize screen - strictly sequential to avoid race conditions
@@ -112,6 +142,8 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
 
   @override
   void dispose() {
+    widget.activationSignal?.removeListener(_onActivation);
+    _entryController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _locationStreamSubscription?.cancel();
@@ -627,56 +659,64 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.report_rounded,
-                            size: 20,
-                            color: AppColors.secondary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Report Incident',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppTheme.getPrimaryTextColor(),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Help keep your community safe',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppTheme.getSecondaryTextColor(),
-                                  ),
-                                ),
-                              ],
+                    _animated(
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.report_rounded,
+                              size: 20,
+                              color: AppColors.secondary,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Teal gradient divider
-                    Container(
-                      height: 1,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.secondary.withOpacity(0.0),
-                            AppColors.secondary.withOpacity(0.3),
-                            AppColors.secondary.withOpacity(0.0),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Report Incident',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.getPrimaryTextColor(),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Help keep your community safe',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTheme.getSecondaryTextColor(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
+                      start: 0.0,
+                      end: 0.5,
+                    ),
+                    const SizedBox(height: 10),
+                    // Teal gradient divider
+                    _animated(
+                      Container(
+                        height: 1,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.secondary.withOpacity(0.0),
+                              AppColors.secondary.withOpacity(0.3),
+                              AppColors.secondary.withOpacity(0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                      start: 0.05,
+                      end: 0.5,
                     ),
                     const SizedBox(height: 4),
                     // Location Context Card

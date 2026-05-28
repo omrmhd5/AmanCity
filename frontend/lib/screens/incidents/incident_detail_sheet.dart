@@ -10,7 +10,7 @@ import '../../widgets/map/incident_details/confidence_section.dart';
 import '../../widgets/map/incident_details/evidence_feed_section.dart';
 import '../../widgets/map/incident_details/location_section.dart';
 
-class IncidentDetailScreen extends StatelessWidget {
+class IncidentDetailScreen extends StatefulWidget {
   final MapIncident incident;
   final String timeAgo;
   final Future<void> Function(MapIncident)? onNavigate;
@@ -21,6 +21,46 @@ class IncidentDetailScreen extends StatelessWidget {
     required this.timeAgo,
     this.onNavigate,
   }) : super(key: key);
+
+  @override
+  State<IncidentDetailScreen> createState() => _IncidentDetailScreenState();
+}
+
+class _IncidentDetailScreenState extends State<IncidentDetailScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _entryController;
+
+  @override
+  void initState() {
+    super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _entryController.dispose();
+    super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,81 +79,105 @@ class IncidentDetailScreen extends StatelessWidget {
           child: Column(
             children: [
               // Handle
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppTheme.getBorderColor(),
-                        borderRadius: BorderRadius.circular(2),
+              _animated(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppTheme.getBorderColor(),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Teal gradient divider
-              Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.secondary.withOpacity(0.0),
-                      AppColors.secondary.withOpacity(0.3),
-                      AppColors.secondary.withOpacity(0.0),
                     ],
                   ),
                 ),
+                start: 0.0,
+                end: 0.4,
               ),
-              // Header
-              IncidentDetailHeader(
-                incidentId: incident.id,
-                title: incident.title,
-                addressText: incident.addressText,
-                city: incident.city,
-                timestamp: incident.timestamp,
-                typeColor: incident.typeColor,
-                onBackPressed: () => Navigator.pop(context),
-              ),
-              // Main content
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        // Reporter & Incident Info
-                        ReporterProfileCard(
-                          incident: incident,
-                          timeAgo: timeAgo,
-                          reporterId: incident.reportedByName ?? 'Anonymous',
-                          timestamp: incident.timestamp,
-                          description: incident.description,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // AI Confidence
-                        ConfidenceSection(incident: incident),
-                        const SizedBox(height: 16),
-
-                        // Evidence Feed
-                        EvidenceFeedSection(incident: incident),
-                        const SizedBox(height: 16),
-
-                        // Location
-                        LocationSection(incident: incident),
-                        const SizedBox(height: 24),
+              const SizedBox(height: 8),
+              // Teal gradient divider
+              _animated(
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.secondary.withOpacity(0.0),
+                        AppColors.secondary.withOpacity(0.3),
+                        AppColors.secondary.withOpacity(0.0),
                       ],
                     ),
                   ),
                 ),
+                start: 0.05,
+                end: 0.45,
+              ),
+              // Header
+              _animated(
+                IncidentDetailHeader(
+                  incidentId: widget.incident.id,
+                  title: widget.incident.title,
+                  addressText: widget.incident.addressText,
+                  city: widget.incident.city,
+                  timestamp: widget.incident.timestamp,
+                  typeColor: widget.incident.typeColor,
+                  onBackPressed: () => Navigator.pop(context),
+                ),
+                start: 0.1,
+                end: 0.55,
+              ),
+              // Main content
+              Expanded(
+                child: _animated(
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // Reporter & Incident Info
+                          ReporterProfileCard(
+                            incident: widget.incident,
+                            timeAgo: widget.timeAgo,
+                            reporterId:
+                                widget.incident.reportedByName ?? 'Anonymous',
+                            timestamp: widget.incident.timestamp,
+                            description: widget.incident.description,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // AI Confidence
+                          ConfidenceSection(incident: widget.incident),
+                          const SizedBox(height: 16),
+
+                          // Evidence Feed
+                          EvidenceFeedSection(incident: widget.incident),
+                          const SizedBox(height: 16),
+
+                          // Location
+                          LocationSection(incident: widget.incident),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                  start: 0.2,
+                  end: 0.75,
+                ),
               ),
               // Navigate Button
-              _NavigateButton(incident: incident, onNavigate: onNavigate),
+              _animated(
+                _NavigateButton(
+                  incident: widget.incident,
+                  onNavigate: widget.onNavigate,
+                ),
+                start: 0.4,
+                end: 0.9,
+              ),
             ],
           ),
         ),

@@ -29,7 +29,9 @@ class ChatMessage {
 }
 
 class AiScreen extends StatefulWidget {
-  const AiScreen({Key? key}) : super(key: key);
+  final ValueNotifier<int>? activationSignal;
+
+  const AiScreen({Key? key, this.activationSignal}) : super(key: key);
 
   @override
   State<AiScreen> createState() => _AiScreenState();
@@ -92,10 +94,16 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
     ];
 
     _getUserLocation();
+    widget.activationSignal?.addListener(_onActivation);
+  }
+
+  void _onActivation() {
+    _entryController.forward(from: 0);
   }
 
   @override
   void dispose() {
+    widget.activationSignal?.removeListener(_onActivation);
     _inputController.dispose();
     _scrollController.dispose();
     _entryController.dispose();

@@ -25,15 +25,44 @@ class BulkIncidentDetailSheet extends StatefulWidget {
       _BulkIncidentDetailSheetState();
 }
 
-class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
+class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
+    with SingleTickerProviderStateMixin {
   BulkIncident? _fullBulk;
   bool _loading = true;
   bool _navigatePressed = false;
+  late AnimationController _entryController;
 
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    )..forward();
     _loadFull();
+  }
+
+  @override
+  void dispose() {
+    _entryController.dispose();
+    super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   Future<void> _loadFull() async {
@@ -78,174 +107,194 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Header row with title on left and close button on right
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.layers_rounded,
-                      size: 18,
-                      color: AppColors.secondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Bulk Incident',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.getPrimaryTextColor(),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 28,
+              _animated(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.layers_rounded,
+                        size: 18,
                         color: AppColors.secondary,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Teal gradient divider
-              Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.secondary.withOpacity(0.0),
-                      AppColors.secondary.withOpacity(0.3),
-                      AppColors.secondary.withOpacity(0.0),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Bulk Incident',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.getPrimaryTextColor(),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 28,
+                          color: AppColors.secondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                start: 0.0,
+                end: 0.5,
+              ),
+              // Teal gradient divider
+              _animated(
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.secondary.withOpacity(0.0),
+                        AppColors.secondary.withOpacity(0.3),
+                        AppColors.secondary.withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+                start: 0.05,
+                end: 0.5,
               ),
               // Main content
               Flexible(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BulkIncidentHeader(bulk: bulk, timeAgo: _timeAgo),
-                      const SizedBox(height: 16),
-                      BulkSourceChips(bulk: bulk),
-                      const SizedBox(height: 20),
-                      if (bulk.mediaUrls.isNotEmpty) ...[
-                        _sectionLabel('Media Evidence', Icons.image_rounded),
-                        const SizedBox(height: 10),
-                        BulkMediaFeed(mediaUrls: bulk.mediaUrls, itemSize: 130),
+                child: _animated(
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BulkIncidentHeader(bulk: bulk, timeAgo: _timeAgo),
+                        const SizedBox(height: 16),
+                        BulkSourceChips(bulk: bulk),
                         const SizedBox(height: 20),
-                      ],
-                      if (bulk.sourceUrls.isNotEmpty) ...[
-                        _sectionLabel('OSINT Sources', Icons.link_rounded),
-                        const SizedBox(height: 10),
-                        BulkOsintSources(urls: bulk.sourceUrls),
-                        const SizedBox(height: 20),
-                      ],
-                      if (_loading)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                        if (bulk.mediaUrls.isNotEmpty) ...[
+                          _sectionLabel('Media Evidence', Icons.image_rounded),
+                          const SizedBox(height: 10),
+                          BulkMediaFeed(
+                            mediaUrls: bulk.mediaUrls,
+                            itemSize: 130,
                           ),
-                        )
-                      else if ((_fullBulk?.subIncidents ?? []).isNotEmpty) ...[
-                        BulkReportsSection(
-                          reports: _fullBulk!.subIncidents,
-                          parentBulk: _fullBulk!,
-                          onReportTap: _openSubIncidentDetail,
-                          timeAgo: _timeAgo,
-                        ),
+                          const SizedBox(height: 20),
+                        ],
+                        if (bulk.sourceUrls.isNotEmpty) ...[
+                          _sectionLabel('OSINT Sources', Icons.link_rounded),
+                          const SizedBox(height: 10),
+                          BulkOsintSources(urls: bulk.sourceUrls),
+                          const SizedBox(height: 20),
+                        ],
+                        if (_loading)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        else if ((_fullBulk?.subIncidents ?? [])
+                            .isNotEmpty) ...[
+                          BulkReportsSection(
+                            reports: _fullBulk!.subIncidents,
+                            parentBulk: _fullBulk!,
+                            onReportTap: _openSubIncidentDetail,
+                            timeAgo: _timeAgo,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
+                  start: 0.15,
+                  end: 0.75,
                 ),
               ),
               // Navigate Button
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: GestureDetector(
-                  onTapDown: (_) => setState(() => _navigatePressed = true),
-                  onTapUp: (_) async {
-                    setState(() => _navigatePressed = false);
-                    if (widget.onNavigate != null) {
-                      await widget.onNavigate!(bulk);
-                      if (mounted && Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      }
-                    } else {
-                      final lat = bulk.center.latitude;
-                      final lng = bulk.center.longitude;
-                      final url = Uri.parse(
-                        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-                      );
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
+              _animated(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: GestureDetector(
+                    onTapDown: (_) => setState(() => _navigatePressed = true),
+                    onTapUp: (_) async {
+                      setState(() => _navigatePressed = false);
+                      if (widget.onNavigate != null) {
+                        await widget.onNavigate!(bulk);
+                        if (mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
+                      } else {
+                        final lat = bulk.center.latitude;
+                        final lng = bulk.center.longitude;
+                        final url = Uri.parse(
+                          'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
                         );
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                        if (mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
                       }
-                      if (mounted && Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      }
-                    }
-                  },
-                  onTapCancel: () => setState(() => _navigatePressed = false),
-                  child: AnimatedScale(
-                    scale: _navigatePressed ? 0.96 : 1.0,
-                    duration: _navigatePressed
-                        ? const Duration(milliseconds: 80)
-                        : const Duration(milliseconds: 300),
-                    curve: _navigatePressed
-                        ? Curves.easeIn
-                        : Curves.easeOutBack,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            bulk.typeColor,
-                            bulk.typeColor.withOpacity(0.75),
+                    },
+                    onTapCancel: () => setState(() => _navigatePressed = false),
+                    child: AnimatedScale(
+                      scale: _navigatePressed ? 0.96 : 1.0,
+                      duration: _navigatePressed
+                          ? const Duration(milliseconds: 80)
+                          : const Duration(milliseconds: 300),
+                      curve: _navigatePressed
+                          ? Curves.easeIn
+                          : Curves.easeOutBack,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              bulk.typeColor,
+                              bulk.typeColor.withOpacity(0.75),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: bulk.typeColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: bulk.typeColor.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.navigation_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Navigate To Location',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.navigation_rounded,
                               color: Colors.white,
+                              size: 18,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 8),
+                            Text(
+                              'Navigate To Location',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
+                start: 0.4,
+                end: 0.9,
               ),
             ],
           ),

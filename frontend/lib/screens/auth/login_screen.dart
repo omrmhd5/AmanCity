@@ -13,8 +13,42 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = false;
+  late AnimationController _entryController;
+
+  @override
+  void initState() {
+    super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _entryController.dispose();
+    super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
+  }
 
   void _showError(String message) {
     if (!mounted) return;
@@ -76,13 +110,24 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                const LoginHeader(),
-                LoginForm(onLoginPressed: _handleLogin, isLoading: _isLoading),
-                SocialLoginSection(
-                  onGooglePressed: _handleGoogleLogin,
-                  onApplePressed: _handleAppleLogin,
+                _animated(const LoginHeader(), start: 0.0, end: 0.5),
+                _animated(
+                  LoginForm(
+                    onLoginPressed: _handleLogin,
+                    isLoading: _isLoading,
+                  ),
+                  start: 0.1,
+                  end: 0.65,
                 ),
-                SignUpLinkSection(),
+                _animated(
+                  SocialLoginSection(
+                    onGooglePressed: _handleGoogleLogin,
+                    onApplePressed: _handleAppleLogin,
+                  ),
+                  start: 0.2,
+                  end: 0.75,
+                ),
+                _animated(SignUpLinkSection(), start: 0.35, end: 0.9),
               ],
             ),
           ),

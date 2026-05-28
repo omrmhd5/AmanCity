@@ -35,7 +35,8 @@ class PermissionsScreen extends StatefulWidget {
   State<PermissionsScreen> createState() => _PermissionsScreenState();
 }
 
-class _PermissionsScreenState extends State<PermissionsScreen> {
+class _PermissionsScreenState extends State<PermissionsScreen>
+    with SingleTickerProviderStateMixin {
   // ── Static permission list ──
   static const _items = [
     _PermItem(
@@ -93,12 +94,17 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   int _deniedAtStep = -1; // index that was just denied (show hint)
   bool _isRequesting = false;
   bool _checking = true; // true while we auto-check existing permissions
+  late AnimationController _entryController;
 
   bool get _isDone => _step >= _items.length;
 
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     // Bypass connectivity checks — permissions screen doesn't need the backend.
     ConnectivityService.instance.setBypass(true);
     AppTheme.themeNotifier.addListener(_onThemeChange);
@@ -111,8 +117,26 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
 
   @override
   void dispose() {
+    _entryController.dispose();
     AppTheme.themeNotifier.removeListener(_onThemeChange);
     super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   Future<void> _checkExistingPermissions() async {
@@ -250,114 +274,130 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'System Access',
-                    style: TextStyle(
-                      color: AppTheme.getPrimaryTextColor(),
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
+            _animated(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'System Access',
+                      style: TextStyle(
+                        color: AppTheme.getPrimaryTextColor(),
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Authorize the following permissions to enable full safety functionality.',
-                    style: TextStyle(
-                      color: AppTheme.getSecondaryTextColor(),
-                      fontSize: 14,
-                      height: 1.5,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Authorize the following permissions to enable full safety functionality.',
+                      style: TextStyle(
+                        color: AppTheme.getSecondaryTextColor(),
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              start: 0.0,
+              end: 0.5,
             ),
 
             // ── Permission cards ────────────────────────────────
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
+              child: _animated(
+                SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    children: List.generate(_items.length, (i) {
+                      final isDone = i < _step;
+                      final isActive = i == _step;
+                      final isUpcoming = i > _step;
+                      return _PermCard(
+                        item: _items[i],
+                        isDone: isDone,
+                        isActive: isActive,
+                        isUpcoming: isUpcoming,
+                        isLoading: _isRequesting && isActive,
+                        showDeniedHint: _deniedAtStep == i && isActive,
+                        onAllow: () => _request(i),
+                        onSkip: null, // all required
+                      );
+                    }),
+                  ),
                 ),
-                child: Column(
-                  children: List.generate(_items.length, (i) {
-                    final isDone = i < _step;
-                    final isActive = i == _step;
-                    final isUpcoming = i > _step;
-                    return _PermCard(
-                      item: _items[i],
-                      isDone: isDone,
-                      isActive: isActive,
-                      isUpcoming: isUpcoming,
-                      isLoading: _isRequesting && isActive,
-                      showDeniedHint: _deniedAtStep == i && isActive,
-                      onAllow: () => _request(i),
-                      onSkip: null, // all required
-                    );
-                  }),
-                ),
+                start: 0.1,
+                end: 0.7,
               ),
             ),
 
             // ── Continue button ─────────────────────────────────
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 300),
-              opacity: _isDone ? 1.0 : 0.0,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isDone ? _finish : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.secondary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+            _animated(
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: _isDone ? 1.0 : 0.0,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isDone ? _finish : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
                       ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
+              start: 0.25,
+              end: 0.8,
             ),
 
             // ── Trust signal ────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.verified_user_outlined,
-                    size: 13,
-                    color: AppTheme.getSecondaryTextColor(),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'SECURE  •  PRIVATE  •  VERIFIED ACCESS',
-                    style: TextStyle(
-                      fontSize: 10,
-                      letterSpacing: 1.4,
+            _animated(
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.verified_user_outlined,
+                      size: 13,
                       color: AppTheme.getSecondaryTextColor(),
-                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      'SECURE  •  PRIVATE  •  VERIFIED ACCESS',
+                      style: TextStyle(
+                        fontSize: 10,
+                        letterSpacing: 1.4,
+                        color: AppTheme.getSecondaryTextColor(),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              start: 0.3,
+              end: 0.85,
             ),
           ],
         ),

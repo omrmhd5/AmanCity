@@ -29,19 +29,25 @@ class LiveTrackingScreen extends StatefulWidget {
   State<LiveTrackingScreen> createState() => _LiveTrackingScreenState();
 }
 
-class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
+class _LiveTrackingScreenState extends State<LiveTrackingScreen>
+    with SingleTickerProviderStateMixin {
   GoogleMapController? _mapController;
   SosSessionInfo? _session;
   Timer? _pollTimer;
   Timer? _elapsedTimer;
   int _elapsedSeconds = 0;
   bool _sessionEnded = false;
+  late AnimationController _entryController;
 
   final Set<Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     _session = SosSessionInfo(
       sessionId: widget.sessionId,
       triggerUserName: widget.initialUserName,
@@ -58,10 +64,28 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
 
   @override
   void dispose() {
+    _entryController.dispose();
     _pollTimer?.cancel();
     _elapsedTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   void _startPolling() {
@@ -156,71 +180,78 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           ),
 
           // Top bar
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  // Back button
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.arrow_back_ios_new,
-                      color: AppTheme.getPrimaryTextColor(),
-                      size: 25,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Status pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xCC080F1E),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                        color: _sessionEnded
-                            ? Colors.grey.withOpacity(0.4)
-                            : const Color(0xFFFF3B3B).withOpacity(0.6),
+          _animated(
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    // Back button
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: AppTheme.getPrimaryTextColor(),
+                        size: 25,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!_sessionEnded)
-                          _BlinkingDot()
-                        else
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 10,
-                          ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _sessionEnded
-                              ? 'SOS Ended'
-                              : 'SOS Active • $_elapsedLabel',
-                          style: TextStyle(
-                            color: _sessionEnded
-                                ? Colors.white.withOpacity(0.6)
-                                : const Color(0xFFFF3B3B),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    const SizedBox(width: 12),
+                    // Status pill
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xCC080F1E),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: _sessionEnded
+                              ? Colors.grey.withOpacity(0.4)
+                              : const Color(0xFFFF3B3B).withOpacity(0.6),
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!_sessionEnded)
+                            _BlinkingDot()
+                          else
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 10,
+                            ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _sessionEnded
+                                ? 'SOS Ended'
+                                : 'SOS Active • $_elapsedLabel',
+                            style: TextStyle(
+                              color: _sessionEnded
+                                  ? Colors.white.withOpacity(0.6)
+                                  : const Color(0xFFFF3B3B),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+            start: 0.0,
+            end: 0.6,
           ),
 
           // Bottom sheet

@@ -17,7 +17,8 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen>
+    with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentStep = 0;
   bool _isSuccess = false;
@@ -29,10 +30,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
   bool _agreeToTerms = false;
+  late AnimationController _entryController;
 
   @override
   void initState() {
     super.initState();
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
     _fullNameController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
@@ -42,6 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _entryController.dispose();
     _pageController.dispose();
     _fullNameController.dispose();
     _emailController.dispose();
@@ -49,6 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -155,59 +179,80 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: _isSuccess
             ? Column(
                 children: [
-                  RegisterHeader(
-                    onBackPressed: () => navigation.Navigator.goBack(),
+                  _animated(
+                    RegisterHeader(
+                      onBackPressed: () => navigation.Navigator.goBack(),
+                    ),
+                    start: 0.0,
+                    end: 0.5,
                   ),
                   Expanded(
-                    child: StepSuccess(
-                      email: _emailController.text.trim(),
-                      onGoToLogin: () => navigation.Navigator.goBack(),
+                    child: _animated(
+                      StepSuccess(
+                        email: _emailController.text.trim(),
+                        onGoToLogin: () => navigation.Navigator.goBack(),
+                      ),
+                      start: 0.15,
+                      end: 0.75,
                     ),
                   ),
                 ],
               )
             : Column(
                 children: [
-                  RegisterHeader(onBackPressed: _goBack),
+                  _animated(
+                    RegisterHeader(onBackPressed: _goBack),
+                    start: 0.0,
+                    end: 0.5,
+                  ),
                   const SizedBox(height: 4),
-                  RegisterStepIndicator(currentStep: _currentStep),
+                  _animated(
+                    RegisterStepIndicator(currentStep: _currentStep),
+                    start: 0.1,
+                    end: 0.6,
+                  ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        SingleChildScrollView(
-                          child: StepName(
-                            controller: _fullNameController,
-                            onNext: _onNextName,
+                    child: _animated(
+                      PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          SingleChildScrollView(
+                            child: StepName(
+                              controller: _fullNameController,
+                              onNext: _onNextName,
+                            ),
                           ),
-                        ),
-                        SingleChildScrollView(
-                          child: StepEmail(
-                            controller: _emailController,
-                            onNext: _onNextEmail,
+                          SingleChildScrollView(
+                            child: StepEmail(
+                              controller: _emailController,
+                              onNext: _onNextEmail,
+                              onBack: _goBack,
+                            ),
+                          ),
+                          SingleChildScrollView(
+                            child: StepPhone(
+                              controller: _phoneController,
+                              onNext: _onNextPhone,
+                              onBack: _goBack,
+                            ),
+                          ),
+                          StepPassword(
+                            passwordController: _passwordController,
+                            confirmPasswordController:
+                                _confirmPasswordController,
+                            agreeToTerms: _agreeToTerms,
+                            onTermsChanged: (val) =>
+                                setState(() => _agreeToTerms = val),
+                            onRegister: _handleRegister,
                             onBack: _goBack,
+                            isLoading: _isLoading,
                           ),
-                        ),
-                        SingleChildScrollView(
-                          child: StepPhone(
-                            controller: _phoneController,
-                            onNext: _onNextPhone,
-                            onBack: _goBack,
-                          ),
-                        ),
-                        StepPassword(
-                          passwordController: _passwordController,
-                          confirmPasswordController: _confirmPasswordController,
-                          agreeToTerms: _agreeToTerms,
-                          onTermsChanged: (val) =>
-                              setState(() => _agreeToTerms = val),
-                          onRegister: _handleRegister,
-                          onBack: _goBack,
-                          isLoading: _isLoading,
-                        ),
-                      ],
+                        ],
+                      ),
+                      start: 0.2,
+                      end: 0.8,
                     ),
                   ),
                 ],

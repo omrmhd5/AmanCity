@@ -23,7 +23,23 @@ class NewsIncidentDetailSheet extends StatefulWidget {
 class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
     with SingleTickerProviderStateMixin {
   late AnimationController _entryController;
-  late Animation<double> _fadeAnim;
+
+  Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
+    final anim = CurvedAnimation(
+      parent: _entryController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: anim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
+    );
+  }
 
   Color _getIncidentColor() {
     final config = IncidentTypesConfig.allTypes.firstWhere(
@@ -38,12 +54,8 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
     super.initState();
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
     )..forward();
-    _fadeAnim = CurvedAnimation(
-      parent: _entryController,
-      curve: Curves.easeOut,
-    );
   }
 
   @override
@@ -68,11 +80,10 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
             color: AppTheme.getBackgroundColor().withOpacity(0.75),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: FadeTransition(
-            opacity: _fadeAnim,
-            child: Column(
-              children: [
-                // Handle bar
+          child: Column(
+            children: [
+              // Handle bar
+              _animated(
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Center(
@@ -86,8 +97,12 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                // Incident-colored gradient divider (above header)
+                start: 0.0,
+                end: 0.4,
+              ),
+              const SizedBox(height: 8),
+              // Incident-colored gradient divider (above header)
+              _animated(
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
@@ -100,13 +115,21 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
                     ),
                   ),
                 ),
-                // Header
+                start: 0.05,
+                end: 0.45,
+              ),
+              // Header
+              _animated(
                 NewsDetailHeader(
                   title: widget.incident.title,
                   incidentType: widget.incident.type,
                   onBackPressed: () => Navigator.pop(context),
                 ),
-                // Teal gradient divider (below header)
+                start: 0.1,
+                end: 0.55,
+              ),
+              // Teal gradient divider (below header)
+              _animated(
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
@@ -119,9 +142,13 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
                     ),
                   ),
                 ),
-                // Main content
-                Expanded(
-                  child: SingleChildScrollView(
+                start: 0.15,
+                end: 0.55,
+              ),
+              // Main content
+              Expanded(
+                child: _animated(
+                  SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     child: Column(
                       children: [
@@ -133,9 +160,11 @@ class _NewsIncidentDetailSheetState extends State<NewsIncidentDetailSheet>
                       ],
                     ),
                   ),
+                  start: 0.2,
+                  end: 0.8,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

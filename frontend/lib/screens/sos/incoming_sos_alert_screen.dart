@@ -35,7 +35,8 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnim;
 
-  late final String _staticMapUrl;
+  late final String
+  _mapUrl; // Single map URL used for both background and mini map
   bool _alarmMuted = false;
 
   @override
@@ -51,10 +52,12 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     );
 
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
-    _staticMapUrl =
+    // Single map URL: with marker, sized for background (640x400)
+    // Mini map will display the same image, scaled down (Flutter caches the image)
+    _mapUrl =
         'https://maps.googleapis.com/maps/api/staticmap'
         '?center=${widget.lat},${widget.lng}'
-        '&zoom=15&size=600x400&scale=2'
+        '&zoom=15&size=640x400&scale=2'
         '&markers=color:red%7C${widget.lat},${widget.lng}'
         '&style=element:geometry%7Ccolor:0x1a2744'
         '&style=element:labels.text.fill%7Ccolor:0x9ca5b3'
@@ -126,11 +129,23 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background: blurred static map
-          if (_staticMapUrl.isNotEmpty) _buildMapBackground(),
+          // Background: map with marker
+          if (_mapUrl.isNotEmpty) _buildMapBackground(),
 
-          // Dark overlay
-          Container(color: const Color(0xCC080F1E)),
+          // Gradient overlay: map visible at top, solid at bottom
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF080F1E).withOpacity(0.15),
+                  const Color(0xFF080F1E).withOpacity(0.97),
+                ],
+                stops: const [0.0, 0.65],
+              ),
+            ),
+          ),
 
           // Content
           SafeArea(
@@ -164,7 +179,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   Widget _buildMapBackground() {
     return Positioned.fill(
       child: Image.network(
-        _staticMapUrl,
+        _mapUrl,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
       ),
@@ -283,7 +298,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   }
 
   Widget _buildMiniMap() {
-    if (_staticMapUrl.isEmpty) return const SizedBox(height: 120);
+    // Use the same map URL as background (Flutter's image cache handles deduplication)
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 32),
       height: 120,
@@ -293,7 +308,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
       ),
       clipBehavior: Clip.hardEdge,
       child: Image.network(
-        _staticMapUrl,
+        _mapUrl,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(
           color: const Color(0xFF1A2744),

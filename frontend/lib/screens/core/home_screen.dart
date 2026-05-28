@@ -38,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ValueNotifier<String?> _sosViewSignal = ValueNotifier(null);
   // Incremented each time the SOS tab becomes active — triggers stagger replay
   final ValueNotifier<int> _sosActivationSignal = ValueNotifier(0);
+  // Incremented each time the Report tab becomes active
+  final ValueNotifier<int> _reportActivationSignal = ValueNotifier(0);
+  // Incremented each time the AI tab becomes active
+  final ValueNotifier<int> _aiActivationSignal = ValueNotifier(0);
 
   @override
   void initState() {
@@ -98,6 +102,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Signal SOS screen to replay stagger when its tab becomes active
     if (item == NavItem.sos) {
       _sosActivationSignal.value++;
+    }
+    if (item == NavItem.report) {
+      _reportActivationSignal.value++;
+    }
+    if (item == NavItem.ai) {
+      _aiActivationSignal.value++;
     }
   }
 
@@ -176,11 +186,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           onReportPressed: () => _onNavItemTapped(NavItem.report),
         ),
         // 1 — Report
-        ReportIncidentScreen(onReported: _onIncidentReported),
+        ReportIncidentScreen(
+          onReported: _onIncidentReported,
+          activationSignal: _reportActivationSignal,
+        ),
         // 2 — Home / Welcome
         _buildWelcomePage(),
         // 3 — AI
-        AiScreen(),
+        AiScreen(activationSignal: _aiActivationSignal),
         // 4 — SOS
         SosScreen(
           onBack: () => _onNavItemTapped(NavItem.home),
