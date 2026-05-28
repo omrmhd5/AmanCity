@@ -359,9 +359,7 @@ async function _attemptMerge(incident) {
   );
   if (existingBulk) {
     await BulkIncidentService.addToBulk(existingBulk._id, incident);
-    console.log(
-      `🔗 Incident ${incident._id} merged into BulkIncident ${existingBulk._id}`,
-    );
+
     return;
   }
 
@@ -376,9 +374,6 @@ async function _attemptMerge(incident) {
     const bulk = await BulkIncidentService.createBulk(
       standaloneMatch,
       incident,
-    );
-    console.log(
-      `🆕 BulkIncident ${bulk._id} created from incidents ${standaloneMatch._id} + ${incident._id}`,
     );
   }
 }

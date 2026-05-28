@@ -48,9 +48,6 @@ async function sendPushToUsers(users, title, body, data = {}) {
 
   try {
     const response = await admin.messaging().sendEachForMulticast(message);
-    console.log(
-      `📲 FCM sent: ${response.successCount} success, ${response.failureCount} failed`,
-    );
   } catch (err) {
     console.error("FCM send error:", err.message);
   }
@@ -72,11 +69,7 @@ async function notifyNearbyUsers(incident) {
     return;
   }
 
-  console.log(`[FCM] Searching for users within 2km of lat=${lat}, lng=${lng}`);
   const nearbyUsers = await findUsersNear(lat, lng, 2);
-  console.log(
-    `[FCM] Found ${nearbyUsers.length} nearby user(s) with FCM tokens`,
-  );
 
   if (!nearbyUsers.length) return;
 

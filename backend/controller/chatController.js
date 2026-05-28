@@ -167,8 +167,6 @@ async function sendMessage(req, res) {
     return res.status(400).json({ message: "Message is required." });
   }
 
-  console.log(`💬 Chat message received: "${message.slice(0, 50)}..."`);
-
   let nearbyIncidents = [];
   let fetchLat = latitude;
   let fetchLng = longitude;
@@ -176,15 +174,11 @@ async function sendMessage(req, res) {
   // Try to extract location from message
   const mentionedLocation = extractLocationFromMessage(message);
   if (mentionedLocation) {
-    console.log(`📍 Detected location mention: "${mentionedLocation}"`);
     try {
       const geocoded = await GeocodingService.forwardGeocode(mentionedLocation);
       if (geocoded) {
         fetchLat = geocoded.latitude;
         fetchLng = geocoded.longitude;
-        console.log(
-          `✅ Geocoded to: ${geocoded.text} (${fetchLat}, ${fetchLng})`,
-        );
       }
     } catch (err) {
       console.warn("⚠️  Geocoding failed:", err.message);
@@ -200,19 +194,16 @@ async function sendMessage(req, res) {
         fetchLng,
         5, // 5 km radius
       );
-      console.log(`🔍 Found ${nearbyIncidents.length} nearby incidents`);
     } catch (err) {
       console.warn("⚠️  Failed to fetch nearby incidents:", err.message);
       // Continue without incident context
     }
   } else {
-    console.log("ℹ️  No location provided, sending query without context");
   }
 
   // Call Gemini with incident context
   try {
     const reply = await askGemini(message, nearbyIncidents);
-    console.log(`✅ Gemini response generated`);
 
     return res.status(200).json({
       message: "Chat message processed successfully.",

@@ -10,8 +10,6 @@ const { notifyNearbyUsers } = require("../service/notificationService");
  * Triggers a Grok OSINT scan and saves discovered incidents to MongoDB
  */
 async function scanOsint(req, res) {
-  console.log("📡 OSINT scan triggered via API");
-
   let grokRaw = [];
   let sources = [];
 
@@ -20,7 +18,6 @@ async function scanOsint(req, res) {
     const result = await runGrokScan();
     grokRaw = result.incidents;
     sources = result.sources;
-    console.log(`✅ Grok returned ${grokRaw.length} raw incident(s)`);
   } catch (err) {
     console.error("❌ Grok scan failed:", err.message);
     return res
@@ -80,7 +77,6 @@ async function scanOsint(req, res) {
       raw.source_urls || [],
     );
     if (isDuplicate) {
-      console.log(`🔁 Duplicate skipped: ${raw.title}`);
       summary.skipped_duplicate++;
       continue;
     }
@@ -116,13 +112,10 @@ async function scanOsint(req, res) {
       );
 
       const precisionTag = raw.location_precision === "VAGUE" ? " [VAGUE]" : "";
-      console.log(`💾 Saved: ${raw.title}${precisionTag} (${geo.text})`);
     } catch (err) {
       console.error(`❌ Failed to save "${raw.title}":`, err.message);
     }
   }
-
-  console.log(`\n📊 Scan Summary:`, summary);
 
   return res.status(200).json({
     message: "OSINT scan complete.",
@@ -193,9 +186,7 @@ async function _attemptOsintMerge(incident) {
   );
   if (existingBulk) {
     await BulkIncidentService.addToBulk(existingBulk._id, incident);
-    console.log(
-      `🔗 OSINT incident ${incident._id} merged into BulkIncident ${existingBulk._id}`,
-    );
+
     return;
   }
 
@@ -209,9 +200,6 @@ async function _attemptOsintMerge(incident) {
     const bulk = await BulkIncidentService.createBulk(
       standaloneMatch,
       incident,
-    );
-    console.log(
-      `🆕 BulkIncident ${bulk._id} created from OSINT + existing incident`,
     );
   }
 }
