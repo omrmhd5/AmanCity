@@ -302,6 +302,11 @@ class SosService {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.deniedForever) return null;
+
+      // Fast path: emulator/devices often already have a cached fix.
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),

@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/app_colors.dart';
-import '../../utils/app_theme.dart';
 import '../../models/sos/sos_session_info.dart';
 import '../../services/sos/sos_service.dart';
+import '../../utils/app_theme.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
   final String sessionId;
@@ -30,14 +31,17 @@ class LiveTrackingScreen extends StatefulWidget {
 }
 
 class _LiveTrackingScreenState extends State<LiveTrackingScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   GoogleMapController? _mapController;
   SosSessionInfo? _session;
   Timer? _pollTimer;
   Timer? _elapsedTimer;
   int _elapsedSeconds = 0;
   bool _sessionEnded = false;
-  late AnimationController _entryController;
+
+  late final AnimationController _entryController;
+
+  AppThemeMode? _lastAppliedThemeMode;
 
   final Set<Marker> _markers = {};
 
@@ -48,6 +52,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
+
+    AppTheme.themeNotifier.addListener(_onThemeChanged);
+
     _session = SosSessionInfo(
       sessionId: widget.sessionId,
       triggerUserName: widget.initialUserName,
@@ -64,11 +71,22 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChanged);
     _entryController.dispose();
     _pollTimer?.cancel();
     _elapsedTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _applyMapStyleForCurrentTheme();
+  }
+
+  void _onThemeChanged() {
+    _applyMapStyleForCurrentTheme();
   }
 
   Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {
@@ -133,8 +151,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
     final h = _elapsedSeconds ~/ 3600;
     final m = (_elapsedSeconds % 3600) ~/ 60;
     final s = _elapsedSeconds % 60;
-    if (h > 0)
+    if (h > 0) {
       return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
@@ -157,6 +176,38 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
     if (await canLaunchUrl(uri)) launchUrl(uri);
   }
 
+  Future<void> _openInGoogleMaps() async {
+    final lat = _session?.lat ?? widget.initialLat;
+    final lng = _session?.lng ?? widget.initialLng;
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _applyMapStyleForCurrentTheme() async {
+    final controller = _mapController;
+    if (controller == null) return;
+
+    final mode = AppTheme.currentMode;
+    if (_lastAppliedThemeMode == mode) return;
+    _lastAppliedThemeMode = mode;
+
+    try {
+      if (mode == AppThemeMode.dark) {
+        await controller.setMapStyle(AppColors.darkMapStyle);
+      } else {
+        await controller.setMapStyle(
+          AppColors.lightMapStyle.isEmpty ? null : AppColors.lightMapStyle,
+        );
+      }
+    } catch (_) {
+      // Keep default style if map style application fails.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final lat = _session?.lat ?? widget.initialLat;
@@ -165,21 +216,21 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Full-screen map
           GoogleMap(
             initialCameraPosition: CameraPosition(
               target: LatLng(lat, lng),
               zoom: 16,
             ),
             markers: _markers,
-            onMapCreated: (c) => _mapController = c,
+            onMapCreated: (c) {
+              _mapController = c;
+              _applyMapStyleForCurrentTheme();
+            },
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
           ),
-
-          // Top bar
           _animated(
             SafeArea(
               child: Padding(
@@ -187,24 +238,25 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                   horizontal: 16,
                   vertical: 12,
                 ),
-                child: Row(
+                child: Stack(
+                  alignment: Alignment.topCenter,
                   children: [
-                    // Back button
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: AppTheme.getPrimaryTextColor(),
-                        size: 25,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: AppTheme.getPrimaryTextColor(),
+                          size: 25,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Status pill
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -253,8 +305,6 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
             start: 0.0,
             end: 0.6,
           ),
-
-          // Bottom sheet
           Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomSheet()),
         ],
       ),
@@ -265,128 +315,153 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
     final name = _session?.triggerUserName ?? widget.initialUserName;
     final phone = _session?.triggerUserPhone ?? widget.initialUserPhone;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B1220),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Handle
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xE60B1220),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
           ),
-          const SizedBox(height: 16),
-
-          // Name row
-          Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFF3B3B).withOpacity(0.18),
-                  border: Border.all(
-                    color: const Color(0xFFFF3B3B).withOpacity(0.5),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    _initials(name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
+                child: Row(
                   children: [
-                    Text(
-                      name.isEmpty ? 'Unknown' : name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (phone.isNotEmpty)
-                      Text(
-                        phone,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 13,
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFFF3B3B).withOpacity(0.18),
+                        border: Border.all(
+                          color: const Color(0xFFFF3B3B).withOpacity(0.5),
                         ),
                       ),
+                      child: Center(
+                        child: Text(
+                          _initials(name),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name.isEmpty ? 'Unknown' : name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (phone.isNotEmpty)
+                            Text(
+                              phone,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 13,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      'Updated $_lastUpdatedLabel',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.35),
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Text(
-                'Updated $_lastUpdatedLabel',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.35),
-                  fontSize: 11,
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.0),
+                      AppColors.secondary.withOpacity(0.3),
+                      AppColors.secondary.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.phone,
+                            label: 'Call',
+                            color: AppColors.secondary,
+                            onTap: _callUser,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.local_police,
+                            label: 'Call 122',
+                            color: const Color(0xFFFF3B3B),
+                            onTap: _callEmergency,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.my_location,
+                            label: 'Center',
+                            color: Colors.white.withOpacity(0.15),
+                            iconColor: Colors.white,
+                            onTap: () {
+                              final lat = _session?.lat ?? widget.initialLat;
+                              final lng = _session?.lng ?? widget.initialLng;
+                              _mapController?.animateCamera(
+                                CameraUpdate.newLatLngZoom(
+                                  LatLng(lat, lng),
+                                  16,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _ActionButton(
+                        icon: Icons.navigation_rounded,
+                        label: 'Navigate to location',
+                        color: const Color(0xFF2563EB),
+                        iconColor: Colors.white,
+                        onTap: _openInGoogleMaps,
+                        isWide: true,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: _ActionButton(
-                  icon: Icons.phone,
-                  label: 'Call',
-                  color: AppColors.secondary,
-                  onTap: _callUser,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ActionButton(
-                  icon: Icons.local_police,
-                  label: 'Call 122',
-                  color: const Color(0xFFFF3B3B),
-                  onTap: _callEmergency,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ActionButton(
-                  icon: Icons.my_location,
-                  label: 'Center',
-                  color: Colors.white.withOpacity(0.15),
-                  iconColor: Colors.white,
-                  onTap: () {
-                    final lat = _session?.lat ?? widget.initialLat;
-                    final lng = _session?.lng ?? widget.initialLng;
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(LatLng(lat, lng), 16),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -407,6 +482,7 @@ class _BlinkingDot extends StatefulWidget {
 class _BlinkingDotState extends State<_BlinkingDot>
     with SingleTickerProviderStateMixin {
   late AnimationController _c;
+
   @override
   void initState() {
     super.initState();
@@ -444,6 +520,7 @@ class _ActionButton extends StatelessWidget {
   final Color color;
   final Color? iconColor;
   final VoidCallback onTap;
+  final bool isWide;
 
   const _ActionButton({
     required this.icon,
@@ -451,6 +528,7 @@ class _ActionButton extends StatelessWidget {
     required this.color,
     required this.onTap,
     this.iconColor,
+    this.isWide = false,
   });
 
   @override
@@ -463,21 +541,37 @@ class _ActionButton extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: iconColor ?? Colors.white, size: 20),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: iconColor ?? Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+        child: isWide
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: iconColor ?? Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: iconColor ?? Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: iconColor ?? Colors.white, size: 20),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: iconColor ?? Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

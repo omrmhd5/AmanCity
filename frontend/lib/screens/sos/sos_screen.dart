@@ -189,15 +189,20 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _acquireAndNotify() async {
-    // Create in-app SOS session immediately so trusted contacts are notified
-    // even before GPS resolves. lat/lng start at 0 and get updated once available.
-    final sessionId = await SosService.createSession(0, 0);
+    // Prefer sending a resolved fix to avoid notifying contacts with 0,0.
+    var position = await _sosService.getCurrentLocation();
+
+    final initialLat = position?.latitude ?? 0.0;
+    final initialLng = position?.longitude ?? 0.0;
+
+    final sessionId = await SosService.createSession(initialLat, initialLng);
     if (sessionId != null && mounted) {
       _sessionId = sessionId;
       setState(() => _contactsNotified = true);
     }
 
-    final position = await _sosService.getCurrentLocation();
+    // If initial lookup failed, retry once and patch session as soon as possible.
+    position ??= await _sosService.getCurrentLocation();
 
     if (!mounted) return;
 
@@ -231,7 +236,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
 
     // Start periodic location update timer for the in-app session
     if (_sessionId != null) {
-      _locationUpdateTimer = Timer.periodic(const Duration(seconds: 15), (
+      _locationUpdateTimer = Timer.periodic(const Duration(seconds: 10), (
         _,
       ) async {
         final pos = await _sosService.getCurrentLocation();

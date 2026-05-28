@@ -83,7 +83,7 @@ router.post("/sessions", async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // PATCH /api/sos/sessions/:id/location
-// Update live location (called every 15s from the SOS-active user's app).
+// Update live location (called every 10s from the SOS-active user's app).
 // ---------------------------------------------------------------------------
 router.patch("/sessions/:id/location", async (req, res) => {
   const decoded = await _verifyRequest(req, res);

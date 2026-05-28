@@ -47,6 +47,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   double? _cachedLng;
   String? _locationText;
   int? _distanceMeters;
+  bool _locationLoading = true;
   bool _alarmMuted = false;
   double _ignoreDragOffset = 0.0;
   static const double _ignoreThumbSize = 44.0;
@@ -110,6 +111,9 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   }
 
   Future<void> _refreshLocationText() async {
+    if (mounted) {
+      setState(() => _locationLoading = true);
+    }
     final result = await GeocodingService.reverseGeocode(
       _resolvedLat,
       _resolvedLng,
@@ -117,6 +121,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     if (!mounted) return;
     setState(() {
       _locationText = result['text'];
+      _locationLoading = false;
     });
   }
 
@@ -326,7 +331,10 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     final time = TimeOfDay.fromDateTime(now).format(context);
     return Text(
       'Today at $time',
-      style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 12),
+      style: TextStyle(
+        color: AppTheme.getSecondaryTextColor().withOpacity(0.8),
+        fontSize: 12,
+      ),
     );
   }
 
@@ -423,8 +431,8 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
       widget.triggerUserName.isEmpty
           ? 'Unknown Contact'
           : widget.triggerUserName,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: AppTheme.getPrimaryTextColor(),
         fontSize: 24,
         fontWeight: FontWeight.bold,
       ),
@@ -432,14 +440,42 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   }
 
   Widget _buildLocationLine() {
-    final fallbackCoords =
-        '${_resolvedLat.toStringAsFixed(5)}, ${_resolvedLng.toStringAsFixed(5)}';
-    final location = _locationText?.trim().isNotEmpty == true
-        ? _locationText!
-        : fallbackCoords;
-    final withDistance = _distanceMeters != null
-        ? '$location (${_distanceMeters}m away)'
-        : location;
+    if (_locationLoading) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 1.8),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Loading location...',
+              style: TextStyle(
+                color: AppTheme.getSecondaryTextColor().withOpacity(0.95),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final hasLocation = _locationText?.trim().isNotEmpty == true;
+    final title = hasLocation ? _locationText! : 'Coordinates';
+    final distanceSuffix = _distanceMeters != null
+        ? ' (${_distanceMeters}m away)'
+        : '';
+    final coordsText =
+        '${_resolvedLat.toStringAsFixed(5)}\n${_resolvedLng.toStringAsFixed(5)}';
+    final displayText = hasLocation
+        ? '$title$distanceSuffix'
+        : '$title$distanceSuffix\n$coordsText';
+    final maxLines = hasLocation ? 2 : 3;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -450,12 +486,12 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
           const SizedBox(width: 4),
           Flexible(
             child: Text(
-              withDistance,
+              displayText,
               textAlign: TextAlign.center,
-              maxLines: 1,
+              maxLines: maxLines,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
+                color: AppTheme.getSecondaryTextColor().withOpacity(0.95),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -542,6 +578,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   }
 
   Widget _buildMuteAlarmButton() {
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SizedBox(
@@ -554,13 +591,22 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
           ),
           label: Text(_alarmMuted ? 'ALARM MUTED' : 'MUTE ALARM'),
           style: OutlinedButton.styleFrom(
+            backgroundColor: isDark
+                ? Colors.transparent
+                : (_alarmMuted
+                      ? const Color(0xFFE5E7EB)
+                      : const Color(0xFFFBBF24)),
             foregroundColor: _alarmMuted
-                ? Colors.white38
-                : const Color(0xFFFFB020),
+                ? (isDark ? Colors.white38 : const Color(0xFF6B7280))
+                : (isDark ? const Color(0xFFFFB020) : const Color(0xFF1F2937)),
             side: BorderSide(
               color: _alarmMuted
-                  ? Colors.white12
-                  : const Color(0xFFFFB020).withOpacity(0.6),
+                  ? (isDark
+                        ? Colors.white12
+                        : const Color(0xFF9CA3AF).withOpacity(0.9))
+                  : (isDark
+                        ? const Color(0xFFFFB020).withOpacity(0.6)
+                        : const Color(0xFFF59E0B).withOpacity(0.95)),
             ),
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
@@ -577,6 +623,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final isDark = AppTheme.currentMode == AppThemeMode.dark;
           final maxOffset = (constraints.maxWidth - _ignoreThumbSize - 8).clamp(
             0.0,
             double.infinity,
@@ -608,11 +655,15 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                 borderRadius: BorderRadius.circular(28),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.2),
-                    Colors.white.withOpacity(0.12),
+                    isDark
+                        ? Colors.white.withOpacity(0.10)
+                        : AppTheme.getPrimaryTextColor().withOpacity(0.12),
+                    isDark
+                        ? Colors.white.withOpacity(0.07)
+                        : AppTheme.getPrimaryTextColor().withOpacity(0.06),
                   ],
                 ),
-                border: Border.all(color: Colors.white.withOpacity(0.18)),
+                border: Border.all(color: AppTheme.getBorderColor(), width: 1),
               ),
               child: Stack(
                 children: [
@@ -623,7 +674,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                       constraints.maxWidth,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12 * progress),
+                      color: AppColors.success.withOpacity(0.2 * progress),
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
@@ -631,9 +682,9 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                     child: Opacity(
                       opacity: (1.0 - progress * 2).clamp(0.0, 0.7),
                       child: Text(
-                        'slide to ignore',
+                        'SLIDE TO IGNORE',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.55),
+                          color: AppTheme.getPrimaryTextColor(),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -646,15 +697,24 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                     child: Container(
                       width: _ignoreThumbSize,
                       height: _ignoreThumbSize,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFFE5E7EB),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Icon(
                         progress >= _ignoreThreshold
                             ? Icons.check
                             : Icons.close,
-                        color: const Color(0xFF475569),
+                        color: progress >= _ignoreThreshold
+                            ? AppColors.success
+                            : AppColors.primary,
                         size: 20,
                       ),
                     ),
