@@ -41,8 +41,11 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
     super.initState();
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
-    )..forward();
+      duration: const Duration(milliseconds: 600),
+    );
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) _entryController.forward();
+    });
     radiusKm = widget.initialRadius;
     selectedIncidentTypes = {...widget.initialSelectedTypes};
   }

@@ -54,9 +54,12 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   void initState() {
     super.initState();
     _staggerController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
-    )..forward();
+    );
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) _staggerController.forward();
+    });
     _scrollController = ScrollController();
     widget.onScrollControllerReady?.call(_scrollController);
     widget.onSheetReady?.call(_toggleSheet);
@@ -87,7 +90,12 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
   }
 
   void _toggleSheet() {
+    final wasExpanded = _isExpanded;
     setState(() => _isExpanded = !_isExpanded);
+    if (!wasExpanded) {
+      // Replays stagger every time the sheet opens
+      _staggerController.forward(from: 0);
+    }
   }
 
   List<dynamic> _getAllAlertsWithin10km() {
@@ -385,6 +393,14 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                     _animated(
                       GestureDetector(
                         onTap: _toggleSheet,
+                        onVerticalDragEnd: (details) {
+                          final velocity = details.primaryVelocity ?? 0;
+                          if (velocity < -300 && !_isExpanded) {
+                            _toggleSheet();
+                          } else if (velocity > 300 && _isExpanded) {
+                            _toggleSheet();
+                          }
+                        },
                         behavior: HitTestBehavior.opaque,
                         child: Container(
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),

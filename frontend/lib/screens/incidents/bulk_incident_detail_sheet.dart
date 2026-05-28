@@ -37,8 +37,11 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
     super.initState();
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
-    )..forward();
+      duration: const Duration(milliseconds: 600),
+    );
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) _entryController.forward();
+    });
     _loadFull();
   }
 

@@ -42,6 +42,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ValueNotifier<int> _reportActivationSignal = ValueNotifier(0);
   // Incremented each time the AI tab becomes active
   final ValueNotifier<int> _aiActivationSignal = ValueNotifier(0);
+  // Incremented each time the Profile tab becomes active
+  final ValueNotifier<int> _profileActivationSignal = ValueNotifier(0);
+  // Incremented each time the News tab becomes active
+  final ValueNotifier<int> _newsActivationSignal = ValueNotifier(0);
 
   @override
   void initState() {
@@ -108,6 +112,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     if (item == NavItem.ai) {
       _aiActivationSignal.value++;
+    }
+    if (item == NavItem.profile) {
+      _profileActivationSignal.value++;
+    }
+    if (item == NavItem.news) {
+      _newsActivationSignal.value++;
+    }
+    if (item == NavItem.home) {
+      _entryController.forward(from: 0);
     }
   }
 
@@ -205,9 +218,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           activationSignal: _sosActivationSignal,
         ),
         // 5 — Profile
-        const ProfileScreen(),
+        ProfileScreen(activationSignal: _profileActivationSignal),
         // 6 — News
-        NewsScreen(onBack: () => _onNavItemTapped(NavItem.home)),
+        NewsScreen(
+          onBack: () => _onNavItemTapped(NavItem.home),
+          activationSignal: _newsActivationSignal,
+        ),
       ],
     );
   }

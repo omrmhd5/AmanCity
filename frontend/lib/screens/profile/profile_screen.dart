@@ -7,7 +7,9 @@ import '../../widgets/profile/profile_header.dart';
 import '../../widgets/profile/profile_menu_section.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  final ValueNotifier<int>? activationSignal;
+
+  const ProfileScreen({Key? key, this.activationSignal}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -24,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
+    widget.activationSignal?.addListener(_onActivation);
     AppTheme.themeNotifier.addListener(_onThemeChange);
   }
 
@@ -33,9 +36,14 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void dispose() {
+    widget.activationSignal?.removeListener(_onActivation);
     AppTheme.themeNotifier.removeListener(_onThemeChange);
     _entryController.dispose();
     super.dispose();
+  }
+
+  void _onActivation() {
+    _entryController.forward(from: 0);
   }
 
   Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {

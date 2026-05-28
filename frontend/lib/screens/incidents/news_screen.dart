@@ -13,8 +13,10 @@ import 'news_incident_detail_sheet.dart';
 
 class NewsScreen extends StatefulWidget {
   final VoidCallback? onBack;
+  final ValueNotifier<int>? activationSignal;
 
-  const NewsScreen({Key? key, this.onBack}) : super(key: key);
+  const NewsScreen({Key? key, this.onBack, this.activationSignal})
+    : super(key: key);
 
   @override
   State<NewsScreen> createState() => _NewsScreenState();
@@ -116,13 +118,19 @@ class _NewsScreenState extends State<NewsScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
+    widget.activationSignal?.addListener(_onActivation);
     _incidents = List.of(_demoIncidents); // pre-load demo data only
   }
 
   @override
   void dispose() {
+    widget.activationSignal?.removeListener(_onActivation);
     _entryController.dispose();
     super.dispose();
+  }
+
+  void _onActivation() {
+    _entryController.forward(from: 0);
   }
 
   Widget _animated(Widget child, {double start = 0.0, double end = 1.0}) {

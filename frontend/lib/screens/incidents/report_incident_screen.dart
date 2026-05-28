@@ -720,305 +720,330 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                     ),
                     const SizedBox(height: 4),
                     // Location Context Card
-                    if (_currentLocation != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 16.0,
-                        ),
-                        child: LocationContextCard(
-                          latitude: _currentLocation!.latitude,
-                          longitude: _currentLocation!.longitude,
-                          isLoading: _isLoadingLocation,
-                          addressText: _geoLocationText,
-                          city: _geoLocationCity,
-                        ),
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: _buildLocationLoadingShimmer(),
-                      ),
+                    _animated(
+                      _currentLocation != null
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 16.0,
+                              ),
+                              child: LocationContextCard(
+                                latitude: _currentLocation!.latitude,
+                                longitude: _currentLocation!.longitude,
+                                isLoading: _isLoadingLocation,
+                                addressText: _geoLocationText,
+                                city: _geoLocationCity,
+                              ),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: _buildLocationLoadingShimmer(),
+                            ),
+                      start: 0.1,
+                      end: 0.55,
+                    ),
                     // Location Selector
-                    LocationSelector(
-                      useCurrentLocation: _selectedLocation == _currentLocation,
-                      currentLocation: _currentLocation,
-                      onLocationSelected: (location) {
-                        setState(() => _selectedLocation = location);
-                        _updateLocationPreview(location);
-                      },
+                    _animated(
+                      LocationSelector(
+                        useCurrentLocation:
+                            _selectedLocation == _currentLocation,
+                        currentLocation: _currentLocation,
+                        onLocationSelected: (location) {
+                          setState(() => _selectedLocation = location);
+                          _updateLocationPreview(location);
+                        },
+                      ),
+                      start: 0.15,
+                      end: 0.6,
                     ),
                     const SizedBox(height: 16),
                     // Title Section
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.title_rounded,
-                                size: 15,
-                                color: AppColors.secondary,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'TITLE',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.getSecondaryTextColor(),
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _titleController,
-                            decoration: InputDecoration(
-                              hintText: 'e.g., Car Accident, Fire Incident...',
-                              hintStyle: TextStyle(
-                                color: AppTheme.getSecondaryTextColor(),
-                              ),
-                              filled: true,
-                              fillColor:
-                                  AppTheme.currentMode == AppThemeMode.dark
-                                  ? AppColors.primary
-                                  : AppColors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: AppTheme.getBorderColor(),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: AppTheme.getBorderColor(),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
+                    _animated(
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.title_rounded,
+                                  size: 15,
                                   color: AppColors.secondary,
-                                  width: 2,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'TITLE',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.getSecondaryTextColor(),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _titleController,
+                              decoration: InputDecoration(
+                                hintText:
+                                    'e.g., Car Accident, Fire Incident...',
+                                hintStyle: TextStyle(
+                                  color: AppTheme.getSecondaryTextColor(),
+                                ),
+                                filled: true,
+                                fillColor:
+                                    AppTheme.currentMode == AppThemeMode.dark
+                                    ? AppColors.primary
+                                    : AppColors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: AppTheme.getBorderColor(),
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: AppTheme.getBorderColor(),
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: AppColors.secondary,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
+                              style: TextStyle(
+                                color: AppTheme.getPrimaryTextColor(),
+                              ),
                             ),
-                            style: TextStyle(
-                              color: AppTheme.getPrimaryTextColor(),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      start: 0.2,
+                      end: 0.65,
                     ),
                     // Evidence Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.upload_file_rounded,
-                                size: 15,
-                                color: AppColors.secondary,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'UPLOAD EVIDENCE',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.getSecondaryTextColor(),
-                                  letterSpacing: 1.2,
+                    _animated(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.upload_file_rounded,
+                                  size: 15,
+                                  color: AppColors.secondary,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (_selectedFile == null)
-                            _isPickingFile
-                                ? Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(20.0),
-                                      child: CircularProgressIndicator(
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              AppColors.secondary,
-                                            ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'UPLOAD EVIDENCE',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.getSecondaryTextColor(),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (_selectedFile == null)
+                              _isPickingFile
+                                  ? Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(20.0),
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                AppColors.secondary,
+                                              ),
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                : EvidenceTypeSelector(
-                                    selectedType: _selectedEvidenceType,
-                                    onTypeSelected: _onEvidenceTypeSelected,
-                                  )
-                          else
-                            _buildFilePreview(),
-                        ],
+                                    )
+                                  : EvidenceTypeSelector(
+                                      selectedType: _selectedEvidenceType,
+                                      onTypeSelected: _onEvidenceTypeSelected,
+                                    )
+                            else
+                              _buildFilePreview(),
+                          ],
+                        ),
                       ),
+                      start: 0.25,
+                      end: 0.7,
                     ),
                     const SizedBox(height: 24),
                     // Description Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.notes_rounded,
-                                size: 15,
-                                color: AppColors.secondary,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'DESCRIPTION (OPTIONAL)',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.getSecondaryTextColor(),
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _descriptionController,
-                            maxLines: 4,
-                            decoration: InputDecoration(
-                              hintText: 'Add additional details...',
-                              hintStyle: TextStyle(
-                                color: AppTheme.getSecondaryTextColor(),
-                              ),
-                              filled: true,
-                              fillColor:
-                                  AppTheme.currentMode == AppThemeMode.dark
-                                  ? AppColors.primary
-                                  : AppColors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: AppTheme.getBorderColor(),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: AppTheme.getBorderColor(),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
+                    _animated(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.notes_rounded,
+                                  size: 15,
                                   color: AppColors.secondary,
-                                  width: 2,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'DESCRIPTION (OPTIONAL)',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.getSecondaryTextColor(),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _descriptionController,
+                              maxLines: 4,
+                              decoration: InputDecoration(
+                                hintText: 'Add additional details...',
+                                hintStyle: TextStyle(
+                                  color: AppTheme.getSecondaryTextColor(),
+                                ),
+                                filled: true,
+                                fillColor:
+                                    AppTheme.currentMode == AppThemeMode.dark
+                                    ? AppColors.primary
+                                    : AppColors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: AppTheme.getBorderColor(),
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: AppTheme.getBorderColor(),
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: AppColors.secondary,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
+                              style: TextStyle(
+                                color: AppTheme.getPrimaryTextColor(),
+                              ),
                             ),
-                            style: TextStyle(
-                              color: AppTheme.getPrimaryTextColor(),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      start: 0.3,
+                      end: 0.75,
                     ),
                     const SizedBox(height: 24),
                     // Report Button
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: GestureDetector(
-                        onTapDown: _isSubmitting
-                            ? null
-                            : (_) => setState(() => _submitPressed = true),
-                        onTapUp: _isSubmitting
-                            ? null
-                            : (_) {
-                                setState(() => _submitPressed = false);
-                                _submitReport();
-                              },
-                        onTapCancel: () =>
-                            setState(() => _submitPressed = false),
-                        child: AnimatedScale(
-                          scale: _submitPressed ? 0.96 : 1.0,
-                          duration: _submitPressed
-                              ? const Duration(milliseconds: 80)
-                              : const Duration(milliseconds: 300),
-                          curve: _submitPressed
-                              ? Curves.easeIn
-                              : Curves.easeOutBack,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: _isSubmitting
-                                    ? [
-                                        AppColors.danger.withOpacity(0.4),
-                                        AppColors.danger.withOpacity(0.3),
-                                      ]
+                    _animated(
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: GestureDetector(
+                          onTapDown: _isSubmitting
+                              ? null
+                              : (_) => setState(() => _submitPressed = true),
+                          onTapUp: _isSubmitting
+                              ? null
+                              : (_) {
+                                  setState(() => _submitPressed = false);
+                                  _submitReport();
+                                },
+                          onTapCancel: () =>
+                              setState(() => _submitPressed = false),
+                          child: AnimatedScale(
+                            scale: _submitPressed ? 0.96 : 1.0,
+                            duration: _submitPressed
+                                ? const Duration(milliseconds: 80)
+                                : const Duration(milliseconds: 300),
+                            curve: _submitPressed
+                                ? Curves.easeIn
+                                : Curves.easeOutBack,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: _isSubmitting
+                                      ? [
+                                          AppColors.danger.withOpacity(0.4),
+                                          AppColors.danger.withOpacity(0.3),
+                                        ]
+                                      : [
+                                          AppColors.danger,
+                                          AppColors.danger.withOpacity(0.75),
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: _isSubmitting
+                                    ? []
                                     : [
-                                        AppColors.danger,
-                                        AppColors.danger.withOpacity(0.75),
+                                        BoxShadow(
+                                          color: AppColors.danger.withOpacity(
+                                            0.3,
+                                          ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
                                       ],
                               ),
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: _isSubmitting
-                                  ? []
-                                  : [
-                                      BoxShadow(
-                                        color: AppColors.danger.withOpacity(
-                                          0.3,
+                              child: Center(
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                          strokeWidth: 2,
                                         ),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                            ),
-                            child: Center(
-                              child: _isSubmitting
-                                  ? const SizedBox(
-                                      height: 22,
-                                      width: 22,
-                                      child: CircularProgressIndicator(
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.report_rounded,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Report Incident',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w700,
+                                      )
+                                    : Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.report_rounded,
                                             color: Colors.white,
+                                            size: 18,
                                           ),
-                                        ),
-                                      ],
-                                    ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Report Incident',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
                             ),
                           ),
                         ),
                       ),
+                      start: 0.4,
+                      end: 0.85,
                     ),
                   ],
                 ),
