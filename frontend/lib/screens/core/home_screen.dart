@@ -36,6 +36,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ValueNotifier<bool> _sosActivateSignal = ValueNotifier(false);
   // SOS view signal — set to 'history' to navigate to recordings sub-view
   final ValueNotifier<String?> _sosViewSignal = ValueNotifier(null);
+  // Incremented each time the SOS tab becomes active — triggers stagger replay
+  final ValueNotifier<int> _sosActivationSignal = ValueNotifier(0);
 
   @override
   void initState() {
@@ -92,6 +94,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       _currentNavItem = item;
     });
+
+    // Signal SOS screen to replay stagger when its tab becomes active
+    if (item == NavItem.sos) {
+      _sosActivationSignal.value++;
+    }
   }
 
   @override
@@ -182,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
           activateSignal: _sosActivateSignal,
           viewSignal: _sosViewSignal,
+          activationSignal: _sosActivationSignal,
         ),
         // 5 — Profile
         const ProfileScreen(),

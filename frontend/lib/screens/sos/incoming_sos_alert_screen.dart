@@ -36,6 +36,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   late Animation<double> _pulseAnim;
 
   late final String _staticMapUrl;
+  bool _alarmMuted = false;
 
   @override
   void initState() {
@@ -98,6 +99,12 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     if (await canLaunchUrl(uri)) launchUrl(uri);
   }
 
+  void _stopAlarm() {
+    FlutterRingtonePlayer().stop();
+    SosService().stopAlertSound();
+    setState(() => _alarmMuted = true);
+  }
+
   void _openLiveTracking() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -141,7 +148,9 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                 _buildMiniMap(),
                 const Spacer(),
                 _buildActionButtons(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
+                _buildStopAlarmButton(),
+                const SizedBox(height: 4),
                 _buildIgnoreButton(),
                 const SizedBox(height: 32),
               ],
@@ -366,6 +375,37 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStopAlarmButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _alarmMuted ? null : _stopAlarm,
+          icon: Icon(
+            _alarmMuted ? Icons.notifications_off : Icons.volume_off,
+            size: 18,
+          ),
+          label: Text(_alarmMuted ? 'Alarm Muted' : 'Stop Alarm'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: _alarmMuted
+                ? Colors.white38
+                : const Color(0xFFFF9500),
+            side: BorderSide(
+              color: _alarmMuted
+                  ? Colors.white12
+                  : const Color(0xFFFF9500).withOpacity(0.6),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
       ),
     );
   }

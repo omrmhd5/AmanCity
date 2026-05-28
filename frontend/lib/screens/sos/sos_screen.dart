@@ -21,6 +21,7 @@ class SosScreen extends StatefulWidget {
   final ValueChanged<bool>? onActiveStateChanged;
   final ValueNotifier<bool>? activateSignal;
   final ValueNotifier<String?>? viewSignal;
+  final ValueNotifier<int>? activationSignal;
 
   const SosScreen({
     Key? key,
@@ -28,6 +29,7 @@ class SosScreen extends StatefulWidget {
     this.onActiveStateChanged,
     this.activateSignal,
     this.viewSignal,
+    this.activationSignal,
   }) : super(key: key);
 
   @override
@@ -70,6 +72,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
     )..forward();
     widget.activateSignal?.addListener(_onActivateSignal);
     widget.viewSignal?.addListener(_onViewSignal);
+    widget.activationSignal?.addListener(_onActivationSignal);
   }
 
   @override
@@ -79,6 +82,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
     _locationUpdateTimer?.cancel();
     widget.activateSignal?.removeListener(_onActivateSignal);
     widget.viewSignal?.removeListener(_onViewSignal);
+    widget.activationSignal?.removeListener(_onActivationSignal);
     if (_isActive) {
       if (_sessionId != null) SosService.endSession(_sessionId!);
       _sosService.stopRecording(lat: _activeLat, lng: _activeLng);
@@ -105,6 +109,10 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
         _viewFromExternal = true;
       });
     }
+  }
+
+  void _onActivationSignal() {
+    if (!_isActive && mounted) _entryController.forward(from: 0);
   }
 
   // ─── Animation helper ────────────────────────────────────────────────────────
@@ -468,11 +476,17 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                     setState(() => _trustedContactsPressed = true),
                 onTapUp: (_) {
                   setState(() => _trustedContactsPressed = false);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const TrustedAppContactsScreen(),
-                    ),
-                  );
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(
+                          builder: (_) => const TrustedAppContactsScreen(),
+                        ),
+                      )
+                      .then((_) {
+                        if (mounted && !_isActive) {
+                          _entryController.forward(from: 0);
+                        }
+                      });
                 },
                 onTapCancel: () =>
                     setState(() => _trustedContactsPressed = false),
