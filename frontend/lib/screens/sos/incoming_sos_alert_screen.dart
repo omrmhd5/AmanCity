@@ -1,13 +1,18 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/app_colors.dart';
+import '../../services/map/geocoding_api_service.dart';
 import '../../services/notifications/notification_service.dart';
 import '../../services/sos/sos_service.dart';
+import '../../utils/app_theme.dart';
 import 'live_tracking_screen.dart';
 
 class IncomingSosAlertScreen extends StatefulWidget {
@@ -33,38 +38,94 @@ class IncomingSosAlertScreen extends StatefulWidget {
 class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     with TickerProviderStateMixin {
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnim;
+  late double _resolvedLat;
+  late double _resolvedLng;
 
-  late final String
-  _mapUrl; // Single map URL used for both background and mini map
+  String? _cachedMapUrl;
+  NetworkImage? _cachedMapImage;
+  double? _cachedLat;
+  double? _cachedLng;
+  String? _locationText;
+  int? _distanceMeters;
   bool _alarmMuted = false;
+  double _ignoreDragOffset = 0.0;
+  static const double _ignoreThumbSize = 44.0;
+  static const double _ignoreThreshold = 0.8;
 
   @override
   void initState() {
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
-    _pulseAnim = CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    );
-
-    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
-    // Single map URL: with marker, sized for background (640x400)
-    // Mini map will display the same image, scaled down (Flutter caches the image)
-    _mapUrl =
-        'https://maps.googleapis.com/maps/api/staticmap'
-        '?center=${widget.lat},${widget.lng}'
-        '&zoom=15&size=640x400&scale=2'
-        '&markers=color:red%7C${widget.lat},${widget.lng}'
-        '&style=element:geometry%7Ccolor:0x1a2744'
-        '&style=element:labels.text.fill%7Ccolor:0x9ca5b3'
-        '&key=$apiKey';
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+    _resolvedLat = widget.lat;
+    _resolvedLng = widget.lng;
+    AppTheme.themeNotifier.addListener(_onThemeChange);
 
     // Auto-dismiss when the sender marks safe
     NotificationService.instance.sosEndedNotifier.addListener(_onSosEnded);
+    _refreshLocationText();
+    _refreshDistanceFromCurrentUser();
+    _refreshSessionLocation();
+  }
+
+  Future<void> _refreshSessionLocation() async {
+    final session = await SosService.getSession(widget.sessionId);
+    if (!mounted || session == null) return;
+    if (session.lat == _resolvedLat && session.lng == _resolvedLng) return;
+    setState(() {
+      _resolvedLat = session.lat;
+      _resolvedLng = session.lng;
+      _cachedMapUrl = null;
+      _cachedMapImage = null;
+    });
+    await _refreshLocationText();
+    await _refreshDistanceFromCurrentUser();
+  }
+
+  Future<void> _refreshDistanceFromCurrentUser() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      final current = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low,
+      );
+      final meters = Geolocator.distanceBetween(
+        current.latitude,
+        current.longitude,
+        _resolvedLat,
+        _resolvedLng,
+      );
+      if (!mounted) return;
+      setState(() => _distanceMeters = meters.round());
+    } catch (_) {}
+  }
+
+  Future<void> _refreshLocationText() async {
+    final result = await GeocodingService.reverseGeocode(
+      _resolvedLat,
+      _resolvedLng,
+    );
+    if (!mounted) return;
+    setState(() {
+      _locationText = result['text'];
+    });
+  }
+
+  void _onThemeChange() {
+    if (mounted) {
+      _cachedMapUrl = null;
+      _cachedMapImage = null;
+      setState(() {});
+    }
   }
 
   void _onSosEnded() {
@@ -76,6 +137,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
 
   @override
   void dispose() {
+    AppTheme.themeNotifier.removeListener(_onThemeChange);
     NotificationService.instance.sosEndedNotifier.removeListener(_onSosEnded);
     NotificationService.instance.onIncomingAlertScreenClosed();
     _pulseController.dispose();
@@ -115,36 +177,87 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
           sessionId: widget.sessionId,
           initialUserName: widget.triggerUserName,
           initialUserPhone: widget.triggerUserPhone,
-          initialLat: widget.lat,
-          initialLng: widget.lng,
+          initialLat: _resolvedLat,
+          initialLng: _resolvedLng,
         ),
       ),
     );
   }
 
+  String _buildMapUrl() {
+    final lat = _resolvedLat;
+    final lng = _resolvedLng;
+    if (lat == _cachedLat && lng == _cachedLng && _cachedMapUrl != null) {
+      return _cachedMapUrl!;
+    }
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+    _cachedLat = lat;
+    _cachedLng = lng;
+    final isDark = AppTheme.currentMode == AppThemeMode.dark;
+    final styleParams = isDark
+        ? '&style=feature:all|element:labels|visibility:off'
+              '&style=feature:water|element:geometry|color:0x060e1a'
+              '&style=feature:all|element:geometry|color:0x0d1b2a'
+              '&style=feature:road|element:geometry|color:0x1a3050'
+        : '&style=feature:all|element:labels|visibility:off';
+    _cachedMapUrl =
+        'https://maps.googleapis.com/maps/api/staticmap'
+        '?center=$lat,$lng'
+        '&zoom=14'
+        '&size=640x640'
+        '&markers=color:red%7C$lat,$lng'
+        '$styleParams'
+        '&key=$apiKey';
+    return _cachedMapUrl!;
+  }
+
+  ImageProvider _buildMapImage() {
+    final url = _buildMapUrl();
+    if (_cachedMapImage != null && _cachedMapUrl == url) {
+      return _cachedMapImage!;
+    }
+    _cachedMapImage = NetworkImage(url);
+    return _cachedMapImage!;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080F1E),
+      backgroundColor: AppTheme.getBackgroundColor(),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background: map with marker
-          if (_mapUrl.isNotEmpty) _buildMapBackground(),
-
-          // Gradient overlay: map visible at top, solid at bottom
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF080F1E).withOpacity(0.15),
-                  const Color(0xFF080F1E).withOpacity(0.97),
-                ],
-                stops: const [0.0, 0.65],
+          Positioned.fill(
+            child: ColoredBox(color: AppTheme.getBackgroundColor()),
+          ),
+          Positioned.fill(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 1200),
+              opacity: 1.0,
+              child: Image(
+                image: _buildMapImage(),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
+          ),
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.getBackgroundColor().withOpacity(0.15),
+                    AppTheme.getBackgroundColor().withOpacity(0.97),
+                  ],
+                  stops: const [0.0, 0.65],
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: Container(color: AppColors.danger.withOpacity(0.06)),
           ),
 
           // Content
@@ -153,35 +266,23 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
               children: [
                 const SizedBox(height: 24),
                 _buildPill(),
+                const SizedBox(height: 6),
+                _buildReceivedTime(),
                 const Spacer(),
                 _buildRippleAvatar(),
-                const SizedBox(height: 20),
-                _buildNameRow(),
-                const SizedBox(height: 6),
-                _buildSubtitle(),
-                const Spacer(),
-                _buildMiniMap(),
+                const SizedBox(height: 4),
+                _buildBouncingIdentityBlock(),
                 const Spacer(),
                 _buildActionButtons(),
-                const SizedBox(height: 10),
-                _buildStopAlarmButton(),
-                const SizedBox(height: 4),
-                _buildIgnoreButton(),
+                const SizedBox(height: 14),
+                _buildMuteAlarmButton(),
+                const SizedBox(height: 12),
+                _buildSlideToIgnore(),
                 const SizedBox(height: 32),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMapBackground() {
-    return Positioned.fill(
-      child: Image.network(
-        _mapUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
       ),
     );
   }
@@ -220,58 +321,100 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     );
   }
 
+  Widget _buildReceivedTime() {
+    final now = DateTime.now();
+    final time = TimeOfDay.fromDateTime(now).format(context);
+    return Text(
+      'Today at $time',
+      style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 12),
+    );
+  }
+
   Widget _buildRippleAvatar() {
-    return AnimatedBuilder(
-      animation: _pulseAnim,
-      builder: (_, child) {
-        return Stack(
+    return SizedBox(
+      width: 250,
+      height: 180,
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (_, child) {
+          return Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              _PulseRing(progress: _pulseController.value, delay: 0.0),
+              _PulseRing(progress: _pulseController.value, delay: 0.33),
+              _PulseRing(progress: _pulseController.value, delay: 0.66),
+              child!,
+            ],
+          );
+        },
+        child: Stack(
+          clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            // Outer ripple
             Container(
-              width: 120 + 40 * _pulseAnim.value,
-              height: 120 + 40 * _pulseAnim.value,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(
-                  0xFFFF3B3B,
-                ).withOpacity(0.08 * (1 - _pulseAnim.value)),
+                color: const Color(0xFFFF3B3B).withOpacity(0.2),
+                border: Border.all(color: const Color(0xFFFF3B3B), width: 2.5),
+              ),
+              child: Center(
+                child: Text(
+                  _initials,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-            // Mid ripple
-            Container(
-              width: 120 + 20 * _pulseAnim.value,
-              height: 120 + 20 * _pulseAnim.value,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(
-                  0xFFFF3B3B,
-                ).withOpacity(0.12 * (1 - _pulseAnim.value)),
+            Positioned(
+              bottom: -12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF3B3B),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'HELP REQUESTED',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
+                ),
               ),
             ),
-            child!,
           ],
-        );
-      },
-      child: Container(
-        width: 96,
-        height: 96,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFFFF3B3B).withOpacity(0.2),
-          border: Border.all(color: const Color(0xFFFF3B3B), width: 2.5),
-        ),
-        child: Center(
-          child: Text(
-            _initials,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBouncingIdentityBlock() {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (_, __) {
+        final offsetY = math.sin(_pulseController.value * 2 * math.pi) * 4;
+        return Transform.translate(
+          offset: Offset(0, offsetY),
+          child: Column(
+            children: [
+              _buildNameRow(),
+              const SizedBox(height: 8),
+              _buildLocationLine(),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -288,34 +431,37 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     );
   }
 
-  Widget _buildSubtitle() {
-    return Text(
-      widget.triggerUserPhone.isNotEmpty
-          ? widget.triggerUserPhone
-          : 'Trusted contact',
-      style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 14),
-    );
-  }
+  Widget _buildLocationLine() {
+    final fallbackCoords =
+        '${_resolvedLat.toStringAsFixed(5)}, ${_resolvedLng.toStringAsFixed(5)}';
+    final location = _locationText?.trim().isNotEmpty == true
+        ? _locationText!
+        : fallbackCoords;
+    final withDistance = _distanceMeters != null
+        ? '$location (${_distanceMeters}m away)'
+        : location;
 
-  Widget _buildMiniMap() {
-    // Use the same map URL as background (Flutter's image cache handles deduplication)
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 32),
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.15)),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Image.network(
-        _mapUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: const Color(0xFF1A2744),
-          child: const Center(
-            child: Icon(Icons.location_on, color: Color(0xFFFF3B3B), size: 36),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.place_rounded, color: Color(0xFFFF3B3B), size: 16),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              withDistance,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -325,31 +471,32 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          // Primary: Open Live Tracking
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: _openLiveTracking,
+              icon: const Icon(Icons.my_location_rounded, size: 18),
+              label: const Text(
+                'OPEN LIVE TRACKING',
+                style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
+                backgroundColor: const Color(0xFFFF3B3B),
                 foregroundColor: Colors.white,
+                elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                'OPEN LIVE TRACKING',
-                style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1),
-              ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               // Call user
               Expanded(
-                child: OutlinedButton.icon(
+                child: ElevatedButton.icon(
                   onPressed: _callUser,
                   icon: const Icon(Icons.phone, size: 18),
                   label: Text(
@@ -358,10 +505,11 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                         : 'Call ${widget.triggerUserName.split(' ').first}',
                     overflow: TextOverflow.ellipsis,
                   ),
-                  style: OutlinedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF142744),
                     foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -371,16 +519,15 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
               const SizedBox(width: 10),
               // Call 122
               Expanded(
-                child: OutlinedButton.icon(
+                child: ElevatedButton.icon(
                   onPressed: _callEmergency,
                   icon: const Icon(Icons.local_police, size: 18),
                   label: const Text('Call 122'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFFF3B3B),
-                    side: BorderSide(
-                      color: const Color(0xFFFF3B3B).withOpacity(0.5),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1C2D47),
+                    foregroundColor: const Color(0xFFFF6B6B),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -394,7 +541,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     );
   }
 
-  Widget _buildStopAlarmButton() {
+  Widget _buildMuteAlarmButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SizedBox(
@@ -405,15 +552,15 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
             _alarmMuted ? Icons.notifications_off : Icons.volume_off,
             size: 18,
           ),
-          label: Text(_alarmMuted ? 'Alarm Muted' : 'Stop Alarm'),
+          label: Text(_alarmMuted ? 'ALARM MUTED' : 'MUTE ALARM'),
           style: OutlinedButton.styleFrom(
             foregroundColor: _alarmMuted
                 ? Colors.white38
-                : const Color(0xFFFF9500),
+                : const Color(0xFFFFB020),
             side: BorderSide(
               color: _alarmMuted
                   ? Colors.white12
-                  : const Color(0xFFFF9500).withOpacity(0.6),
+                  : const Color(0xFFFFB020).withOpacity(0.6),
             ),
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
@@ -425,15 +572,125 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     );
   }
 
-  Widget _buildIgnoreButton() {
-    return TextButton(
-      onPressed: () {
-        NotificationService.instance.dismissIncomingAlert();
-        Navigator.of(context).pop();
-      },
-      child: Text(
-        'Ignore',
-        style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 14),
+  Widget _buildSlideToIgnore() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxOffset = (constraints.maxWidth - _ignoreThumbSize - 8).clamp(
+            0.0,
+            double.infinity,
+          );
+          final progress = maxOffset > 0
+              ? (_ignoreDragOffset / maxOffset).clamp(0.0, 1.0)
+              : 0.0;
+
+          return GestureDetector(
+            onHorizontalDragUpdate: (details) {
+              setState(() {
+                _ignoreDragOffset = (_ignoreDragOffset + details.delta.dx)
+                    .clamp(0.0, maxOffset);
+              });
+            },
+            onHorizontalDragEnd: (_) {
+              if (maxOffset > 0 &&
+                  _ignoreDragOffset / maxOffset >= _ignoreThreshold) {
+                HapticFeedback.mediumImpact();
+                NotificationService.instance.dismissIncomingAlert();
+                Navigator.of(context).pop();
+              } else {
+                setState(() => _ignoreDragOffset = 0.0);
+              }
+            },
+            child: Container(
+              height: 54,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.12),
+                  ],
+                ),
+                border: Border.all(color: Colors.white.withOpacity(0.18)),
+              ),
+              child: Stack(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 40),
+                    width: (_ignoreDragOffset + _ignoreThumbSize + 6).clamp(
+                      _ignoreThumbSize + 6,
+                      constraints.maxWidth,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12 * progress),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  Center(
+                    child: Opacity(
+                      opacity: (1.0 - progress * 2).clamp(0.0, 0.7),
+                      child: Text(
+                        'slide to ignore',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.55),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 4 + _ignoreDragOffset,
+                    top: 5,
+                    child: Container(
+                      width: _ignoreThumbSize,
+                      height: _ignoreThumbSize,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFE5E7EB),
+                      ),
+                      child: Icon(
+                        progress >= _ignoreThreshold
+                            ? Icons.check
+                            : Icons.close,
+                        color: const Color(0xFF475569),
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PulseRing extends StatelessWidget {
+  final double progress;
+  final double delay;
+
+  const _PulseRing({required this.progress, required this.delay});
+
+  @override
+  Widget build(BuildContext context) {
+    if (progress < delay) return const SizedBox.shrink();
+    final p = ((progress - delay + 1.0) % 1.0).clamp(0.0, 1.0);
+    final size = 110 + (p * 120);
+    final opacity = (1.0 - p).clamp(0.0, 1.0) * 0.3;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFFFF3B3B).withOpacity(opacity),
+          width: 1.6,
+        ),
       ),
     );
   }
