@@ -31,6 +31,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Entry animation
   late AnimationController _entryController;
+  // Horizontal page slide controller — value == navIndex of visible screen
+  late AnimationController _pageSlideController;
 
   // SOS activation signal — set to true to auto-activate SosScreen
   final ValueNotifier<bool> _sosActivateSignal = ValueNotifier(false);
@@ -54,6 +56,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
+    _pageSlideController = AnimationController(
+      vsync: this,
+      lowerBound: 0.0,
+      upperBound: 6.0,
+      value: 2.0, // home tab is index 2
+      duration: const Duration(milliseconds: 400),
+    );
     AppTheme.themeNotifier.addListener(_onThemeChange);
     _applySystemUI();
   }
@@ -84,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     AppTheme.themeNotifier.removeListener(_onThemeChange);
     _entryController.dispose();
+    _pageSlideController.dispose();
     _sosActivateSignal.dispose();
     _sosViewSignal.dispose();
     super.dispose();
@@ -91,14 +101,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _onIncidentReported() {
     // Switch to map tab and force-refresh incidents + hotspots
-    setState(() => _currentNavItem = NavItem.map);
-    _mapKey.currentState?.refreshAfterReport();
+    _onIncidentReportedSlide();
   }
 
   void _onNavItemTapped(NavItem item) {
     if (item == _currentNavItem) return;
 
-    // Switch tabs without navigation stack buildup
+    // Slide to new tab
+    _pageSlideController.animateTo(
+      _navIndex(item).toDouble(),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
+
     setState(() {
       _currentNavItem = item;
     });
@@ -121,6 +136,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     if (item == NavItem.home) {
       _entryController.forward(from: 0);
+    }
+  }
+
+  void _onIncidentReportedSlide() {
+    setState(() => _currentNavItem = NavItem.map);
+    _pageSlideController.animateTo(
+      _navIndex(NavItem.map).toDouble(),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
+    _mapKey.currentState?.refreshAfterReport();
+  }
+
+  int _navIndex(NavItem item) {
+    switch (item) {
+      case NavItem.map:
+        return 0;
+      case NavItem.report:
+        return 1;
+      case NavItem.home:
+        return 2;
+      case NavItem.ai:
+        return 3;
+      case NavItem.sos:
+        return 4;
+      case NavItem.profile:
+        return 5;
+      case NavItem.news:
+        return 6;
     }
   }
 
@@ -167,64 +211,64 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // Maps NavItem to its IndexedStack index (must match children order below)
-  int _navIndex(NavItem item) {
-    switch (item) {
-      case NavItem.map:
-        return 0;
-      case NavItem.report:
-        return 1;
-      case NavItem.home:
-        return 2;
-      case NavItem.ai:
-        return 3;
-      case NavItem.sos:
-        return 4;
-      case NavItem.profile:
-        return 5;
-      case NavItem.news:
-        return 6;
-    }
-  }
-
-  // IndexedStack keeps every screen alive in memory — no rebuild/reload on tab switch.
-  // Screens are built once on first HomeScreen mount, then toggled visible/hidden.
+  // IndexedStack replaced by animated horizontal slide stack.
+  // All screens stay alive in memory; AnimatedBuilder repositions them on every
+  // animation frame using Transform.translate.
   Widget _buildContent() {
-    return IndexedStack(
-      index: _navIndex(_currentNavItem),
-      children: [
-        // 0 — Map
-        MapScreen(
-          key: _mapKey,
-          onReportPressed: () => _onNavItemTapped(NavItem.report),
-        ),
-        // 1 — Report
-        ReportIncidentScreen(
-          onReported: _onIncidentReported,
-          activationSignal: _reportActivationSignal,
-        ),
-        // 2 — Home / Welcome
-        _buildWelcomePage(),
-        // 3 — AI
-        AiScreen(activationSignal: _aiActivationSignal),
-        // 4 — SOS
-        SosScreen(
-          onBack: () => _onNavItemTapped(NavItem.home),
-          onActiveStateChanged: (isActive) {
-            setState(() => _sosActive = isActive);
-          },
-          activateSignal: _sosActivateSignal,
-          viewSignal: _sosViewSignal,
-          activationSignal: _sosActivationSignal,
-        ),
-        // 5 — Profile
-        ProfileScreen(activationSignal: _profileActivationSignal),
-        // 6 — News
-        NewsScreen(
-          onBack: () => _onNavItemTapped(NavItem.home),
-          activationSignal: _newsActivationSignal,
-        ),
-      ],
+    final screens = [
+      // 0 — Map
+      MapScreen(
+        key: _mapKey,
+        onReportPressed: () => _onNavItemTapped(NavItem.report),
+      ),
+      // 1 — Report
+      ReportIncidentScreen(
+        onReported: _onIncidentReported,
+        activationSignal: _reportActivationSignal,
+      ),
+      // 2 — Home / Welcome
+      _buildWelcomePage(),
+      // 3 — AI
+      AiScreen(activationSignal: _aiActivationSignal),
+      // 4 — SOS
+      SosScreen(
+        onBack: () => _onNavItemTapped(NavItem.home),
+        onActiveStateChanged: (isActive) {
+          setState(() => _sosActive = isActive);
+        },
+        activateSignal: _sosActivateSignal,
+        viewSignal: _sosViewSignal,
+        activationSignal: _sosActivationSignal,
+      ),
+      // 5 — Profile
+      ProfileScreen(activationSignal: _profileActivationSignal),
+      // 6 — News
+      NewsScreen(
+        onBack: () => _onNavItemTapped(NavItem.home),
+        activationSignal: _newsActivationSignal,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        return ClipRect(
+          child: AnimatedBuilder(
+            animation: _pageSlideController,
+            builder: (context, _) {
+              final offset = _pageSlideController.value;
+              return Stack(
+                children: List.generate(screens.length, (i) {
+                  return Transform.translate(
+                    offset: Offset((i - offset) * width, 0),
+                    child: SizedBox(width: width, child: screens[i]),
+                  );
+                }),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
