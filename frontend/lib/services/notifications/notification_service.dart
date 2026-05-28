@@ -18,7 +18,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Flutter bindings are ready so platform plugins work in this isolate.
   WidgetsFlutterBinding.ensureInitialized();
   if (message.data['type'] == 'sos_alert') {
-    await FlutterRingtonePlayer().playAlarm(looping: false);
+    await FlutterRingtonePlayer().playAlarm(looping: false, asAlarm: true);
   }
 
   // Persist the alert to SharedPreferences so it appears in the inbox
@@ -120,13 +120,18 @@ Future<void> _persistBackgroundAlert(RemoteMessage message) async {
     if (type == 'sos_alert') {
       final sessionId = message.data['sessionId'] as String?;
       if (sessionId != null && sessionId.isNotEmpty) {
-        await prefs.setString(sosPendingKey, jsonEncode({
-          'sessionId': sessionId,
-          'senderName': (message.data['triggerUserName'] as String?) ?? '',
-          'senderPhone': (message.data['triggerUserPhone'] as String?) ?? '',
-          'lat': double.tryParse(message.data['lat']?.toString() ?? '') ?? 0.0,
-          'lng': double.tryParse(message.data['lng']?.toString() ?? '') ?? 0.0,
-        }));
+        await prefs.setString(
+          sosPendingKey,
+          jsonEncode({
+            'sessionId': sessionId,
+            'senderName': (message.data['triggerUserName'] as String?) ?? '',
+            'senderPhone': (message.data['triggerUserPhone'] as String?) ?? '',
+            'lat':
+                double.tryParse(message.data['lat']?.toString() ?? '') ?? 0.0,
+            'lng':
+                double.tryParse(message.data['lng']?.toString() ?? '') ?? 0.0,
+          }),
+        );
       }
     } else if (type == 'sos_ended') {
       final sessionId = (message.data['sessionId'] as String?) ?? '';
@@ -509,11 +514,12 @@ class NotificationService with WidgetsBindingObserver {
     );
     _incomingScreenActive = true;
     _saveSosPendingSession(
-        sessionId: sessionId,
-        senderName: name,
-        senderPhone: phone,
-        lat: lat,
-        lng: lng);
+      sessionId: sessionId,
+      senderName: name,
+      senderPhone: phone,
+      lat: lat,
+      lng: lng,
+    );
 
     // Fire a high-priority local notification so the user always hears/sees it
     showLocalNotification(
@@ -684,13 +690,16 @@ class NotificationService with WidgetsBindingObserver {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_sosPendingSessionKey, jsonEncode({
-        'sessionId': sessionId,
-        'senderName': senderName,
-        'senderPhone': senderPhone,
-        'lat': lat,
-        'lng': lng,
-      }));
+      await prefs.setString(
+        _sosPendingSessionKey,
+        jsonEncode({
+          'sessionId': sessionId,
+          'senderName': senderName,
+          'senderPhone': senderPhone,
+          'lat': lat,
+          'lng': lng,
+        }),
+      );
     } catch (_) {}
   }
 
