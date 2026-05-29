@@ -48,140 +48,144 @@ class _HomeSosCardState extends State<HomeSosCard>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onOpenSos,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.danger.withOpacity(0.07),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.danger.withOpacity(0.22), width: 1),
-        ),
-        child: Column(
-          children: [
-            // ── Top: label + subtitle ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-              child: Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.danger.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.danger.withOpacity(0.22), width: 1),
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onOpenSos,
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // ── Top: label + subtitle ─────────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            AnimatedBuilder(
-                              animation: _pulse,
-                              builder: (_, __) => Transform.scale(
-                                scale: _pulse.value,
-                                child: Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.danger,
-                                    shape: BoxShape.circle,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  AnimatedBuilder(
+                                    animation: _pulse,
+                                    builder: (_, __) => Transform.scale(
+                                      scale: _pulse.value,
+                                      child: Container(
+                                        width: 7,
+                                        height: 7,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.danger,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                  const SizedBox(width: 7),
+                                  const Text(
+                                    'EMERGENCY SOS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.danger,
+                                      letterSpacing: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Hold the button to activate alert & recording',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                  height: 1.4,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 7),
-                            const Text(
-                              'EMERGENCY SOS',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.danger,
-                                letterSpacing: 1.4,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Hold the button to activate alert & recording',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.getSecondaryTextColor(),
-                            height: 1.4,
+                        // Go-to SOS screen arrow
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.danger.withOpacity(0.2),
+                              width: 0.75,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.open_in_new_rounded,
+                            color: AppColors.danger,
+                            size: 16,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Go-to SOS screen arrow
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.danger.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: AppColors.danger.withOpacity(0.2),
-                        width: 0.75,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.open_in_new_rounded,
-                      color: AppColors.danger,
-                      size: 16,
-                    ),
+
+                  // ── Center: compact hold button ───────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: _SosHoldButton(onActivate: widget.onActivate),
                   ),
                 ],
               ),
             ),
+          ),
 
-            // ── Center: compact hold button ───────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: GestureDetector(
-                onTap: null,
-                onLongPress: null,
-                child: _SosHoldButton(onActivate: widget.onActivate),
+          // ── Divider ───────────────────────────────────────────────────────
+          Container(
+            height: 1,
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.danger.withOpacity(0.0),
+                  AppColors.danger.withOpacity(0.25),
+                  AppColors.danger.withOpacity(0.0),
+                ],
               ),
             ),
+          ),
 
-            // ── Divider ───────────────────────────────────────────────────────
-            Container(
-              height: 1,
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.danger.withOpacity(0.0),
-                    AppColors.danger.withOpacity(0.25),
-                    AppColors.danger.withOpacity(0.0),
-                  ],
+          // ── Bottom quick links ────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _quickLink(
+                    icon: Icons.people_rounded,
+                    label: 'Contacts',
+                    onTap: widget.onContactsTap,
+                  ),
                 ),
-              ),
+                Container(
+                  width: 1,
+                  height: 36,
+                  color: AppColors.danger.withOpacity(0.15),
+                ),
+                Expanded(
+                  child: _quickLink(
+                    icon: Icons.history_rounded,
+                    label: 'Recordings',
+                    onTap: widget.onRecordingsTap,
+                  ),
+                ),
+              ],
             ),
-
-            // ── Bottom quick links ────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _quickLink(
-                      icon: Icons.people_rounded,
-                      label: 'Contacts',
-                      onTap: widget.onContactsTap,
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 36,
-                    color: AppColors.danger.withOpacity(0.15),
-                  ),
-                  Expanded(
-                    child: _quickLink(
-                      icon: Icons.history_rounded,
-                      label: 'Recordings',
-                      onTap: widget.onRecordingsTap,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -192,23 +196,27 @@ class _HomeSosCardState extends State<HomeSosCard>
     required VoidCallback onTap,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.danger.withOpacity(0.8), size: 17),
-            const SizedBox(width: 7),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.danger.withOpacity(0.8),
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppColors.danger.withOpacity(0.8), size: 17),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.danger.withOpacity(0.8),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
