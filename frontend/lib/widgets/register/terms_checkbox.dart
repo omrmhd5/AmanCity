@@ -17,13 +17,13 @@ class TermsCheckBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24.0),
+      padding: const EdgeInsets.symmetric(vertical: 40.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 20,
-            height: 20,
+            width: 28,
+            height: 28,
             child: Checkbox(
               value: isChecked,
               onChanged: (bool? newValue) {
@@ -41,7 +41,7 @@ class TermsCheckBox extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 20),
           Expanded(
             child: RichText(
               text: TextSpan(
@@ -50,14 +50,14 @@ class TermsCheckBox extends StatelessWidget {
                     text: 'I agree to the ',
                     style: TextStyle(
                       color: AppTheme.getSecondaryTextColor(),
-                      fontSize: 12,
+                      fontSize: 16,
                     ),
                   ),
                   TextSpan(
                     text: 'Terms of Service',
                     style: TextStyle(
                       color: AppTheme.getPrimaryTextColor(),
-                      fontSize: 12,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
                     ),
@@ -71,14 +71,14 @@ class TermsCheckBox extends StatelessWidget {
                     text: ' and ',
                     style: TextStyle(
                       color: AppTheme.getSecondaryTextColor(),
-                      fontSize: 12,
+                      fontSize: 16,
                     ),
                   ),
                   TextSpan(
                     text: 'Privacy Policy',
                     style: TextStyle(
                       color: AppTheme.getPrimaryTextColor(),
-                      fontSize: 12,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
                     ),
@@ -92,7 +92,7 @@ class TermsCheckBox extends StatelessWidget {
                     text: '.',
                     style: TextStyle(
                       color: AppTheme.getSecondaryTextColor(),
-                      fontSize: 12,
+                      fontSize: 16,
                     ),
                   ),
                 ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../shared/custom_button.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -76,7 +77,8 @@ class StepPhone extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller,
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   style: TextStyle(
                     color: AppTheme.getPrimaryTextColor(),
                     fontSize: 14,
@@ -117,7 +119,14 @@ class StepPhone extends StatelessWidget {
           const SizedBox(height: 32),
           CustomButton(
             text: 'Continue',
-            onPressed: onNext,
+            onPressed: () {
+              // Prepend +20 to the phone number before saving
+              final phoneNumber = controller.text.trim();
+              if (phoneNumber.isNotEmpty) {
+                controller.text = '+20$phoneNumber';
+              }
+              onNext();
+            },
             icon: Icons.arrow_forward,
           ),
           const SizedBox(height: 16),

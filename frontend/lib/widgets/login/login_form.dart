@@ -58,11 +58,11 @@ class _LoginFormState extends State<LoginForm> {
           color: AppTheme.getSecondaryTextColor(),
         ),
         const SizedBox(height: 24),
-        // Phone/Email Input
+        // Email Input
         CustomTextField(
-          label: 'Phone Number or Email',
-          placeholder: '+20 123 456 7890',
-          prefixIcon: Icons.person,
+          label: 'Email',
+          placeholder: 'example@email.com',
+          prefixIcon: Icons.email,
           controller: _identityController,
         ),
         const SizedBox(height: 20),

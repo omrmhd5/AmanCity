@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -7,9 +8,23 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 
+class SocialSignInResult {
+  final User user;
+  final bool isNewUser;
+  final String suggestedName;
+
+  const SocialSignInResult({
+    required this.user,
+    required this.isNewUser,
+    required this.suggestedName,
+  });
+}
+
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
+  static final ValueNotifier<bool> socialProfileCompletionRequired =
+      ValueNotifier(false);
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -85,7 +100,7 @@ class AuthService {
   // Google Sign-In
   // ---------------------------------------------------------------------------
 
-  Future<User?> signInWithGoogle() async {
+  Future<SocialSignInResult?> signInWithGoogle() async {
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null; // user cancelled
@@ -98,16 +113,13 @@ class AuthService {
 
       final cred = await _auth.signInWithCredential(credential);
       final user = cred.user!;
+      final isNewUser = cred.additionalUserInfo?.isNewUser ?? false;
 
-      // Sync to backend only on first sign-in
-      if (cred.additionalUserInfo?.isNewUser ?? false) {
-        await _syncUserToBackend(
-          user,
-          name: user.displayName ?? '',
-          phone: user.phoneNumber ?? '',
-        );
-      }
-      return user;
+      return SocialSignInResult(
+        user: user,
+        isNewUser: isNewUser,
+        suggestedName: user.displayName ?? '',
+      );
     } on FirebaseAuthException catch (e) {
       throw _friendlyErrorMessage(e.code);
     }
@@ -133,7 +145,7 @@ class AuthService {
     return digest.toString();
   }
 
-  Future<User?> signInWithApple() async {
+  Future<SocialSignInResult?> signInWithApple() async {
     final rawNonce = _generateNonce();
     final nonce = _sha256ofString(rawNonce);
     try {
@@ -151,20 +163,20 @@ class AuthService {
 
       final cred = await _auth.signInWithCredential(oauthCredential);
       final user = cred.user!;
+      final isNewUser = cred.additionalUserInfo?.isNewUser ?? false;
 
-      if (cred.additionalUserInfo?.isNewUser ?? false) {
-        final fullName = [
-          appleCredential.givenName ?? '',
-          appleCredential.familyName ?? '',
-        ].where((s) => s.isNotEmpty).join(' ');
+      final fullName = [
+        appleCredential.givenName ?? '',
+        appleCredential.familyName ?? '',
+      ].where((s) => s.isNotEmpty).join(' ');
 
-        await _syncUserToBackend(
-          user,
-          name: fullName.isNotEmpty ? fullName : (user.displayName ?? ''),
-          phone: user.phoneNumber ?? '',
-        );
-      }
-      return user;
+      return SocialSignInResult(
+        user: user,
+        isNewUser: isNewUser,
+        suggestedName: fullName.isNotEmpty
+            ? fullName
+            : (user.displayName ?? ''),
+      );
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) return null;
       throw 'Apple Sign-In failed. Please try again.';
@@ -173,12 +185,65 @@ class AuthService {
     }
   }
 
+  Future<void> completeSocialProfile({
+    required User user,
+    required String phone,
+    String name = '',
+  }) async {
+    final normalizedPhone = phone.trim();
+    if (normalizedPhone.isEmpty) {
+      throw 'Please enter your phone number.';
+    }
+
+    await _syncUserToBackend(
+      user,
+      name: name.trim().isNotEmpty ? name.trim() : (user.displayName ?? ''),
+      phone: normalizedPhone,
+    );
+
+    final token = await user.getIdToken();
+    final response = await http.put(
+      Uri.parse('${AppConfig.backendUrl}/users/phone'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'phone': normalizedPhone}),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw (data?['message'] ?? 'Failed to save phone number.').toString();
+    }
+
+    socialProfileCompletionRequired.value = false;
+  }
+
+  Future<void> cancelSocialProfileCompletion({
+    bool deleteCurrentUser = false,
+  }) async {
+    final user = _auth.currentUser;
+    if (deleteCurrentUser && user != null) {
+      try {
+        await user.delete();
+      } on FirebaseAuthException {
+        // Best-effort rollback; still sign out local session below.
+      }
+    }
+
+    await signOut();
+  }
+
   // ---------------------------------------------------------------------------
   // Sign Out
   // ---------------------------------------------------------------------------
 
   Future<void> signOut() async {
-    await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
+    try {
+      await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
+    } finally {
+      socialProfileCompletionRequired.value = false;
+    }
   }
 
   // ---------------------------------------------------------------------------

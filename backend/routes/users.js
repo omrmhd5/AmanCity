@@ -15,6 +15,7 @@ const User = require("../model/User");
 router.post("/", UserController.registerUser);
 router.put("/fcm-token", UserController.updateFcmToken);
 router.put("/location", UserController.updateLocation);
+router.put("/phone", UserController.updatePhone);
 
 async function _verifyRequest(req, res) {
   const authHeader = req.headers.authorization || "";

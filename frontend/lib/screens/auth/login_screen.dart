@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../services/auth/auth_service.dart';
+import '../../utils/navigation_service.dart' as navigation;
 import '../../widgets/login/login_header.dart';
 import '../../widgets/login/login_form.dart';
+import '../../widgets/login/social_login_dialog.dart';
 import '../../widgets/login/social_login_section.dart';
 import '../../widgets/login/signup_link_section.dart';
 import '../../utils/app_theme.dart';
@@ -57,6 +59,23 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  Future<String?> _promptPhoneNumber(String providerName) async {
+    final dialogContext = navigation.Navigator.navigatorKey.currentContext;
+
+    if (dialogContext == null) {
+      return null;
+    }
+
+    return showDialog<String>(
+      context: dialogContext,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return SocialLoginDialog(providerName: providerName);
+      },
+    );
+  }
+
   Future<void> _handleLogin(String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
       _showError('Please enter your email and password.');
@@ -77,8 +96,37 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _handleGoogleLogin() async {
     setState(() => _isLoading = true);
     try {
-      await AuthService.instance.signInWithGoogle();
+      AuthService.socialProfileCompletionRequired.value = true;
+      final result = await AuthService.instance.signInWithGoogle();
+      if (result == null) {
+        AuthService.socialProfileCompletionRequired.value = false;
+        return;
+      }
+
+      if (!result.isNewUser) {
+        AuthService.socialProfileCompletionRequired.value = false;
+        return;
+      }
+
+      if (mounted) setState(() => _isLoading = false);
+      final phone = await _promptPhoneNumber('Google');
+
+      if (phone == null || phone.isEmpty) {
+        await AuthService.instance.cancelSocialProfileCompletion(
+          deleteCurrentUser: true,
+        );
+        _showError('Phone number is required to finish Google sign-in.');
+        return;
+      }
+
+      if (mounted) setState(() => _isLoading = true);
+      await AuthService.instance.completeSocialProfile(
+        user: result.user,
+        phone: phone,
+        name: result.suggestedName,
+      );
     } catch (e) {
+      AuthService.socialProfileCompletionRequired.value = false;
       if (e.toString().contains('PlatformException')) {
         _showError('Google sign-in was cancelled.');
       } else {
@@ -92,8 +140,37 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _handleAppleLogin() async {
     setState(() => _isLoading = true);
     try {
-      await AuthService.instance.signInWithApple();
+      AuthService.socialProfileCompletionRequired.value = true;
+      final result = await AuthService.instance.signInWithApple();
+      if (result == null) {
+        AuthService.socialProfileCompletionRequired.value = false;
+        return;
+      }
+
+      if (!result.isNewUser) {
+        AuthService.socialProfileCompletionRequired.value = false;
+        return;
+      }
+
+      if (mounted) setState(() => _isLoading = false);
+      final phone = await _promptPhoneNumber('Apple');
+
+      if (phone == null || phone.isEmpty) {
+        await AuthService.instance.cancelSocialProfileCompletion(
+          deleteCurrentUser: true,
+        );
+        _showError('Phone number is required to finish Apple sign-in.');
+        return;
+      }
+
+      if (mounted) setState(() => _isLoading = true);
+      await AuthService.instance.completeSocialProfile(
+        user: result.user,
+        phone: phone,
+        name: result.suggestedName,
+      );
     } catch (e) {
+      AuthService.socialProfileCompletionRequired.value = false;
       _showError(e.toString());
     } finally {
       if (mounted) setState(() => _isLoading = false);

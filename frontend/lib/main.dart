@@ -16,6 +16,7 @@ import 'routes/app_routes.dart';
 import 'services/notifications/notification_service.dart';
 import 'services/core/user_location_sync_service.dart';
 import 'services/core/connectivity_service.dart';
+import 'services/auth/auth_service.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'firebase_options.dart';
 
@@ -252,26 +253,36 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasData) {
-          final user = snapshot.data!;
-          // Block unverified email users — sign them out silently
-          if (!user.emailVerified &&
-              user.providerData.any((p) => p.providerId == 'password')) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: AuthService.socialProfileCompletionRequired,
+      builder: (context, needsSocialProfileCompletion, _) {
+        return StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData) {
+              final user = snapshot.data!;
+              // Block unverified email users — sign them out silently
+              if (!user.emailVerified &&
+                  user.providerData.any((p) => p.providerId == 'password')) {
+                return const LoginScreen();
+              }
+
+              if (needsSocialProfileCompletion) {
+                return const LoginScreen();
+              }
+
+              // Push the FCM token to the backend each time the user is authenticated
+              NotificationService.instance.updateFcmToken();
+              return const HomeScreen();
+            }
             return const LoginScreen();
-          }
-          // Push the FCM token to the backend each time the user is authenticated
-          NotificationService.instance.updateFcmToken();
-          return const HomeScreen();
-        }
-        return const LoginScreen();
+          },
+        );
       },
     );
   }

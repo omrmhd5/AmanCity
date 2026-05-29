@@ -41,6 +41,17 @@ async function updateLocation(firebaseUid, lat, lng) {
 }
 
 /**
+ * Update phone number for a user by Firebase UID.
+ */
+async function updatePhone(firebaseUid, phone) {
+  return User.findOneAndUpdate(
+    { firebaseUid },
+    { $set: { phone } },
+    { new: true, upsert: true, runValidators: true },
+  );
+}
+
+/**
  * Find all users whose lastLocation is within radiusKm kilometres of [lat, lng].
  * Only returns users that have a non-null fcmToken.
  */
@@ -193,6 +204,7 @@ module.exports = {
   createOrUpdateUser,
   updateFcmToken,
   updateLocation,
+  updatePhone,
   findUsersNear,
   findUserByFirebaseUid,
   searchUsers,

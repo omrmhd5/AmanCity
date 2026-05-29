@@ -2,6 +2,7 @@ const {
   createOrUpdateUser,
   updateFcmToken,
   updateLocation,
+  updatePhone,
 } = require("../service/userService");
 const { verifyIdToken } = require("../service/notificationService");
 
@@ -89,6 +90,29 @@ class UserController {
       res
         .status(500)
         .json({ message: err.message || "Failed to update location." });
+    }
+  }
+
+  /**
+   * PUT /api/users/phone
+   * Update the authenticated user's phone number.
+   */
+  static async updatePhone(req, res) {
+    const decoded = await _verifyRequest(req, res);
+    if (!decoded) return;
+
+    const phone = String(req.body.phone || "").trim();
+    if (!phone) {
+      return res.status(400).json({ message: "phone is required." });
+    }
+
+    try {
+      const user = await updatePhone(decoded.uid, phone);
+      res.status(200).json({ message: "Phone updated.", data: user });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ message: err.message || "Failed to update phone." });
     }
   }
 }

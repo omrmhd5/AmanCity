@@ -284,10 +284,6 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
       final locLat = prefs.getDouble(_geocodeCacheLocationKey + '_lat');
       final locLng = prefs.getDouble(_geocodeCacheLocationKey + '_lng');
 
-      debugPrint(
-        '[GeoCache] Load → text=$text city=$city lat=$locLat lng=$locLng',
-      );
-
       if (text == null || city == null || locLat == null || locLng == null)
         return;
 
@@ -319,12 +315,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
         _geocodeCacheLocationKey + '_lng',
         location.longitude,
       );
-      debugPrint(
-        '[GeoCache] Saved → text=$text city=$city lat=${location.latitude} lng=${location.longitude}',
-      );
-    } catch (e) {
-      debugPrint('[GeoCache] Save FAILED: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _onEvidenceTypeSelected(EvidenceType type) async {
