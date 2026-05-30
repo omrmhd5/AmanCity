@@ -248,7 +248,8 @@ async function searchGeneralPlaces(
     };
   });
 }
-/// Uses Google Places API searchNearby endpoint - supports multiple types in single call
+/// Uses Google Places API searchNearby endpoint - one parallel call per type
+/// to avoid the 20-result cap starving less-common types (e.g. fire stations)
 async function searchNearbyPlaces(
   latitude,
   longitude,
@@ -264,76 +265,54 @@ async function searchNearbyPlaces(
     );
   }
 
-  const maxResults = 20; // Fixed at 20 results total
-
-  // Map search types to Google Places types
-  const googlePlaceTypes = searchTypes
-    .map((type) => PLACE_TYPES_MAP[type])
-    .filter((type) => type); // Remove nulls
-
-  if (googlePlaceTypes.length === 0) {
-    throw new Error("No valid location types specified.");
-  }
-
   const url = "https://places.googleapis.com/v1/places:searchNearby";
+  const maxResultsPerType = 20;
 
-  const requestBody = {
-    includedTypes: googlePlaceTypes,
-    maxResultCount: maxResults,
-    locationRestriction: {
-      circle: {
-        center: {
-          latitude: latitude,
-          longitude: longitude,
+  const fetchForType = async (searchType) => {
+    const googlePlaceType = PLACE_TYPES_MAP[searchType];
+    if (!googlePlaceType) return [];
+
+    const requestBody = {
+      includedTypes: [googlePlaceType],
+      maxResultCount: maxResultsPerType,
+      locationRestriction: {
+        circle: {
+          center: { latitude, longitude },
+          radius,
         },
-        radius: radius,
       },
-    },
-  };
+    };
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": GOOGLE_API_KEY,
-      "X-Goog-FieldMask":
-        "places.displayName,places.formattedAddress,places.location,places.name,places.types",
-    },
-    body: JSON.stringify(requestBody),
-  });
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": GOOGLE_API_KEY,
+        "X-Goog-FieldMask":
+          "places.displayName,places.formattedAddress,places.location,places.name,places.types",
+      },
+      body: JSON.stringify(requestBody),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error("Unable to retrieve nearby locations. Please try again.");
-    void errorData;
-  }
-
-  const data = await response.json();
-
-  // Map Google Places API response to our format
-  return (data.places || []).map((place) => {
-    // Determine the POI type based on Google types
-    let poiType = null;
-    const types = place.types || [];
-
-    if (types.includes("hospital")) {
-      poiType = "hospital";
-    } else if (types.includes("police")) {
-      poiType = "police";
-    } else if (types.includes("fire_station")) {
-      poiType = "fire";
+    if (!response.ok) {
+      throw new Error("Unable to retrieve nearby locations. Please try again.");
     }
 
-    return {
-      id: place.name, // Google returns full resource name like "places/ChIJ..."
+    const data = await response.json();
+
+    return (data.places || []).map((place) => ({
+      id: place.name,
       name: place.displayName?.text || place.name || "Unknown",
       lat: place.location?.latitude || 0,
       lng: place.location?.longitude || 0,
       address: place.formattedAddress || "",
-      phoneNumber: null, // Phone will be enriched from DB
-      type: poiType, // Our internal type (hospital, police, fire)
-    };
-  });
+      phoneNumber: null,
+      type: searchType, // our internal type (hospital, police, fire)
+    }));
+  };
+
+  const results = await Promise.all(searchTypes.map(fetchForType));
+  return results.flat();
 }
 
 module.exports = router;

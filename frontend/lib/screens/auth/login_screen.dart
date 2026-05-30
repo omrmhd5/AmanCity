@@ -59,6 +59,14 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  void _showSuccess(String message) {
+    final ctx = navigation.Navigator.navigatorKey.currentContext;
+    if (ctx == null) return;
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green.shade700),
+    );
+  }
+
   Future<String?> _promptPhoneNumber(String providerName) async {
     final dialogContext = navigation.Navigator.navigatorKey.currentContext;
 
@@ -84,6 +92,7 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = true);
     try {
       await AuthService.instance.signInWithEmail(email, password);
+      _showSuccess('Login successful!');
       // _
       //e in main.dart will automatically navigate to HomeScreen
     } catch (e) {
@@ -105,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!result.isNewUser) {
         AuthService.socialProfileCompletionRequired.value = false;
+        _showSuccess('Login successful!');
         return;
       }
 
@@ -125,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
         phone: phone,
         name: result.suggestedName,
       );
+      _showSuccess('Login successful!');
     } catch (e) {
       AuthService.socialProfileCompletionRequired.value = false;
       if (e.toString().contains('PlatformException')) {
@@ -149,6 +160,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!result.isNewUser) {
         AuthService.socialProfileCompletionRequired.value = false;
+        _showSuccess('Login successful!');
         return;
       }
 
@@ -169,6 +181,7 @@ class _LoginScreenState extends State<LoginScreen>
         phone: phone,
         name: result.suggestedName,
       );
+      _showSuccess('Login successful!');
     } catch (e) {
       AuthService.socialProfileCompletionRequired.value = false;
       _showError(e.toString());

@@ -3,7 +3,7 @@ import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import '../shared/custom_text.dart';
 
-class NewsScanResultBanner extends StatelessWidget {
+class NewsScanResultBanner extends StatefulWidget {
   final int scanned;
   final int saved;
   final VoidCallback onDismiss;
@@ -14,6 +14,21 @@ class NewsScanResultBanner extends StatelessWidget {
     required this.saved,
     required this.onDismiss,
   }) : super(key: key);
+
+  @override
+  State<NewsScanResultBanner> createState() => _NewsScanResultBannerState();
+}
+
+class _NewsScanResultBannerState extends State<NewsScanResultBanner> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        widget.onDismiss();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +71,7 @@ class NewsScanResultBanner extends StatelessWidget {
                 const SizedBox(height: 4),
                 CustomText(
                   text:
-                      'Scanned: $scanned tweets • Saved: $saved new incidents',
+                      'Scanned: ${widget.scanned} tweets • Saved: ${widget.saved} new incidents',
                   size: 11,
                   weight: FontWeight.w400,
                   color: AppTheme.getSecondaryTextColor(),
@@ -65,7 +80,7 @@ class NewsScanResultBanner extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: onDismiss,
+            onTap: widget.onDismiss,
             child: Icon(Icons.close, size: 18, color: Colors.red),
           ),
         ],
