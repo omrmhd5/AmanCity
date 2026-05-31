@@ -22,7 +22,7 @@ class _SosHoldButtonState extends State<SosHoldButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 1),
     );
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -64,7 +64,7 @@ class _SosHoldButtonState extends State<SosHoldButton>
         animation: _controller,
         builder: (context, _) {
           final progress = _controller.value;
-          final remainingSecs = (3 - progress * 3).ceil();
+          final remainingSecs = (1 - progress * 1).ceil();
 
           return SizedBox(
             width: 240,

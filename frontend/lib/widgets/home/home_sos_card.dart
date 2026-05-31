@@ -243,7 +243,7 @@ class _SosHoldButtonState extends State<_SosHoldButton>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 1),
     );
     _ctrl.addStatusListener((s) {
       if (s == AnimationStatus.completed) {
@@ -285,7 +285,7 @@ class _SosHoldButtonState extends State<_SosHoldButton>
         animation: _ctrl,
         builder: (_, __) {
           final p = _ctrl.value;
-          final secs = (3 - p * 3).ceil();
+          final secs = (1 - p * 1).ceil();
           return SizedBox(
             width: 148,
             height: 148,
