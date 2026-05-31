@@ -28,7 +28,7 @@ async function scanOsint(req, res) {
   if (grokRaw.length === 0) {
     return res.status(200).json({
       message: "Scan complete. No incidents found.",
-      scanned: 0,
+      scanned: sources.length,
       saved: 0,
       skipped_vague: 0,
       skipped_duplicate: 0,
@@ -39,7 +39,7 @@ async function scanOsint(req, res) {
 
   // Step 2: Process each raw incident
   const summary = {
-    scanned: grokRaw.length,
+    scanned: sources.length,
     saved: 0,
     skipped_vague: 0,
     skipped_duplicate: 0,

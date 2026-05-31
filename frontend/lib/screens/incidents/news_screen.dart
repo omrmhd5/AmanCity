@@ -36,21 +36,6 @@ class _NewsScreenState extends State<NewsScreen>
   String? _selectedTypeFilter;
   bool _showAllTypes = false;
 
-  static final List<OsintIncident> _demoIncidents = [
-    OsintIncident(
-      id: 'demo-1',
-      title: 'Traffic accident reported near Al-Quds Street intersection',
-      type: 'Accident',
-      locationText: 'Al-Quds Street, Amman',
-      latitude: 31.9539,
-      longitude: 35.9106,
-      osintConfidence: 0.88,
-      locationPrecision: 'EXACT',
-      sourceUrls: ['https://x.com/demo/status/1'],
-      timestamp: DateTime.now().subtract(const Duration(minutes: 12)),
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -59,7 +44,7 @@ class _NewsScreenState extends State<NewsScreen>
       duration: const Duration(milliseconds: 700),
     )..forward();
     widget.activationSignal?.addListener(_onActivation);
-    _incidents = List.of(_demoIncidents); // pre-load demo data only
+    _fetchIncidents();
   }
 
   @override
@@ -150,15 +135,6 @@ class _NewsScreenState extends State<NewsScreen>
 
       // Re-fetch incidents after scan
       await _fetchIncidents();
-
-      // Auto-dismiss banner after 5 seconds
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted) {
-          setState(() {
-            _lastScanResult = null;
-          });
-        }
-      });
     } catch (e) {
       setState(() {
         _scanError = e.toString().replaceFirst('Exception: ', '');
