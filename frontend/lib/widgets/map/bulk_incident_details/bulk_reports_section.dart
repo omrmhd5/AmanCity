@@ -108,7 +108,15 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
                 const Spacer(),
                 Text(
                   '${(report.confidence * 100).round()}%',
-                  style: TextStyle(fontSize: 11, color: AppColors.secondary),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: report.confidence >= 0.7
+                        ? AppColors.danger
+                        : report.confidence >= 0.4
+                        ? AppColors.warning
+                        : AppColors.success,
+                  ),
                 ),
               ],
             ),

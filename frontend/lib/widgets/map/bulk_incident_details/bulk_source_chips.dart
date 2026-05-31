@@ -45,7 +45,11 @@ class BulkSourceChips extends StatelessWidget {
         _chip(
           Icons.analytics_outlined,
           '${(bulk.avgConfidence * 100).round()}% confidence',
-          AppColors.primary,
+          bulk.avgConfidence >= 0.7
+              ? AppColors.danger
+              : bulk.avgConfidence >= 0.4
+              ? AppColors.warning
+              : AppColors.success,
         ),
       ],
     );
