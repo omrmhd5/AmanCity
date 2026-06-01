@@ -103,7 +103,13 @@ class _HomeIncomingSosTileState extends State<HomeIncomingSosTile> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${session.senderName.isNotEmpty ? session.senderName : "A contact"} needs help · Tap to respond',
+                          'home.incoming_sos_subtitle'.tr(
+                            namedArgs: {
+                              'name': session.senderName.isNotEmpty
+                                  ? session.senderName
+                                  : 'home.incoming_sos_unknown_contact'.tr(),
+                            },
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.getSecondaryTextColor(),

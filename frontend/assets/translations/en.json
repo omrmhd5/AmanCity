@@ -177,6 +177,8 @@
     "denied": "Denied"
   },
   "home": {
+    "live_hub": "LIVE HUB",
+    "community_tools": "COMMUNITY TOOLS",
     "explore_map": "Explore Map",
     "explore_map_subtitle": "Live incidents near you",
     "report": "Report",
@@ -186,6 +188,8 @@
     "view_all": "View All",
     "map": "Map",
     "incoming_sos_alert": "Incoming SOS Alert",
+    "incoming_sos_unknown_contact": "A contact",
+    "incoming_sos_subtitle": "{name} needs help · Tap to respond",
     "grok_live_feed": "GROK AI LIVE FEED",
     "grok_desc": "Real-time safety insights powered by X",
     "real_time": "Real-time",

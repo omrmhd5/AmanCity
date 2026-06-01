@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../widgets/shared/bottom_navbar.dart';
@@ -336,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'LIVE HUB',
+                      'home.live_hub'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -398,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'COMMUNITY TOOLS',
+                      'home.community_tools'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,

@@ -41,9 +41,9 @@ class HomeHero extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ).createShader(bounds),
-          child: const Text(
-            'AmanCity',
-            style: TextStyle(
+          child: Text(
+            'app.name'.tr(),
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
               color: Colors.white,

@@ -177,6 +177,8 @@
     "denied": "مرفوض"
   },
   "home": {
+    "live_hub": "المركز المباشر",
+    "community_tools": "أدوات المجتمع",
     "explore_map": "استكشاف الخريطة",
     "explore_map_subtitle": "الحوادث القريبة منك",
     "report": "إبلاغ",
@@ -186,6 +188,8 @@
     "view_all": "عرض الكل",
     "map": "الخريطة",
     "incoming_sos_alert": "تنبيه استغاثة وارد",
+    "incoming_sos_unknown_contact": "جهة اتصال",
+    "incoming_sos_subtitle": "{name} يحتاج مساعدة · اضغط للرد",
     "grok_live_feed": "تغذية Grok AI المباشرة",
     "grok_desc": "رؤى سلامة فورية مدعومة بـ X",
     "real_time": "فوري",
