@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../shared/custom_button.dart';
 import '../../../data/app_colors.dart';
@@ -32,7 +33,7 @@ class StepSuccess extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           Text(
-            "You're almost there!",
+            "register.almost_there".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 26,
@@ -42,7 +43,7 @@ class StepSuccess extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'A verification link has been sent to',
+            'register.verification_sent'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -61,7 +62,7 @@ class StepSuccess extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Please verify your email before logging in.',
+            'register.verify_before_login'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -70,7 +71,7 @@ class StepSuccess extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           CustomButton(
-            text: 'Back to Login',
+            text: 'register.back_to_login'.tr(),
             onPressed: onGoToLogin,
             icon: Icons.login,
           ),

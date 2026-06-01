@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/app_theme.dart';
@@ -108,7 +109,7 @@ class _POIDetailSheetState extends State<POIDetailSheet>
                           ),
                           const SizedBox(width: 6),
                           CustomText(
-                            text: 'Location Details',
+                            text: 'map.location_details'.tr(),
                             size: 16,
                             weight: FontWeight.w800,
                             color: AppTheme.getPrimaryTextColor(),
@@ -251,7 +252,7 @@ class _POIDetailSheetState extends State<POIDetailSheet>
                                 ),
                                 const SizedBox(width: 6),
                                 CustomText(
-                                  text: 'Address',
+                                  text: 'map.address'.tr(),
                                   size: 12,
                                   weight: FontWeight.w700,
                                   color: AppTheme.getPrimaryTextColor(),
@@ -311,7 +312,7 @@ class _POIDetailSheetState extends State<POIDetailSheet>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      text: 'Phone',
+                                      text: 'map.phone'.tr(),
                                       size: 11,
                                       weight: FontWeight.w600,
                                       color: AppTheme.getSecondaryTextColor(),
@@ -399,8 +400,8 @@ class _POIDetailSheetState extends State<POIDetailSheet>
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
-                                  const CustomText(
-                                    text: 'Navigate To Location',
+                                  CustomText(
+                                    text: 'map.navigate_to_location'.tr(),
                                     size: 14,
                                     weight: FontWeight.w600,
                                     color: Colors.white,

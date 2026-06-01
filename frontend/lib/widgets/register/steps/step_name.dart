@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../shared/custom_text_field.dart';
 import '../../shared/custom_button.dart';
@@ -19,7 +20,7 @@ class StepName extends StatelessWidget {
         children: [
           const SizedBox(height: 32),
           Text(
-            "What's your name?",
+            'register.step_name_title'.tr(),
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -28,7 +29,7 @@ class StepName extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'This is how you\'ll appear in the app.',
+            'register.step_name_subtitle'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: AppTheme.getSecondaryTextColor(),
@@ -36,17 +37,13 @@ class StepName extends StatelessWidget {
           ),
           const SizedBox(height: 36),
           CustomTextField(
-            label: 'Full Name',
-            placeholder: 'e.g. Layla Ahmed',
+            label: 'register.full_name'.tr(),
+            placeholder: 'register.full_name_placeholder'.tr(),
             prefixIcon: Icons.person_outline,
             controller: controller,
           ),
           const SizedBox(height: 32),
-          CustomButton(
-            text: 'Continue',
-            onPressed: onNext,
-            icon: Icons.arrow_forward,
-          ),
+          CustomButton(text: 'common.continue_btn'.tr(), onPressed: onNext),
         ],
       ),
     );

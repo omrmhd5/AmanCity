@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../shared/custom_text.dart';
@@ -52,7 +53,7 @@ class NewsScanButton extends StatelessWidget {
                           Icon(Icons.sync, size: 18, color: Colors.white),
                           const SizedBox(width: 8),
                           CustomText(
-                            text: 'Fetch Latest News from Twitter',
+                            text: 'news.fetch_button'.tr(),
                             size: 14,
                             weight: FontWeight.w600,
                             color: Colors.white,

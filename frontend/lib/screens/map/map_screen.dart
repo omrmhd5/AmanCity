@@ -1,6 +1,7 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as Math;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -802,9 +803,13 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     } catch (e) {
       setState(() => _searchResults = []);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Search failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'map.search_failed'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
+        );
       }
     }
   }
@@ -893,7 +898,11 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       setState(() => _isLoadingRoute = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to calculate route: $e')),
+          SnackBar(
+            content: Text(
+              'map.cant_calculate_route'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
         );
       }
     }
@@ -964,7 +973,11 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       setState(() => _isLoadingRoute = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to calculate route: $e')),
+          SnackBar(
+            content: Text(
+              'map.cant_calculate_route'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
         );
       }
     }
@@ -1025,7 +1038,11 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       setState(() => _isLoadingRoute = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to calculate route: $e')),
+          SnackBar(
+            content: Text(
+              'map.cant_calculate_route'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
         );
       }
     }
@@ -1101,7 +1118,11 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to calculate route: $e')),
+          SnackBar(
+            content: Text(
+              'map.cant_calculate_route'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
         );
       }
     }
@@ -1211,9 +1232,9 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to open Google Maps')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('map.cant_open_maps'.tr())));
         }
       }
     } catch (e) {
@@ -1259,9 +1280,9 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to open Google Maps')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('map.cant_open_maps'.tr())));
         }
       }
     } catch (e) {

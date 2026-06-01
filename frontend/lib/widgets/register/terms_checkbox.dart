@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import '../../data/app_colors.dart';
@@ -47,14 +48,14 @@ class TermsCheckBox extends StatelessWidget {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'I agree to the ',
+                    text: 'register.agree_to_the'.tr(),
                     style: TextStyle(
                       color: AppTheme.getSecondaryTextColor(),
                       fontSize: 16,
                     ),
                   ),
                   TextSpan(
-                    text: 'Terms of Service',
+                    text: 'register.terms_of_service'.tr(),
                     style: TextStyle(
                       color: AppTheme.getPrimaryTextColor(),
                       fontSize: 16,
@@ -68,14 +69,14 @@ class TermsCheckBox extends StatelessWidget {
                       },
                   ),
                   TextSpan(
-                    text: ' and ',
+                    text: 'register.and'.tr(),
                     style: TextStyle(
                       color: AppTheme.getSecondaryTextColor(),
                       fontSize: 16,
                     ),
                   ),
                   TextSpan(
-                    text: 'Privacy Policy',
+                    text: 'register.privacy_policy'.tr(),
                     style: TextStyle(
                       color: AppTheme.getPrimaryTextColor(),
                       fontSize: 16,

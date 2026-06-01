@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -312,8 +313,8 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
-            'SOS ALERT RECEIVED',
+          Text(
+            'sos.alert_received'.tr(),
             style: TextStyle(
               color: Color(0xFFFF3B3B),
               fontSize: 12,
@@ -390,8 +391,8 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                   color: const Color(0xFFFF3B3B),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Text(
-                  'HELP REQUESTED',
+                child: Text(
+                  'sos.help_requested'.tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -429,7 +430,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
   Widget _buildNameRow() {
     return Text(
       widget.triggerUserName.isEmpty
-          ? 'Unknown Contact'
+          ? 'sos.unknown_contact'.tr()
           : widget.triggerUserName,
       style: TextStyle(
         color: AppTheme.getPrimaryTextColor(),
@@ -453,7 +454,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
             ),
             const SizedBox(width: 8),
             Text(
-              'Loading location...',
+              'sos.loading_location'.tr(),
               style: TextStyle(
                 color: AppTheme.getSecondaryTextColor().withOpacity(0.95),
                 fontSize: 13,
@@ -466,7 +467,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     }
 
     final hasLocation = _locationText?.trim().isNotEmpty == true;
-    final title = hasLocation ? _locationText! : 'Coordinates';
+    final title = hasLocation ? _locationText! : 'sos.coordinates'.tr();
     final distanceSuffix = _distanceMeters != null
         ? ' (${_distanceMeters}m away)'
         : '';
@@ -512,8 +513,8 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
             child: ElevatedButton.icon(
               onPressed: _openLiveTracking,
               icon: const Icon(Icons.my_location_rounded, size: 18),
-              label: const Text(
-                'OPEN LIVE TRACKING',
+              label: Text(
+                'sos.open_live_tracking'.tr(),
                 style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1),
               ),
               style: ElevatedButton.styleFrom(
@@ -537,7 +538,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                   icon: const Icon(Icons.phone, size: 18),
                   label: Text(
                     widget.triggerUserName.isEmpty
-                        ? 'Call'
+                        ? 'sos.call'.tr()
                         : 'Call ${widget.triggerUserName.split(' ').first}',
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -589,7 +590,9 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
             _alarmMuted ? Icons.notifications_off : Icons.volume_off,
             size: 18,
           ),
-          label: Text(_alarmMuted ? 'ALARM MUTED' : 'MUTE ALARM'),
+          label: Text(
+            _alarmMuted ? 'sos.alarm_muted'.tr() : 'sos.mute_alarm'.tr(),
+          ),
           style: OutlinedButton.styleFrom(
             backgroundColor: isDark
                 ? Colors.transparent
@@ -682,7 +685,7 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
                     child: Opacity(
                       opacity: (1.0 - progress * 2).clamp(0.0, 0.7),
                       child: Text(
-                        'SLIDE TO IGNORE',
+                        'sos.slide_to_ignore'.tr(),
                         style: TextStyle(
                           color: AppTheme.getPrimaryTextColor(),
                           fontSize: 12,

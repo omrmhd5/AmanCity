@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -40,9 +41,9 @@ class _HomeHeaderState extends State<HomeHeader>
 
   String _greeting() {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return 'greeting.morning'.tr();
+    if (h < 18) return 'greeting.afternoon'.tr();
+    return 'greeting.evening'.tr();
   }
 
   @override
@@ -75,7 +76,7 @@ class _HomeHeaderState extends State<HomeHeader>
               ),
               const SizedBox(height: 2),
               Text(
-                'Welcome back',
+                'greeting.welcome_back'.tr(),
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w800,

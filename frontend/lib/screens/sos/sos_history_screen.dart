@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -96,7 +97,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Delete Recording',
+                'sos.delete_recording'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -105,7 +106,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
               ),
               const SizedBox(height: 12),
               Text(
-                'This recording will be permanently deleted.',
+                'sos.delete_recording_confirm'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.getSecondaryTextColor(),
@@ -118,7 +119,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
                     child: Text(
-                      'Cancel',
+                      'common.cancel'.tr(),
                       style: TextStyle(
                         color: AppTheme.getSecondaryTextColor(),
                         fontSize: 14,
@@ -136,8 +137,8 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Delete',
+                    child: Text(
+                      'common.delete'.tr(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -183,7 +184,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Delete All Recordings',
+                'sos.delete_all_recordings'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -205,7 +206,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
                     child: Text(
-                      'Cancel',
+                      'common.cancel'.tr(),
                       style: TextStyle(
                         color: AppTheme.getSecondaryTextColor(),
                         fontSize: 14,
@@ -223,8 +224,8 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Delete All',
+                    child: Text(
+                      'sos.delete_all'.tr(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -282,7 +283,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                     ),
                     const Spacer(),
                     Text(
-                      'SOS Recordings',
+                      'sos.recordings_title'.tr(),
                       style: TextStyle(
                         color: AppTheme.getPrimaryTextColor(),
                         fontSize: 18,
@@ -303,7 +304,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                           minWidth: 32,
                           minHeight: 32,
                         ),
-                        tooltip: 'Delete all',
+                        tooltip: 'sos.delete_all_recordings'.tr(),
                       )
                     else
                       const SizedBox(width: 40),
@@ -347,7 +348,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'RECORDINGS',
+                        'sos.recordings_label'.tr(),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -423,7 +424,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
           ),
           const SizedBox(height: 20),
           Text(
-            'No recordings yet',
+            'sos.no_recordings'.tr(),
             style: TextStyle(
               color: AppTheme.getPrimaryTextColor(),
               fontSize: 17,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -52,7 +53,7 @@ class _LocationContextCardState extends State<LocationContextCard>
     if (widget.city != null && widget.city!.isNotEmpty) {
       return widget.city!;
     }
-    return 'Current Location';
+    return 'report.current_location'.tr();
   }
 
   @override
@@ -99,7 +100,7 @@ class _LocationContextCardState extends State<LocationContextCard>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'CURRENT LOCATION',
+                  'report.current_location_label'.tr(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -131,7 +132,7 @@ class _LocationContextCardState extends State<LocationContextCard>
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      'Auto-detected',
+                      'report.auto_detected'.tr(),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w400,

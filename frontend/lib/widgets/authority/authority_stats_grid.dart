@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -15,17 +16,21 @@ class AuthorityStatsGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel('OVERVIEW'),
+        _sectionLabel('authority.overview'.tr()),
         const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
-              child: _statCard('TOTAL', '${stats.total}', AppColors.secondary),
+              child: _statCard(
+                'authority.total'.tr(),
+                '${stats.total}',
+                AppColors.secondary,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _statCard(
-                'LAST 24H',
+                'authority.last_24h'.tr(),
                 '${stats.last24h}',
                 AppColors.warning,
               ),
@@ -33,7 +38,7 @@ class AuthorityStatsGrid extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _statCard(
-                'LAST 7D',
+                'authority.last_7d'.tr(),
                 '${stats.last7d}',
                 AppColors.primary.withOpacity(0.8),
               ),
@@ -44,16 +49,24 @@ class AuthorityStatsGrid extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _statCard('HUMAN', '${stats.human}', AppColors.success),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _statCard('OSINT', '${stats.osint}', AppColors.danger),
+              child: _statCard(
+                'authority.human'.tr(),
+                '${stats.human}',
+                AppColors.success,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _statCard(
-                'CLUSTERS',
+                'authority.osint'.tr(),
+                '${stats.osint}',
+                AppColors.danger,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _statCard(
+                'authority.clusters'.tr(),
                 '${stats.bulkIncidents}',
                 AppColors.secondary.withOpacity(0.7),
               ),

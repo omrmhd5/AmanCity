@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -63,9 +64,9 @@ class HomeHero extends StatelessWidget {
               width: 1,
             ),
           ),
-          child: const Text(
-            'Your Safety, Our Priority',
-            style: TextStyle(
+          child: Text(
+            'app.tagline'.tr(),
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: AppColors.secondary,

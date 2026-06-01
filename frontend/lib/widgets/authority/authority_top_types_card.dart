@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -27,7 +28,7 @@ class AuthorityTopTypesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('TOP INCIDENT TYPES'),
+          _sectionLabel('authority.top_incident_types'.tr()),
           const SizedBox(height: 14),
           ...topTypes.map((t) => _typeRow(t, maxCount)).toList(),
         ],

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/date_time_utils.dart';
@@ -17,7 +18,7 @@ class ReporterProfileCard extends StatelessWidget {
     Key? key,
     required this.incident,
     required this.timeAgo,
-    this.reporterId = 'Anonymous',
+    this.reporterId = 'anonymous',
     this.karma = 4.8,
     this.timestamp,
     this.description,
@@ -45,7 +46,7 @@ class ReporterProfileCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                text: 'Grok AI',
+                text: 'map.grok_ai'.tr(),
                 size: 13,
                 weight: FontWeight.w700,
                 color: AppTheme.getPrimaryTextColor(),
@@ -191,7 +192,7 @@ class ReporterProfileCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'REPORTED BY',
+                            'map.reported_by'.tr(),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,

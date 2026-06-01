@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../models/incidents/osint_incident.dart';
@@ -270,7 +271,7 @@ class _NewsScreenState extends State<NewsScreen>
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      'INCIDENTS',
+                                      'news.incidents_label'.tr(),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w800,
@@ -332,7 +333,7 @@ class _NewsScreenState extends State<NewsScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Failed to load news',
+            'news.failed_to_load'.tr(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -341,7 +342,7 @@ class _NewsScreenState extends State<NewsScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            _error ?? 'An error occurred',
+            _error ?? 'news.error_occurred'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
@@ -362,7 +363,7 @@ class _NewsScreenState extends State<NewsScreen>
                 ),
               ),
               child: Text(
-                'Retry',
+                'common.retry'.tr(),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -395,7 +396,7 @@ class _NewsScreenState extends State<NewsScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'No incidents yet',
+            'news.no_incidents_yet'.tr(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -404,7 +405,7 @@ class _NewsScreenState extends State<NewsScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Fetch the latest incidents from Twitter using the button above',
+            'news.fetch_from_twitter'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
@@ -421,7 +422,7 @@ class _NewsScreenState extends State<NewsScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
       child: Center(
         child: Text(
-          'No incidents match your search or filter',
+          'news.no_results_filter'.tr(),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,

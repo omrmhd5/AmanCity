@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_theme.dart';
@@ -147,7 +148,8 @@ class _IncidentDetailScreenState extends State<IncidentDetailScreen>
                             incident: widget.incident,
                             timeAgo: widget.timeAgo,
                             reporterId:
-                                widget.incident.reportedByName ?? 'Anonymous',
+                                widget.incident.reportedByName ??
+                                'common.anonymous'.tr(),
                             timestamp: widget.incident.timestamp,
                             description: widget.incident.description,
                           ),
@@ -257,13 +259,13 @@ class _NavigateButtonState extends State<_NavigateButton> {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.navigation_rounded, color: Colors.white, size: 18),
                 SizedBox(width: 8),
                 Text(
-                  'Navigate To Location',
+                  'map.navigate_to_location'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

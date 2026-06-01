@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/custom_button.dart';
@@ -25,7 +26,7 @@ class StepPhone extends StatelessWidget {
         children: [
           const SizedBox(height: 32),
           Text(
-            'Phone number',
+            'register.step_phone_title'.tr(),
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -34,7 +35,7 @@ class StepPhone extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Used for emergency alerts and account recovery.',
+            'register.step_phone_subtitle'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: AppTheme.getSecondaryTextColor(),
@@ -42,7 +43,7 @@ class StepPhone extends StatelessWidget {
           ),
           const SizedBox(height: 36),
           Text(
-            'Phone Number',
+            'register.phone_number'.tr(),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -118,7 +119,7 @@ class StepPhone extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           CustomButton(
-            text: 'Continue',
+            text: 'common.continue_btn'.tr(),
             onPressed: () {
               // Prepend +20 to the phone number before saving
               final phoneNumber = controller.text.trim();

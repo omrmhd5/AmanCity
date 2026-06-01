@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -25,9 +26,7 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
 
   Future<void> _initController() async {
     try {
-      final ctrl = VideoPlayerController.networkUrl(
-        Uri.parse(widget.videoUrl),
-      );
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
       await ctrl.initialize();
       ctrl.addListener(_onVideoUpdate);
       if (mounted) {
@@ -121,7 +120,9 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: Colors.white54, width: 1.5),
+                                  color: Colors.white54,
+                                  width: 1.5,
+                                ),
                               ),
                               child: Icon(
                                 _controller!.value.isPlaying
@@ -140,8 +141,7 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                           right: 0,
                           bottom: 48,
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -151,8 +151,8 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                                   allowScrubbing: true,
                                   colors: VideoProgressColors(
                                     playedColor: AppColors.secondary,
-                                    bufferedColor:
-                                        AppColors.secondary.withOpacity(0.3),
+                                    bufferedColor: AppColors.secondary
+                                        .withOpacity(0.3),
                                     backgroundColor: Colors.white24,
                                   ),
                                 ),
@@ -164,15 +164,21 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                                   children: [
                                     Text(
                                       _formatDuration(
-                                          _controller!.value.position),
+                                        _controller!.value.position,
+                                      ),
                                       style: const TextStyle(
-                                          color: Colors.white70, fontSize: 12),
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                     Text(
                                       _formatDuration(
-                                          _controller!.value.duration),
+                                        _controller!.value.duration,
+                                      ),
                                       style: const TextStyle(
-                                          color: Colors.white70, fontSize: 12),
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -197,7 +203,11 @@ class _VideoPlayerDialogState extends State<VideoPlayerDialog> {
                       color: Colors.black54,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close, color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ),
               ),
@@ -221,14 +231,14 @@ class _ErrorState extends StatelessWidget {
       children: [
         const Icon(Icons.videocam_off_rounded, color: Colors.white54, size: 52),
         const SizedBox(height: 16),
-        const Text(
-          'Failed to load video',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
+        Text(
+          'map.failed_to_load_video'.tr(),
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Check your connection or try again.',
-          style: TextStyle(color: Colors.white38, fontSize: 12),
+        Text(
+          'common.check_connection'.tr(),
+          style: const TextStyle(color: Colors.white38, fontSize: 12),
         ),
       ],
     );

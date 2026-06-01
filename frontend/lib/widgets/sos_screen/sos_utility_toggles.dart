@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -26,8 +27,8 @@ class SosUtilityToggles extends StatelessWidget {
           Expanded(
             child: _ToggleButton(
               icon: Icons.flashlight_on,
-              label: 'Strobe',
-              sublabel: 'Flashlight',
+              label: 'sos.strobe'.tr(),
+              sublabel: 'sos.flashlight'.tr(),
               isActive: flashEnabled,
               onTap: () => onFlashToggle(!flashEnabled),
             ),
@@ -36,8 +37,8 @@ class SosUtilityToggles extends StatelessWidget {
           Expanded(
             child: _ToggleButton(
               icon: Icons.campaign,
-              label: 'Alarm',
-              sublabel: 'Loud Siren',
+              label: 'sos.alarm'.tr(),
+              sublabel: 'sos.loud_siren'.tr(),
               isActive: sirenEnabled,
               onTap: () => onSirenToggle(!sirenEnabled),
             ),

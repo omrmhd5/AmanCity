@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,8 +25,8 @@ class BulkOsintSources extends StatelessWidget {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open link'),
+          SnackBar(
+            content: Text('map.could_not_open_link'.tr()),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),

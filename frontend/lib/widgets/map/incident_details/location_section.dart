@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -79,7 +80,7 @@ class _LocationSectionState extends State<LocationSection> {
             ),
             const SizedBox(width: 6),
             Text(
-              'LOCATION',
+              'map.location'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -180,7 +181,8 @@ class _LocationSectionState extends State<LocationSection> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               CustomText(
-                                text: widget.incident.city ?? 'Location',
+                                text:
+                                    widget.incident.city ?? 'map.location'.tr(),
                                 size: 9,
                                 weight: FontWeight.w500,
                                 color: AppTheme.getSecondaryTextColor(),
@@ -194,7 +196,7 @@ class _LocationSectionState extends State<LocationSection> {
                                           ? 20
                                           : widget.incident.addressText!.length,
                                     ) ??
-                                    'Unknown',
+                                    'common.unknown'.tr(),
                                 size: 10,
                                 weight: FontWeight.w700,
                                 color: AppTheme.getPrimaryTextColor(),
@@ -216,7 +218,7 @@ class _LocationSectionState extends State<LocationSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      text: 'LOCATION',
+                      text: 'map.location'.tr(),
                       size: 11,
                       weight: FontWeight.w700,
                       color: AppTheme.getSecondaryTextColor(),

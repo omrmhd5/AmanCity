@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -91,7 +92,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Home location saved successfully'),
+            content: Text('profile.home_location_saved'.tr()),
             duration: const Duration(seconds: 2),
             backgroundColor: Colors.green.shade600,
           ),
@@ -99,9 +100,15 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving location: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'profile.home_location_save_error'.tr(
+                namedArgs: {'error': e.toString()},
+              ),
+            ),
+          ),
+        );
       }
     }
   }
@@ -123,17 +130,23 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Home location cleared'),
+          SnackBar(
+            content: Text('profile.home_location_cleared'.tr()),
             duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error clearing location: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'profile.error_clearing_location'.tr(
+                namedArgs: {'error': e.toString()},
+              ),
+            ),
+          ),
+        );
       }
     }
   }
@@ -244,7 +257,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Home Location',
+                          'profile.home_location'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -254,8 +267,10 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                         const SizedBox(height: 3),
                         Text(
                           _homeLocation != null
-                              ? (_homeAddress ?? _homeCity ?? 'Location set')
-                              : 'Set your home location',
+                              ? (_homeAddress ??
+                                    _homeCity ??
+                                    'profile.location_set'.tr())
+                              : 'profile.set_home_location_prompt'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.getSecondaryTextColor(),
@@ -313,7 +328,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Home Location',
+            'profile.home_location'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: AppTheme.getPrimaryTextColor(),
@@ -355,7 +370,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Home',
+                                  'profile.home'.tr(),
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -409,7 +424,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                         onPressed: _openMapPicker,
                         icon: const Icon(Icons.edit, size: 16),
                         label: Text(
-                          'Edit',
+                          'common.edit'.tr(),
                           style: TextStyle(
                             color: AppTheme.getPrimaryTextColor(),
                             fontWeight: FontWeight.w600,
@@ -426,7 +441,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                         onPressed: _clearHomeLocation,
                         icon: const Icon(Icons.delete, size: 16),
                         label: Text(
-                          'Clear',
+                          'common.clear'.tr(),
                           style: TextStyle(
                             color: AppTheme.getPrimaryTextColor(),
                             fontWeight: FontWeight.w600,
@@ -464,7 +479,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'No home location saved',
+                    'profile.no_home_location'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: AppTheme.getSecondaryTextColor(),
@@ -477,7 +492,7 @@ class _HomeLocationSelectorState extends State<HomeLocationSelector> {
                     child: ElevatedButton.icon(
                       onPressed: _openMapPicker,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Set Home Location'),
+                      label: Text('profile.set_home_location'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondary,
                         shape: RoundedRectangleBorder(

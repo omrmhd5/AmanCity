@@ -93,6 +93,7 @@ dependencies:
   # Video playback for evidence feed
   video_player: ^2.9.5
   speech_to_text: ^7.3.0
+  easy_localization: ^3.0.8
 
 dev_dependencies:
   flutter_test:
@@ -118,6 +119,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/translations/
     - assets/sos_sound.mp3
     - assets/logos/
 

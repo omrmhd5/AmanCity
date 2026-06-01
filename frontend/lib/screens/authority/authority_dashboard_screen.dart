@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -113,8 +114,8 @@ class _AuthorityDashboardScreenState extends State<AuthorityDashboardScreen>
                       color: AppColors.secondary.withOpacity(0.4),
                     ),
                   ),
-                  child: const CustomText(
-                    text: 'Retry',
+                  child: CustomText(
+                    text: 'common.retry'.tr(),
                     size: 14,
                     weight: FontWeight.w600,
                     color: AppColors.secondary,
@@ -165,7 +166,7 @@ class _AuthorityDashboardScreenState extends State<AuthorityDashboardScreen>
                 // ── Recent incidents ─────────────────────────────────────
                 if (d.recentIncidents.isNotEmpty) ...[
                   CustomText(
-                    text: 'RECENT INCIDENTS',
+                    text: 'authority.recent_incidents'.tr(),
                     size: 11,
                     weight: FontWeight.w800,
                     color: AppTheme.getSecondaryTextColor(),
@@ -210,7 +211,7 @@ class _SourceBreakdownCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            text: 'SOURCE BREAKDOWN',
+            text: 'authority.source_breakdown'.tr(),
             size: 11,
             weight: FontWeight.w800,
             color: AppTheme.getSecondaryTextColor(),
@@ -240,7 +241,11 @@ class _SourceBreakdownCard extends StatelessWidget {
             children: [
               _legendDot(AppColors.success),
               const SizedBox(width: 6),
-              CustomText(text: 'Human', size: 12, weight: FontWeight.w600),
+              CustomText(
+                text: 'authority.human'.tr(),
+                size: 12,
+                weight: FontWeight.w600,
+              ),
               const SizedBox(width: 4),
               CustomText(
                 text: '$human (${(humanRatio * 100).round()}%)',
@@ -250,7 +255,11 @@ class _SourceBreakdownCard extends StatelessWidget {
               const SizedBox(width: 16),
               _legendDot(AppColors.warning),
               const SizedBox(width: 6),
-              CustomText(text: 'OSINT', size: 12, weight: FontWeight.w600),
+              CustomText(
+                text: 'authority.osint'.tr(),
+                size: 12,
+                weight: FontWeight.w600,
+              ),
               const SizedBox(width: 4),
               CustomText(
                 text: '$osint (${(osintRatio * 100).round()}%)',

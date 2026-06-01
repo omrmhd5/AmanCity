@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/app_colors.dart';
@@ -56,7 +57,7 @@ class ProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Your Profile',
+                      'profile.your_profile'.tr(),
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -66,7 +67,7 @@ class ProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Account details & preferences',
+                      'profile.account_details'.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,

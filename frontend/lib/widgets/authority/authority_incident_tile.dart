@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -14,11 +15,12 @@ class AuthorityIncidentTile extends StatelessWidget {
   Color get _sourceColor =>
       incident.isOsint ? AppColors.warning : AppColors.success;
 
-  String get _sourceLabel => incident.isOsint ? 'OSINT' : 'HUMAN';
+  String get _sourceLabel =>
+      incident.isOsint ? 'authority.osint'.tr() : 'authority.human'.tr();
 
   String get _timeAgo {
     final diff = DateTime.now().difference(incident.timestamp);
-    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 1) return 'common.just_now'.tr();
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';

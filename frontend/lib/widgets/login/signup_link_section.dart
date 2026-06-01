@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../shared/custom_text.dart';
 import '../shared/custom_gesture_detector.dart';
@@ -16,7 +17,7 @@ class SignUpLinkSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomText(
-            text: "Don't have an account? ",
+            text: 'auth.no_account'.tr(),
             size: 13,
             weight: FontWeight.w400,
             color: AppTheme.getSecondaryTextColor(),
@@ -27,7 +28,7 @@ class SignUpLinkSection extends StatelessWidget {
             },
             enableScale: false,
             child: CustomText(
-              text: 'Sign Up',
+              text: 'auth.sign_up'.tr(),
               size: 13,
               weight: FontWeight.w600,
               color: AppColors.secondary,

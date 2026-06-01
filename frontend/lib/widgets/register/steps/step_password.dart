@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../shared/custom_text_field.dart';
 import '../../shared/custom_button.dart';
@@ -38,7 +39,7 @@ class _StepPasswordState extends State<StepPassword> {
         children: [
           const SizedBox(height: 32),
           Text(
-            'Create a password',
+            'register.step_password_title'.tr(),
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -47,7 +48,7 @@ class _StepPasswordState extends State<StepPassword> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Use at least 6 characters.',
+            'register.step_password_subtitle'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: AppTheme.getSecondaryTextColor(),
@@ -55,7 +56,7 @@ class _StepPasswordState extends State<StepPassword> {
           ),
           const SizedBox(height: 36),
           CustomTextField(
-            label: 'Password',
+            label: 'register.password'.tr(),
             placeholder: '•••••••••',
             prefixIcon: Icons.lock_outline,
             isPassword: true,
@@ -63,7 +64,7 @@ class _StepPasswordState extends State<StepPassword> {
           ),
           const SizedBox(height: 20),
           CustomTextField(
-            label: 'Confirm Password',
+            label: 'register.confirm_password'.tr(),
             placeholder: '•••••••••',
             prefixIcon: Icons.lock_outline,
             isPassword: true,
@@ -74,7 +75,7 @@ class _StepPasswordState extends State<StepPassword> {
             onChanged: widget.onTermsChanged,
           ),
           CustomButton(
-            text: 'Create Account',
+            text: 'register.create_account'.tr(),
             onPressed: widget.onRegister,
             isLoading: widget.isLoading,
             icon: Icons.check,

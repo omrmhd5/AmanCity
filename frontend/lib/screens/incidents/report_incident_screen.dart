@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:math' as Math;
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -353,9 +354,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to select file. Please try again.'),
-        ),
+        SnackBar(content: Text('report.unable_to_select_file'.tr())),
       );
       setState(() => _isPickingFile = false);
     }
@@ -405,7 +404,9 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        isPhoto ? 'Select Photo' : 'Select Video',
+                        isPhoto
+                            ? 'report.select_photo'.tr()
+                            : 'report.select_video'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
@@ -436,7 +437,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                         icon: isPhoto
                             ? Icons.camera_alt_rounded
                             : Icons.videocam_rounded,
-                        label: 'Camera',
+                        label: 'report.camera'.tr(),
                         onTap: () => Navigator.pop(ctx, ImageSource.camera),
                       ),
                     ),
@@ -446,7 +447,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                         icon: isPhoto
                             ? Icons.photo_library_rounded
                             : Icons.video_library_rounded,
-                        label: 'Gallery',
+                        label: 'report.gallery'.tr(),
                         onTap: () => Navigator.pop(ctx, ImageSource.gallery),
                       ),
                     ),
@@ -498,14 +499,14 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
     if (_selectedFile == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Missing file')));
+      ).showSnackBar(SnackBar(content: Text('report.missing_file'.tr())));
       return;
     }
 
     if (_selectedLocation == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Missing location')));
+      ).showSnackBar(SnackBar(content: Text('report.missing_location'.tr())));
       return;
     }
 
@@ -527,7 +528,11 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Incident created: ${incident.title}'),
+            content: Text(
+              'report.incident_created'.tr(
+                namedArgs: {'title': incident.title},
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -549,7 +554,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Unable to save your report. Please try again.'),
+            content: Text('report.unable_to_save'.tr()),
             backgroundColor: Colors.red,
           ),
         );
@@ -559,16 +564,16 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
 
   Future<void> _submitReport() async {
     if (_selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a photo or video')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('report.select_media'.tr())));
       return;
     }
 
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please add a title')));
+      ).showSnackBar(SnackBar(content: Text('report.add_title'.tr())));
       return;
     }
 
@@ -666,7 +671,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Report Incident',
+                                    'report.title'.tr(),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w800,
@@ -675,7 +680,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Help keep your community safe',
+                                    'report.subtitle'.tr(),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
@@ -764,7 +769,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'TITLE',
+                                  'report.title_label'.tr(),
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -834,7 +839,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'UPLOAD EVIDENCE',
+                                  'report.upload_evidence'.tr(),
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -1019,7 +1024,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            'Report Incident',
+                                            'report.title'.tr(),
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w700,
@@ -1121,7 +1126,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
               TextButton(
                 onPressed: () => setState(() => _selectedFile = null),
                 child: Text(
-                  'Change',
+                  'common.change'.tr(),
                   style: TextStyle(
                     color: AppColors.secondary,
                     fontWeight: FontWeight.w600,

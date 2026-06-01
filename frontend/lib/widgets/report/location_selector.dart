@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../data/app_colors.dart';
@@ -94,7 +95,7 @@ class _LocationSelectorState extends State<LocationSelector> {
               ),
               const SizedBox(width: 6),
               Text(
-                'LOCATION',
+                'map.location'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -147,7 +148,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Current Location',
+                          'report.current_location'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -195,7 +196,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Pick on Map',
+                          'map.pick_on_map'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -252,8 +253,8 @@ class _LocationSelectorState extends State<LocationSelector> {
                         children: [
                           Text(
                             _selectedAddressText != null
-                                ? 'Location Selected'
-                                : 'Tap to open map',
+                                ? 'report.location_selected'.tr()
+                                : 'report.tap_to_open_map'.tr(),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -277,7 +278,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                           ] else ...[
                             const SizedBox(height: 3),
                             Text(
-                              'Choose a custom location on the map',
+                              'report.choose_location'.tr(),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppTheme.getSecondaryTextColor(),

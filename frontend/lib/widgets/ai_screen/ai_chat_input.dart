@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -88,11 +89,11 @@ class _AiChatInputState extends State<AiChatInput> {
               ),
               duration: const Duration(seconds: 2),
               content: Row(
-                children: const [
+                children: [
                   Icon(Icons.mic_off, color: Colors.white, size: 16),
                   SizedBox(width: 8),
                   Text(
-                    'Microphone permission required',
+                    'ai.mic_permission_required'.tr(),
                     style: TextStyle(color: Colors.white, fontSize: 13),
                   ),
                 ],
@@ -217,8 +218,8 @@ class _AiChatInputState extends State<AiChatInput> {
                               ),
                               decoration: InputDecoration(
                                 hintText: _isListening
-                                    ? 'Listening...'
-                                    : 'Ask about safety...',
+                                    ? 'ai.listening'.tr()
+                                    : 'ai.ask_hint'.tr(),
                                 hintStyle: TextStyle(
                                   fontSize: 13,
                                   color: _isListening

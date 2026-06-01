@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../shared/custom_button.dart';
 import '../shared/custom_text.dart';
@@ -50,7 +51,7 @@ class RegisterFooter extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomButton(
-              text: 'REGISTER ACCOUNT',
+              text: 'register.title'.tr(),
               onPressed: onRegisterPressed,
               isLoading: isLoading,
               backgroundColor: AppTheme.currentMode == AppThemeMode.dark
@@ -63,7 +64,7 @@ class RegisterFooter extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CustomText(
-                  text: 'Already have an account? ',
+                  text: 'register.already_have_account'.tr(),
                   size: 13,
                   weight: FontWeight.w400,
                   color: AppTheme.getSecondaryTextColor(),
@@ -74,7 +75,7 @@ class RegisterFooter extends StatelessWidget {
                   },
                   enableScale: false,
                   child: CustomText(
-                    text: 'Login',
+                    text: 'auth.login'.tr(),
                     size: 13,
                     weight: FontWeight.w600,
                     color: AppTheme.currentMode == AppThemeMode.dark

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -75,7 +76,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
 
                 // Title
                 Text(
-                  'Server Unavailable',
+                  'connectivity.server_unavailable'.tr(),
                   style: TextStyle(
                     color: AppTheme.getPrimaryTextColor(),
                     fontSize: 22,
@@ -88,7 +89,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
 
                 // Message
                 Text(
-                  'AmanCity servers are temporarily unreachable. We\'ll keep trying automatically.',
+                  'connectivity.server_unavailable_subtitle'.tr(),
                   style: TextStyle(
                     color: AppTheme.getSecondaryTextColor(),
                     fontSize: 15,
@@ -124,9 +125,9 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Retry',
-                            style: TextStyle(
+                        : Text(
+                            'common.retry'.tr(),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -138,7 +139,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
 
                 // Auto-retry note
                 Text(
-                  'Auto-retrying every 15 seconds',
+                  'connectivity.auto_retry'.tr(),
                   style: TextStyle(
                     color: AppTheme.getSecondaryTextColor().withOpacity(0.6),
                     fontSize: 12,

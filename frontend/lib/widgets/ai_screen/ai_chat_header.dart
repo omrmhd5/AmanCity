@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_theme.dart';
@@ -100,14 +101,14 @@ class _AiChatHeaderState extends State<AiChatHeader> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          text: 'Safety Assistant',
+                          text: 'ai.safety_assistant'.tr(),
                           size: 16,
                           weight: FontWeight.w700,
                           color: AppTheme.getPrimaryTextColor(),
                         ),
                         const SizedBox(height: 2),
                         CustomText(
-                          text: 'Online',
+                          text: 'common.online'.tr(),
                           size: 11,
                           weight: FontWeight.w500,
                           color: AppTheme.getSecondaryTextColor(),

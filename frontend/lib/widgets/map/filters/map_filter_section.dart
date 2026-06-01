@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../shared/custom_search_bar.dart';
@@ -31,19 +32,22 @@ class _MapFilterSectionState extends State<MapFilterSection> {
   late Set<String> selectedFilters; // Track multiple selected filters
   final searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> filters = [
+  List<Map<String, dynamic>> get filters => [
     {
-      'label': 'Hospitals',
+      'key': 'Hospitals',
+      'label': 'map.hospitals'.tr(),
       'icon': Icons.local_hospital,
       'color': const Color(0xFFEF4444), // Red
     },
     {
-      'label': 'Police Stations',
+      'key': 'Police Stations',
+      'label': 'map.police_stations'.tr(),
       'icon': Icons.local_police,
       'color': const Color(0xFF3B82F6), // Blue
     },
     {
-      'label': 'Fire Stations',
+      'key': 'Fire Stations',
+      'label': 'map.fire_stations'.tr(),
       'icon': Icons.fire_truck,
       'color': const Color(0xFFF59E0B), // Orange
     },
@@ -74,7 +78,7 @@ class _MapFilterSectionState extends State<MapFilterSection> {
             children: [
               Expanded(
                 child: CustomSearchBar(
-                  hintText: 'Search location...',
+                  hintText: 'map.search_location'.tr(),
                   controller: searchController,
                   onChanged: widget.onSearch,
                 ),
@@ -98,10 +102,11 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: filters.map((filterItem) {
+                        final key = filterItem['key'] as String;
                         final label = filterItem['label'] as String;
                         final icon = filterItem['icon'] as IconData;
                         final color = filterItem['color'] as Color;
-                        final isSelected = selectedFilters.contains(label);
+                        final isSelected = selectedFilters.contains(key);
 
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
@@ -113,12 +118,12 @@ class _MapFilterSectionState extends State<MapFilterSection> {
                             onTap: () {
                               setState(() {
                                 if (isSelected) {
-                                  selectedFilters.remove(label);
+                                  selectedFilters.remove(key);
                                 } else {
-                                  selectedFilters.add(label);
+                                  selectedFilters.add(key);
                                 }
                               });
-                              widget.onFilterChanged?.call(label);
+                              widget.onFilterChanged?.call(key);
                             },
                           ),
                         );

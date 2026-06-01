@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -28,8 +29,8 @@ class _HomeCommunityToolsState extends State<HomeCommunityTools> {
         Expanded(
           child: _buildCard(
             icon: Icons.map_rounded,
-            title: 'Explore Map',
-            subtitle: 'Live incidents near you',
+            title: 'home.explore_map'.tr(),
+            subtitle: 'home.explore_map_subtitle'.tr(),
             isPressed: _mapPressed,
             onTapDown: () => setState(() => _mapPressed = true),
             onTapUp: () {
@@ -43,8 +44,8 @@ class _HomeCommunityToolsState extends State<HomeCommunityTools> {
         Expanded(
           child: _buildCard(
             icon: Icons.report_rounded,
-            title: 'Report',
-            subtitle: 'Submit an incident',
+            title: 'home.report'.tr(),
+            subtitle: 'home.report_subtitle'.tr(),
             isPressed: _newsPressed,
             onTapDown: () => setState(() => _newsPressed = true),
             onTapUp: () {

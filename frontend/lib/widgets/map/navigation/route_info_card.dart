@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -102,7 +103,7 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.destinationName ?? 'Destination',
+                            widget.destinationName ?? 'map.destination'.tr(),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -190,10 +191,10 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                     // Safest route card
                     _RouteOptionCard(
                       label: widget.hasFastestAlternative
-                          ? 'Safest'
+                          ? 'map.safest'.tr()
                           : 'Safest + Fastest',
                       labelColor: const Color(0xFF10B981),
-                      duration: widget.duration ?? 'Calculating...',
+                      duration: widget.duration ?? 'map.calculating'.tr(),
                       distance: widget.distance ?? '...',
                       safetyPercent: widget.dangerScore != null
                           ? _safetyPercent(widget.dangerScore!)
@@ -215,7 +216,7 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                         widget.fastestDuration != null) ...[
                       const SizedBox(height: 8),
                       _RouteOptionCard(
-                        label: 'Fastest',
+                        label: 'map.fastest'.tr(),
                         labelColor: const Color(0xFF3B82F6),
                         duration: widget.fastestDuration!,
                         distance: widget.fastestDistance ?? '...',
@@ -307,8 +308,8 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                           const SizedBox(width: 8),
                           Text(
                             widget.isLoading
-                                ? 'Calculating...'
-                                : 'Start Navigation',
+                                ? 'map.calculating'.tr()
+                                : 'map.start_navigation'.tr(),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -471,7 +472,7 @@ class _RouteOptionCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Safety Score',
+                    'map.safety_score'.tr(),
                     style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.w500,

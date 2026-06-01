@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../models/incidents/bulk_incident.dart';
@@ -96,7 +97,7 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
                 Text(
                   isOsint
                       ? 'OSINT · ${widget.timeAgo(report.timestamp)}'
-                      : '${report.reportedByName ?? 'Anonymous'} · ${widget.timeAgo(report.timestamp)}',
+                      : '${report.reportedByName ?? 'common.anonymous'.tr()} · ${widget.timeAgo(report.timestamp)}',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

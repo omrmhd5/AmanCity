@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as Math;
@@ -291,7 +292,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),
         title: Text(
-          'Select Location',
+          'report.select_location'.tr(),
           style: TextStyle(
             color: AppTheme.getPrimaryTextColor(),
             fontWeight: FontWeight.w600,
@@ -332,7 +333,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
             left: 16,
             right: 16,
             child: CustomSearchBar(
-              hintText: 'Search location...',
+              hintText: 'map.search_location'.tr(),
               controller: searchController,
               onChanged: (query) {
                 if (query.isEmpty) {

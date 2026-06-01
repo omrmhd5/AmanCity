@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -75,7 +76,7 @@ class SosHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Emergency SOS',
+                      'sos.title'.tr(),
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -85,7 +86,7 @@ class SosHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Hold the button for 3 seconds to alert your trusted contacts',
+                      'sos.subtitle'.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,

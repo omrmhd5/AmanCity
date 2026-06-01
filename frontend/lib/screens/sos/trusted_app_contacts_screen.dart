@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -106,9 +107,9 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
       );
       await _loadContacts();
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to send request.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('sos.failed_to_send_request'.tr())),
+      );
     }
   }
 
@@ -121,7 +122,9 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(accept ? 'Request accepted.' : 'Request declined.'),
+          content: Text(
+            accept ? 'sos.request_accepted'.tr() : 'sos.request_declined'.tr(),
+          ),
         ),
       );
       await _loadContacts();
@@ -168,7 +171,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Remove Contact?',
+                    'sos.remove_contact_title'.tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -200,7 +203,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                             ),
                           ),
                           child: Text(
-                            'Cancel',
+                            'common.cancel'.tr(),
                             style: TextStyle(
                               color: AppTheme.getSecondaryTextColor(),
                               fontSize: 14,
@@ -221,8 +224,8 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'Remove',
+                          child: Text(
+                            'common.remove'.tr(),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -268,7 +271,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),
         title: Text(
-          'Trusted Contacts',
+          'sos.trusted_contacts_title'.tr(),
           style: TextStyle(
             color: AppTheme.getPrimaryTextColor(),
             fontWeight: FontWeight.w700,
@@ -338,14 +341,14 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                       children: [
                         // Search results
                         if (isSearchActive) ...[
-                          _sectionHeader('Search Results'),
+                          _sectionHeader('sos.search_results'.tr()),
                           if (_searching)
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 12),
                               child: Center(child: CircularProgressIndicator()),
                             )
                           else if (_searchResults.isEmpty)
-                            _emptyHint('No users found.')
+                            _emptyHint('sos.no_users_found'.tr())
                           else
                             ..._searchResults.map(
                               (c) => _SearchResultTile(
@@ -358,7 +361,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
 
                         // Incoming requests
                         if (!isSearchActive && incoming.isNotEmpty) ...[
-                          _sectionHeader('Pending Requests'),
+                          _sectionHeader('sos.pending_requests'.tr()),
                           ...incoming.map(
                             (c) => _ContactTile(
                               contact: c,
@@ -371,7 +374,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
 
                         // Sent requests
                         if (!isSearchActive && sent.isNotEmpty) ...[
-                          _sectionHeader('Sent Requests'),
+                          _sectionHeader('sos.sent_requests'.tr()),
                           ...sent.map(
                             (c) => _ContactTile(
                               contact: c,
@@ -473,11 +476,11 @@ class _ContactTile extends StatelessWidget {
   String get _statusLabel {
     switch (contact.status) {
       case 'accepted':
-        return 'Trusted';
+        return 'sos.status_trusted'.tr();
       case 'pending_incoming':
-        return 'Wants to add you';
+        return 'sos.status_wants_to_add'.tr();
       case 'pending_sent':
-        return 'Request sent';
+        return 'sos.status_request_sent'.tr();
       default:
         return '';
     }
@@ -521,7 +524,7 @@ class _ContactTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  contact.name.isEmpty ? 'Unknown' : contact.name,
+                  contact.name.isEmpty ? 'common.unknown'.tr() : contact.name,
                   style: TextStyle(
                     color: AppTheme.getPrimaryTextColor(),
                     fontWeight: FontWeight.w600,
@@ -621,7 +624,7 @@ class _SearchResultTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  contact.name.isEmpty ? 'Unknown' : contact.name,
+                  contact.name.isEmpty ? 'common.unknown'.tr() : contact.name,
                   style: TextStyle(
                     color: AppTheme.getPrimaryTextColor(),
                     fontWeight: FontWeight.w600,
@@ -647,8 +650,8 @@ class _SearchResultTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.secondary.withOpacity(0.4)),
               ),
-              child: const Text(
-                'Add',
+              child: Text(
+                'common.add'.tr(),
                 style: TextStyle(
                   color: AppColors.secondary,
                   fontWeight: FontWeight.w600,

@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import '../../services/auth/auth_service.dart';
 import '../../widgets/register/register_header.dart';
 import '../../widgets/register/register_step_indicator.dart';
@@ -108,7 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   void _onNextName() {
     if (_fullNameController.text.trim().isEmpty) {
-      _showError('Please enter your full name.');
+      _showError('register.error_name_required'.tr());
       return;
     }
     _goToNext();
@@ -117,11 +118,11 @@ class _RegisterScreenState extends State<RegisterScreen>
   void _onNextEmail() {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _showError('Please enter your email address.');
+      _showError('register.error_email_required'.tr());
       return;
     }
     if (!email.contains('@') || !email.contains('.')) {
-      _showError('Please enter a valid email address.');
+      _showError('register.error_email_invalid'.tr());
       return;
     }
     _goToNext();
@@ -129,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   void _onNextPhone() {
     if (_phoneController.text.trim().isEmpty) {
-      _showError('Please enter your phone number.');
+      _showError('register.error_phone_required'.tr());
       return;
     }
     _goToNext();
@@ -138,19 +139,19 @@ class _RegisterScreenState extends State<RegisterScreen>
   Future<void> _handleRegister() async {
     if (_passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
-      _showError('Please enter and confirm your password.');
+      _showError('register.error_password_required'.tr());
       return;
     }
     if (_passwordController.text.length < 6) {
-      _showError('Password must be at least 6 characters.');
+      _showError('register.error_password_length'.tr());
       return;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
-      _showError('Passwords do not match.');
+      _showError('register.error_password_match'.tr());
       return;
     }
     if (!_agreeToTerms) {
-      _showError('Please accept the terms and conditions.');
+      _showError('register.error_agree_terms'.tr());
       return;
     }
 

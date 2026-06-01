@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/app_colors.dart';
@@ -163,7 +164,7 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.navigation_rounded,
                       color: Colors.white,
@@ -171,7 +172,7 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'Navigate Home Safely',
+                      'ai.navigate_home_safely'.tr(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 13,

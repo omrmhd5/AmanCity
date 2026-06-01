@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth/auth_service.dart';
 import '../../utils/navigation_service.dart' as navigation;
@@ -86,13 +87,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _handleLogin(String email, String password) async {
     if (email.isEmpty || password.isEmpty) {
-      _showError('Please enter your email and password.');
+      _showError('auth.enter_email_password'.tr());
       return;
     }
     setState(() => _isLoading = true);
     try {
       await AuthService.instance.signInWithEmail(email, password);
-      _showSuccess('Login successful!');
+      _showSuccess('auth.login_successful'.tr());
       // _
       //e in main.dart will automatically navigate to HomeScreen
     } catch (e) {
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen>
         await AuthService.instance.cancelSocialProfileCompletion(
           deleteCurrentUser: true,
         );
-        _showError('Phone number is required to finish Google sign-in.');
+        _showError('auth.phone_required'.tr());
         return;
       }
 
@@ -135,11 +136,11 @@ class _LoginScreenState extends State<LoginScreen>
         phone: phone,
         name: result.suggestedName,
       );
-      _showSuccess('Login successful!');
+      _showSuccess('auth.login_successful'.tr());
     } catch (e) {
       AuthService.socialProfileCompletionRequired.value = false;
       if (e.toString().contains('PlatformException')) {
-        _showError('Google sign-in was cancelled.');
+        _showError('auth.google_cancelled'.tr());
       } else {
         _showError(e.toString());
       }
@@ -160,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!result.isNewUser) {
         AuthService.socialProfileCompletionRequired.value = false;
-        _showSuccess('Login successful!');
+        _showSuccess('auth.login_successful'.tr());
         return;
       }
 
@@ -171,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen>
         await AuthService.instance.cancelSocialProfileCompletion(
           deleteCurrentUser: true,
         );
-        _showError('Phone number is required to finish Apple sign-in.');
+        _showError('auth.phone_required'.tr());
         return;
       }
 
@@ -181,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen>
         phone: phone,
         name: result.suggestedName,
       );
-      _showSuccess('Login successful!');
+      _showSuccess('auth.login_successful'.tr());
     } catch (e) {
       AuthService.socialProfileCompletionRequired.value = false;
       _showError(e.toString());

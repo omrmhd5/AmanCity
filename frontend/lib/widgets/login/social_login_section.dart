@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../shared/custom_text.dart';
@@ -29,7 +30,7 @@ class SocialLoginSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: CustomText(
-                text: 'Or continue with',
+                text: 'common.or_continue_with'.tr(),
                 size: 12,
                 weight: FontWeight.w400,
                 color: AppTheme.getSecondaryTextColor(),
@@ -69,7 +70,7 @@ class SocialLoginSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       CustomText(
-                        text: 'Google',
+                        text: 'auth.google'.tr(),
                         size: 13,
                         weight: FontWeight.w500,
                         color: AppTheme.getPrimaryTextColor(),
@@ -105,7 +106,7 @@ class SocialLoginSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       CustomText(
-                        text: 'Apple',
+                        text: 'auth.apple'.tr(),
                         size: 13,
                         weight: FontWeight.w500,
                         color: AppTheme.getPrimaryTextColor(),

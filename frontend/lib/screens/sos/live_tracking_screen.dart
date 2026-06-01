@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -285,7 +286,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                           const SizedBox(width: 8),
                           Text(
                             _sessionEnded
-                                ? 'SOS Ended'
+                                ? 'sos.sos_ended'.tr()
                                 : 'SOS Active • $_elapsedLabel',
                             style: TextStyle(
                               color: _sessionEnded
@@ -360,7 +361,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            name.isEmpty ? 'Unknown' : name,
+                            name.isEmpty ? 'common.unknown'.tr() : name,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 17,
@@ -409,7 +410,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                         Expanded(
                           child: _ActionButton(
                             icon: Icons.phone,
-                            label: 'Call',
+                            label: 'sos.call'.tr(),
                             color: AppColors.secondary,
                             onTap: _callUser,
                           ),
@@ -418,7 +419,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                         Expanded(
                           child: _ActionButton(
                             icon: Icons.local_police,
-                            label: 'Call 122',
+                            label: 'sos.call_122'.tr(),
                             color: const Color(0xFFFF3B3B),
                             onTap: _callEmergency,
                           ),
@@ -427,7 +428,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                         Expanded(
                           child: _ActionButton(
                             icon: Icons.my_location,
-                            label: 'Center',
+                            label: 'map.center'.tr(),
                             color: Colors.white.withOpacity(0.15),
                             iconColor: Colors.white,
                             onTap: () {
@@ -449,7 +450,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                       width: double.infinity,
                       child: _ActionButton(
                         icon: Icons.navigation_rounded,
-                        label: 'Navigate to location',
+                        label: 'map.navigate_to_location'.tr(),
                         color: const Color(0xFF2563EB),
                         iconColor: Colors.white,
                         onTap: _openInGoogleMaps,

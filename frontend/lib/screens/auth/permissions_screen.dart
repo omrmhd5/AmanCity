@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,51 +39,46 @@ class PermissionsScreen extends StatefulWidget {
 class _PermissionsScreenState extends State<PermissionsScreen>
     with SingleTickerProviderStateMixin {
   // ── Static permission list ──
-  static const _items = [
+  List<_PermItem> get _items => [
     _PermItem(
-      title: 'Location',
-      reason:
-          'Provides real-time proximity alerts and pinpoints your location during emergencies.',
+      title: 'permissions.location'.tr(),
+      reason: 'permissions.location_reason'.tr(),
       icon: Icons.location_on_outlined,
       permission: Permission.locationWhenInUse,
       required: true,
     ),
     _PermItem(
-      title: 'Camera',
-      reason:
-          'Captures photos and video evidence when reporting incidents or during SOS.',
+      title: 'permissions.camera'.tr(),
+      reason: 'permissions.camera_reason'.tr(),
       icon: Icons.camera_alt_outlined,
       permission: Permission.camera,
       required: true,
     ),
     _PermItem(
-      title: 'Microphone',
-      reason:
-          'Records audio evidence during SOS emergencies for documentation.',
+      title: 'permissions.microphone'.tr(),
+      reason: 'permissions.microphone_reason'.tr(),
       icon: Icons.mic_outlined,
       permission: Permission.microphone,
       required: true,
     ),
     _PermItem(
-      title: 'Phone',
-      reason:
-          'Allows the app to make emergency calls and access your contacts for SOS alerts.',
+      title: 'permissions.phone'.tr(),
+      reason: 'permissions.phone_reason'.tr(),
       icon: Icons.phone_outlined,
       permission: Permission.phone,
       required: true,
     ),
     _PermItem(
-      title: 'Photos & Videos',
-      reason:
-          'Lets you attach media from your gallery when reporting incidents.',
+      title: 'permissions.photos_videos'.tr(),
+      reason: 'permissions.photos_reason'.tr(),
       icon: Icons.photo_library_outlined,
       permission: Permission.photos,
-      fallbackPermission: Permission.storage, // Fallback for older Android
+      fallbackPermission: Permission.storage,
       required: true,
     ),
     _PermItem(
-      title: 'Notifications',
-      reason: 'Sends critical safety alerts and incident updates in your area.',
+      title: 'permissions.notifications'.tr(),
+      reason: 'permissions.notifications_reason'.tr(),
       icon: Icons.notifications_outlined,
       permission: Permission.notification,
       required: true,
@@ -202,14 +198,14 @@ class _PermissionsScreenState extends State<PermissionsScreen>
         backgroundColor: AppTheme.getCardBackgroundColor(),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          '$permName Required',
+          'permissions.required_dialog_title'.tr(namedArgs: {'name': permName}),
           style: TextStyle(
             color: AppTheme.getPrimaryTextColor(),
             fontWeight: FontWeight.bold,
           ),
         ),
         content: Text(
-          '$permName is required for core safety features. Please enable it in your app settings.',
+          'permissions.required_dialog_body'.tr(namedArgs: {'name': permName}),
           style: TextStyle(
             color: AppTheme.getSecondaryTextColor(),
             height: 1.5,
@@ -219,7 +215,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'Cancel',
+              'common.cancel'.tr(),
               style: TextStyle(color: AppTheme.getSecondaryTextColor()),
             ),
           ),
@@ -235,7 +231,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Open Settings'),
+            child: Text('permissions.open_settings'.tr()),
           ),
         ],
       ),
@@ -281,7 +277,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'System Access',
+                      'permissions.system_access'.tr(),
                       style: TextStyle(
                         color: AppTheme.getPrimaryTextColor(),
                         fontSize: 28,
@@ -291,7 +287,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Authorize the following permissions to enable full safety functionality.',
+                      'permissions.authorize_subtitle'.tr(),
                       style: TextStyle(
                         color: AppTheme.getSecondaryTextColor(),
                         fontSize: 14,
@@ -356,9 +352,9 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Continue',
-                        style: TextStyle(
+                      child: Text(
+                        'common.continue_btn'.tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -509,9 +505,9 @@ class _PermCard extends StatelessWidget {
                         color: Colors.red.shade900.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      child: const Text(
-                        'Required',
-                        style: TextStyle(
+                      child: Text(
+                        'permissions.required'.tr(),
+                        style: const TextStyle(
                           color: Color(0xFFFF8A80),
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -519,9 +515,9 @@ class _PermCard extends StatelessWidget {
                       ),
                     )
                   else
-                    const Text(
-                      'Granted ✓',
-                      style: TextStyle(
+                    Text(
+                      'permissions.granted'.tr(),
+                      style: const TextStyle(
                         color: AppColors.secondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

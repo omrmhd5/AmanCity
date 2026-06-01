@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -29,7 +30,7 @@ class NewsTypeFilter extends StatelessWidget {
           children: [
             // "All" chip
             CustomFilterChip(
-              label: 'All',
+              label: 'common.all'.tr(),
               isSelected: selectedFilter == null,
               selectedColor: AppColors.secondary,
               onTap: () => onFilterChanged(null),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
@@ -58,7 +59,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'EVIDENCE FEED',
+                      'map.evidence_feed'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -118,7 +119,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
             ),
             child: Center(
               child: CustomText(
-                text: 'No evidence attached',
+                text: 'map.no_evidence'.tr(),
                 size: 12,
                 weight: FontWeight.w400,
                 color: AppTheme.getSecondaryTextColor(),
@@ -171,7 +172,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
                     const Icon(Icons.radar, size: 14, color: Color(0xFF7C3AED)),
                     const SizedBox(width: 6),
                     Text(
-                      'SOURCES',
+                      'map.sources'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -282,8 +283,8 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open tweet link'),
+          SnackBar(
+            content: Text('map.could_not_open_tweet'.tr()),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
@@ -385,7 +386,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
             Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
             const SizedBox(height: 12),
             CustomText(
-              text: 'Failed to load image',
+              text: 'map.failed_to_load_image'.tr(),
               size: 12,
               weight: FontWeight.w400,
               color: Colors.grey,
@@ -425,7 +426,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
                           ),
                           const SizedBox(height: 12),
                           CustomText(
-                            text: 'Failed to load image',
+                            text: 'map.failed_to_load_image'.tr(),
                             size: 12,
                             weight: FontWeight.w400,
                             color: Colors.grey,
@@ -496,7 +497,7 @@ class _EvidenceFeedSectionState extends State<EvidenceFeedSection> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: CustomText(
-                text: 'VIDEO',
+                text: 'common.video'.tr(),
                 size: 10,
                 weight: FontWeight.w700,
                 color: Colors.white,

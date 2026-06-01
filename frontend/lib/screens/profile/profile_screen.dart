@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth/auth_service.dart';
@@ -83,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     padding: const EdgeInsets.only(bottom: 24.0, top: 32.0),
                     child: Center(
                       child: Text(
-                        'Version 1.0.0 • Build 1',
+                        'profile.version'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.getSecondaryTextColor(),

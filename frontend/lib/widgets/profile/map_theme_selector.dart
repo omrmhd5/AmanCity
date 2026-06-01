@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/app_colors.dart';
@@ -42,7 +43,13 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Map style changed to ${style == 'dark' ? 'Dark' : 'Light'}',
+          'profile.map_style_changed'.tr(
+            namedArgs: {
+              'style': style == 'dark'
+                  ? 'profile.dark'.tr()
+                  : 'profile.light'.tr(),
+            },
+          ),
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -119,7 +126,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Map Theme',
+                          'profile.map_theme'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -129,8 +136,8 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                         const SizedBox(height: 3),
                         Text(
                           _mapStylePreference == 'dark'
-                              ? 'Dark mode'
-                              : 'Light mode',
+                              ? 'profile.dark_mode'.tr()
+                              : 'profile.light_mode'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.getSecondaryTextColor(),
@@ -153,7 +160,9 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                       ),
                     ),
                     child: Text(
-                      _mapStylePreference == 'dark' ? 'DARK' : 'LIGHT',
+                      _mapStylePreference == 'dark'
+                          ? 'profile.dark'.tr()
+                          : 'profile.light'.tr(),
                       style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -196,7 +205,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Theme',
+                    'profile.theme'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppTheme.getPrimaryTextColor(),
@@ -204,7 +213,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Choose between light and dark theme',
+                    'profile.choose_theme'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.getSecondaryTextColor(),
                     ),
@@ -217,7 +226,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
           _buildToggleButtons(),
           const SizedBox(height: 12),
           Text(
-            'This preference applies to both the main map and location picker',
+            'profile.theme_note'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppTheme.getSecondaryTextColor(),
               fontStyle: FontStyle.italic,
@@ -239,7 +248,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
         children: [
           Expanded(
             child: _buildThemeButton(
-              label: 'Light',
+              label: 'profile.light'.tr(),
               icon: Icons.wb_sunny,
               isSelected: _mapStylePreference == 'light',
               onTap: () => _setMapStylePreference('light'),
@@ -248,7 +257,7 @@ class _MapThemeSelectorState extends State<MapThemeSelector> {
           ),
           Expanded(
             child: _buildThemeButton(
-              label: 'Dark',
+              label: 'profile.dark'.tr(),
               icon: Icons.dark_mode,
               isSelected: _mapStylePreference == 'dark',
               onTap: () => _setMapStylePreference('dark'),

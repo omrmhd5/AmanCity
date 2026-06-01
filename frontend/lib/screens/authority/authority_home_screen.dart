@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -20,11 +21,11 @@ class _AuthorityHomeScreenState extends State<AuthorityHomeScreen>
     with SingleTickerProviderStateMixin {
   AuthorityNavItem _current = AuthorityNavItem.dashboard;
 
-  final Map<AuthorityNavItem, String> _titles = {
-    AuthorityNavItem.dashboard: 'Dashboard',
-    AuthorityNavItem.incidents: 'Incidents',
-    AuthorityNavItem.sos: 'SOS Monitor',
-    AuthorityNavItem.profile: 'Profile',
+  Map<AuthorityNavItem, String> get _titles => {
+    AuthorityNavItem.dashboard: 'authority.dashboard'.tr(),
+    AuthorityNavItem.incidents: 'authority.incidents'.tr(),
+    AuthorityNavItem.sos: 'authority.sos_monitor'.tr(),
+    AuthorityNavItem.profile: 'profile.title'.tr(),
   };
 
   void _onNavTapped(AuthorityNavItem item) {
@@ -96,8 +97,8 @@ class _AuthorityHeader extends StatelessWidget {
                   size: 14,
                 ),
                 const SizedBox(width: 5),
-                const CustomText(
-                  text: 'AUTHORITY',
+                CustomText(
+                  text: 'authority.title'.tr(),
                   size: 10,
                   weight: FontWeight.w800,
                   color: AppColors.secondary,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -77,8 +78,8 @@ class _HomeReportCardState extends State<HomeReportCard> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
-                            'GROK AI LIVE FEED',
+                          Text(
+                            'home.grok_live_feed'.tr(),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
@@ -90,7 +91,7 @@ class _HomeReportCardState extends State<HomeReportCard> {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        'Real-time safety insights powered by X',
+                        'home.grok_desc'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.getSecondaryTextColor(),
@@ -100,9 +101,15 @@ class _HomeReportCardState extends State<HomeReportCard> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          _featureChip(Icons.bolt_rounded, 'Real-time'),
+                          _featureChip(
+                            Icons.bolt_rounded,
+                            'home.real_time'.tr(),
+                          ),
                           const SizedBox(width: 8),
-                          _featureChip(Icons.smart_toy_rounded, 'AI Powered'),
+                          _featureChip(
+                            Icons.smart_toy_rounded,
+                            'home.ai_powered'.tr(),
+                          ),
                         ],
                       ),
                     ],

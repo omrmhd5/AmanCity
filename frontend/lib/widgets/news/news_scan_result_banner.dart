@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -63,15 +64,19 @@ class _NewsScanResultBannerState extends State<NewsScanResultBanner> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  text: 'Scan Complete',
+                  text: 'news.scan_complete'.tr(),
                   size: 13,
                   weight: FontWeight.w600,
                   color: AppTheme.getPrimaryTextColor(),
                 ),
                 const SizedBox(height: 4),
                 CustomText(
-                  text:
-                      'Scanned: ${widget.scanned} tweets • Saved: ${widget.saved} new incidents',
+                  text: 'news.scan_result'.tr(
+                    namedArgs: {
+                      'scanned': widget.scanned.toString(),
+                      'saved': widget.saved.toString(),
+                    },
+                  ),
                   size: 11,
                   weight: FontWeight.w400,
                   color: AppTheme.getSecondaryTextColor(),

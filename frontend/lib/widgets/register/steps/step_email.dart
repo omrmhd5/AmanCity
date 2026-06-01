@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../shared/custom_text_field.dart';
 import '../../shared/custom_button.dart';
@@ -24,7 +25,7 @@ class StepEmail extends StatelessWidget {
         children: [
           const SizedBox(height: 32),
           Text(
-            'Your email address',
+            'register.step_email_title'.tr(),
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -33,7 +34,7 @@ class StepEmail extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            "We'll send a verification link here.",
+            "register.step_email_subtitle".tr(),
             style: TextStyle(
               fontSize: 14,
               color: AppTheme.getSecondaryTextColor(),
@@ -41,17 +42,13 @@ class StepEmail extends StatelessWidget {
           ),
           const SizedBox(height: 36),
           CustomTextField(
-            label: 'Email',
+            label: 'register.email'.tr(),
             placeholder: 'example@email.com',
             prefixIcon: Icons.email_outlined,
             controller: controller,
           ),
           const SizedBox(height: 32),
-          CustomButton(
-            text: 'Continue',
-            onPressed: onNext,
-            icon: Icons.arrow_forward,
-          ),
+          CustomButton(text: 'common.continue_btn'.tr(), onPressed: onNext),
           const SizedBox(height: 16),
           Center(
             child: TextButton(

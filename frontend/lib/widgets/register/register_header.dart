@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../shared/custom_text.dart';
 import '../../utils/app_theme.dart';
@@ -47,15 +48,14 @@ class RegisterHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  text: 'User Registration',
+                  text: 'register.header_title'.tr(),
                   size: 28,
                   weight: FontWeight.w700,
                   color: AppTheme.getPrimaryTextColor(),
                 ),
                 const SizedBox(height: 8),
                 CustomText(
-                  text:
-                      'Create a secure account to access real-time safety alerts and reporting tools.',
+                  text: 'register.header_subtitle'.tr(),
                   size: 13,
                   weight: FontWeight.w400,
                   color: AppTheme.getSecondaryTextColor(),

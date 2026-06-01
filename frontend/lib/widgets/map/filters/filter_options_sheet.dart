@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
@@ -210,7 +211,10 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _sectionLabel(Icons.place_rounded, 'Display Range'),
+                            _sectionLabel(
+                              Icons.place_rounded,
+                              'map.display_range'.tr(),
+                            ),
                             Text(
                               '${radiusKm.toStringAsFixed(1)} km',
                               style: TextStyle(
@@ -305,7 +309,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'POIs like hospitals, police stations, and fire departments within this range will be displayed on the map.',
+                                'map.pois_range_note'.tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -325,12 +329,14 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                           children: [
                             _sectionLabel(
                               Icons.warning_amber_rounded,
-                              'Incident Types',
+                              'map.incident_types'.tr(),
                             ),
                             GestureDetector(
                               onTap: _toggleAll,
                               child: Text(
-                                _allSelected ? 'Deselect All' : 'Select All',
+                                _allSelected
+                                    ? 'map.deselect_all'.tr()
+                                    : 'map.select_all'.tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -402,7 +408,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                                     borderRadius: BorderRadius.circular(24),
                                   ),
                                   child: CustomText(
-                                    text: 'Show More',
+                                    text: 'map.show_more'.tr(),
                                     size: 12,
                                     weight: FontWeight.w600,
                                     color: AppColors.secondary,
@@ -455,9 +461,9 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: CustomText(
-                            text: 'Apply Filters',
+                            text: 'map.apply_filters'.tr(),
                             size: 14,
                             weight: FontWeight.w700,
                             color: Colors.white,

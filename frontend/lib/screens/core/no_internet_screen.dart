@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -74,7 +75,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
 
                 // Title
                 Text(
-                  'No Internet Connection',
+                  'connectivity.offline'.tr(),
                   style: TextStyle(
                     color: AppTheme.getPrimaryTextColor(),
                     fontSize: 22,
@@ -87,7 +88,7 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
 
                 // Message
                 Text(
-                  'Please check your Wi-Fi or mobile data and try again.',
+                  'connectivity.offline_subtitle'.tr(),
                   style: TextStyle(
                     color: AppTheme.getSecondaryTextColor(),
                     fontSize: 15,
@@ -123,9 +124,9 @@ class _NoInternetScreenState extends State<NoInternetScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Retry',
-                            style: TextStyle(
+                        : Text(
+                            'common.retry'.tr(),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),

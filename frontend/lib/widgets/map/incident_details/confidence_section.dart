@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
@@ -23,11 +24,11 @@ class ConfidenceSection extends StatelessWidget {
   /// Get confidence level text
   String _getConfidenceLevelText(double confidence) {
     if (confidence >= 0.75) {
-      return 'High Confidence';
+      return 'map.high_confidence'.tr();
     } else if (confidence >= 0.65) {
-      return 'Medium Confidence';
+      return 'map.medium_confidence'.tr();
     } else {
-      return 'Low Confidence';
+      return 'map.low_confidence'.tr();
     }
   }
 
@@ -62,7 +63,7 @@ class ConfidenceSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'AI CONFIDENCE',
+                    'map.ai_confidence'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -106,7 +107,7 @@ class ConfidenceSection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    text: 'Detection Score',
+                    text: 'map.detection_score'.tr(),
                     size: 13,
                     weight: FontWeight.w500,
                     color: AppTheme.getPrimaryTextColor(),
@@ -149,10 +150,10 @@ class ConfidenceSection extends StatelessWidget {
                   Expanded(
                     child: CustomText(
                       text: confidence >= 0.75
-                          ? 'High AI confidence in detection'
+                          ? 'map.high_confidence_desc'.tr()
                           : confidence >= 0.65
-                          ? 'Moderate AI confidence in detection'
-                          : 'Low AI confidence - verify manually',
+                          ? 'map.medium_confidence_desc'.tr()
+                          : 'map.low_confidence_desc'.tr(),
                       size: 12,
                       weight: FontWeight.w400,
                       color: AppTheme.getSecondaryTextColor(),

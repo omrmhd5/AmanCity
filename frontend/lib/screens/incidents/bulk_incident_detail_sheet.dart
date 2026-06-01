@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/app_colors.dart';
@@ -123,7 +124,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Bulk Incident',
+                          'incidents.bulk_incident'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -176,7 +177,10 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
                         BulkSourceChips(bulk: bulk),
                         const SizedBox(height: 20),
                         if (bulk.mediaUrls.isNotEmpty) ...[
-                          _sectionLabel('Media Evidence', Icons.image_rounded),
+                          _sectionLabel(
+                            'incidents.media_evidence'.tr(),
+                            Icons.image_rounded,
+                          ),
                           const SizedBox(height: 10),
                           BulkMediaFeed(
                             mediaUrls: bulk.mediaUrls,
@@ -185,7 +189,10 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
                           const SizedBox(height: 20),
                         ],
                         if (bulk.sourceUrls.isNotEmpty) ...[
-                          _sectionLabel('OSINT Sources', Icons.link_rounded),
+                          _sectionLabel(
+                            'incidents.osint_sources'.tr(),
+                            Icons.link_rounded,
+                          ),
                           const SizedBox(height: 10),
                           BulkOsintSources(urls: bulk.sourceUrls),
                           const SizedBox(height: 20),
@@ -273,7 +280,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
@@ -283,7 +290,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
                             ),
                             SizedBox(width: 8),
                             Text(
-                              'Navigate To Location',
+                              'map.navigate_to_location'.tr(),
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,

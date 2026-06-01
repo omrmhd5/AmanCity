@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../config/app_config.dart';
 import '../../../utils/app_theme.dart';
@@ -65,7 +66,7 @@ class BulkMediaFeed extends StatelessWidget {
                   child: Image.network(
                     imageUrl,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Center(
+                    errorBuilder: (_, __, ___) => Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -76,7 +77,7 @@ class BulkMediaFeed extends StatelessWidget {
                           ),
                           SizedBox(height: 12),
                           Text(
-                            'Failed to load image',
+                            'map.failed_to_load_image'.tr(),
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
@@ -158,7 +159,7 @@ class BulkMediaFeed extends StatelessWidget {
                           borderRadius: BorderRadius.circular(isSmall ? 2 : 4),
                         ),
                         child: Text(
-                          isSmall ? 'VID' : 'VIDEO',
+                          isSmall ? 'common.vid'.tr() : 'common.video'.tr(),
                           style: TextStyle(
                             fontSize: isSmall ? 6 : 8,
                             fontWeight: FontWeight.w700,

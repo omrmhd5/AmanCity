@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -12,7 +13,7 @@ class AuthoritySosTile extends StatelessWidget {
 
   String get _timeAgo {
     final diff = DateTime.now().difference(session.createdAt);
-    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 1) return 'common.just_now'.tr();
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';
@@ -84,8 +85,8 @@ class AuthoritySosTile extends StatelessWidget {
                   color: AppColors.danger.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(5),
                 ),
-                child: const CustomText(
-                  text: 'ACTIVE',
+                child: CustomText(
+                  text: 'common.active'.tr(),
                   size: 10,
                   weight: FontWeight.w800,
                   color: AppColors.danger,

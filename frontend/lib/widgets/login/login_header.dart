@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../shared/custom_text.dart';
 import '../../utils/app_theme.dart';
@@ -24,7 +25,7 @@ class LoginHeader extends StatelessWidget {
           const SizedBox(height: 16),
           // App Title
           CustomText(
-            text: 'AmanCity',
+            text: 'app.name'.tr(),
             size: 32,
             weight: FontWeight.w700,
             color: AppTheme.getPrimaryTextColor(),
@@ -32,7 +33,7 @@ class LoginHeader extends StatelessWidget {
           const SizedBox(height: 8),
           // Tagline
           CustomText(
-            text: 'Your Safety, Our Priority.',
+            text: 'app.tagline'.tr(),
             size: 13,
             weight: FontWeight.w500,
             color: AppTheme.getSecondaryTextColor(),

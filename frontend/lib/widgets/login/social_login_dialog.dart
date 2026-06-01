@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -60,7 +61,9 @@ class _SocialLoginDialogState extends State<SocialLoginDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Complete ${widget.providerName} sign-in',
+                      'auth.complete_signin'.tr(
+                        namedArgs: {'provider': widget.providerName},
+                      ),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -69,7 +72,7 @@ class _SocialLoginDialogState extends State<SocialLoginDialog> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Please enter your phone number to finish creating your account.',
+                      'auth.enter_phone_to_finish'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         color: AppTheme.getSecondaryTextColor(),
@@ -113,7 +116,7 @@ class _SocialLoginDialogState extends State<SocialLoginDialog> {
                               fontSize: 14,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Enter your phone number',
+                              hintText: 'auth.enter_phone_hint'.tr(),
                               hintStyle: TextStyle(
                                 color: AppTheme.getSecondaryTextColor(),
                               ),
@@ -164,7 +167,7 @@ class _SocialLoginDialogState extends State<SocialLoginDialog> {
                               ),
                             ),
                             child: Text(
-                              'Cancel',
+                              'common.cancel'.tr(),
                               style: TextStyle(
                                 color: AppTheme.getSecondaryTextColor(),
                                 fontSize: 14,
@@ -180,8 +183,7 @@ class _SocialLoginDialogState extends State<SocialLoginDialog> {
                               final phone = _phoneController.text.trim();
                               if (phone.isEmpty) {
                                 setState(() {
-                                  _validationError =
-                                      'Phone number is required.';
+                                  _validationError = 'auth.phone_required'.tr();
                                 });
                                 return;
                               }
@@ -199,9 +201,9 @@ class _SocialLoginDialogState extends State<SocialLoginDialog> {
                               ),
                               elevation: 0,
                             ),
-                            child: const Text(
-                              'Continue',
-                              style: TextStyle(
+                            child: Text(
+                              'common.continue_btn'.tr(),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,

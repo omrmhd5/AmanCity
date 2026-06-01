@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../models/map/hotspot_zone.dart';
 import '../../../utils/app_theme.dart';
@@ -121,7 +122,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                         const SizedBox(width: 8),
                         Expanded(
                           child: CustomText(
-                            text: 'Risk Zone Details',
+                            text: 'map.risk_zone_details'.tr(),
                             size: 16,
                             weight: FontWeight.w800,
                             color: AppTheme.getPrimaryTextColor(),
@@ -204,7 +205,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      text: 'Predicted Risk Zone',
+                                      text: 'map.predicted_risk_zone'.tr(),
                                       size: 11,
                                       color: AppTheme.getSecondaryTextColor(),
                                       weight: FontWeight.w500,
@@ -249,7 +250,10 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                         const SizedBox(height: 20),
 
                         // Risk Score section
-                        _sectionLabel(Icons.speed_rounded, 'Risk Score'),
+                        _sectionLabel(
+                          Icons.speed_rounded,
+                          'map.risk_score'.tr(),
+                        ),
                         const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(14),
@@ -273,7 +277,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   CustomText(
-                                    text: 'Score Level',
+                                    text: 'map.score_level'.tr(),
                                     size: 12,
                                     weight: FontWeight.w600,
                                     color: AppTheme.getSecondaryTextColor(),
@@ -305,7 +309,10 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                         const SizedBox(height: 20),
 
                         // Zone Info section
-                        _sectionLabel(Icons.info_outline_rounded, 'Zone Info'),
+                        _sectionLabel(
+                          Icons.info_outline_rounded,
+                          'map.zone_info'.tr(),
+                        ),
                         const SizedBox(height: 10),
                         Container(
                           decoration: BoxDecoration(
@@ -324,7 +331,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                           child: Column(
                             children: [
                               HotspotDetailRow(
-                                label: 'Incidents in Zone',
+                                label: 'map.incidents_in_zone'.tr(),
                                 value: '${widget.hotspot.incidentCount}',
                               ),
                               const SizedBox(height: 4),
@@ -335,7 +342,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                 ),
                               ),
                               HotspotDetailRow(
-                                label: 'Zone Radius',
+                                label: 'map.zone_radius'.tr(),
                                 value:
                                     '${widget.hotspot.radiusKm.toStringAsFixed(2)} km',
                               ),
@@ -347,7 +354,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                 ),
                               ),
                               HotspotDetailRow(
-                                label: 'Avg Confidence',
+                                label: 'map.avg_confidence'.tr(),
                                 value:
                                     '${(widget.hotspot.avgConfidence * 100).toStringAsFixed(0)}%',
                               ),
@@ -359,7 +366,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                 ),
                               ),
                               HotspotDetailRow(
-                                label: 'Last Updated',
+                                label: 'map.last_updated'.tr(),
                                 value: widget.hotspot.timeSinceUpdate,
                               ),
                             ],

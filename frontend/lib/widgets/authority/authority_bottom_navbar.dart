@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -70,28 +71,28 @@ class AuthorityBottomNavBar extends StatelessWidget {
                       _buildNavItem(
                         icon: Icons.dashboard_outlined,
                         activeIcon: Icons.dashboard,
-                        label: 'Dashboard',
+                        label: 'authority.dashboard'.tr(),
                         item: AuthorityNavItem.dashboard,
                         isDark: isDark,
                       ),
                       _buildNavItem(
                         icon: Icons.list_alt_outlined,
                         activeIcon: Icons.list_alt,
-                        label: 'Incidents',
+                        label: 'authority.incidents'.tr(),
                         item: AuthorityNavItem.incidents,
                         isDark: isDark,
                       ),
                       _buildNavItem(
                         icon: Icons.emergency_outlined,
                         activeIcon: Icons.emergency,
-                        label: 'SOS',
+                        label: 'sos.title'.tr(),
                         item: AuthorityNavItem.sos,
                         isDark: isDark,
                       ),
                       _buildNavItem(
                         icon: Icons.person_outline,
                         activeIcon: Icons.person,
-                        label: 'Profile',
+                        label: 'profile.title'.tr(),
                         item: AuthorityNavItem.profile,
                         isDark: isDark,
                       ),

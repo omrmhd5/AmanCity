@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../shared/custom_text_field.dart';
 import '../shared/custom_button.dart';
@@ -45,14 +46,14 @@ class _LoginFormState extends State<LoginForm> {
       children: [
         // Welcome message
         CustomText(
-          text: 'Welcome Back',
+          text: 'auth.welcome_back'.tr(),
           size: 24,
           weight: FontWeight.w600,
           color: AppTheme.getPrimaryTextColor(),
         ),
         const SizedBox(height: 4),
         CustomText(
-          text: 'Please sign in to continue.',
+          text: 'auth.sign_in_to_continue'.tr(),
           size: 13,
           weight: FontWeight.w400,
           color: AppTheme.getSecondaryTextColor(),
@@ -60,16 +61,16 @@ class _LoginFormState extends State<LoginForm> {
         const SizedBox(height: 24),
         // Email Input
         CustomTextField(
-          label: 'Email',
-          placeholder: 'example@email.com',
+          label: 'auth.email'.tr(),
+          placeholder: 'auth.email_placeholder'.tr(),
           prefixIcon: Icons.email,
           controller: _identityController,
         ),
         const SizedBox(height: 20),
         // Password Input
         CustomTextField(
-          label: 'Password',
-          placeholder: '•••••••••',
+          label: 'auth.password'.tr(),
+          placeholder: 'auth.password_placeholder'.tr(),
           prefixIcon: Icons.lock,
           isPassword: true,
           controller: _passwordController,
@@ -80,10 +81,10 @@ class _LoginFormState extends State<LoginForm> {
             // Handle forgot password
           },
           enableScale: false,
-          child: const Align(
+          child: Align(
             alignment: Alignment.centerRight,
             child: CustomText(
-              text: 'Forgot Password?',
+              text: 'auth.forgot_password'.tr(),
               size: 13,
               weight: FontWeight.w500,
               color: AppColors.secondary,
@@ -93,7 +94,7 @@ class _LoginFormState extends State<LoginForm> {
         const SizedBox(height: 24),
         // Login Button
         CustomButton(
-          text: 'Log In',
+          text: 'auth.log_in'.tr(),
           onPressed: () => widget.onLoginPressed(
             _identityController.text.trim(),
             _passwordController.text,

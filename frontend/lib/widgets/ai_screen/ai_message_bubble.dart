@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
@@ -125,7 +126,7 @@ class AiMessageBubble extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 6),
                                   CustomText(
-                                    text: 'DATA SOURCE',
+                                    text: 'ai.data_source'.tr(),
                                     size: 10,
                                     weight: FontWeight.w700,
                                     color: AppColors.secondary,
@@ -146,7 +147,7 @@ class AiMessageBubble extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     CustomText(
-                                      text: 'View on Map',
+                                      text: 'map.navigate_to_location'.tr(),
                                       size: 11,
                                       weight: FontWeight.w600,
                                       color: AppColors.secondary,

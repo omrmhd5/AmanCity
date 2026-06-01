@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -421,7 +422,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                   ),
                   const SizedBox(width: 7),
                   Text(
-                    'Location tracking active',
+                    'sos.location_tracking_active'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.success,
@@ -449,7 +450,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'MANAGE',
+                    'sos.manage'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -538,7 +539,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Trusted App Contacts',
+                                'sos.trusted_contacts'.tr(),
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -547,7 +548,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'In-app contacts who see your live SOS location',
+                                'sos.trusted_contacts_desc'.tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppTheme.getSecondaryTextColor(),
@@ -622,7 +623,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Past Recordings',
+                                'sos.past_recordings'.tr(),
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -631,7 +632,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Review & play audio captured during SOS alerts',
+                                'sos.past_recordings_desc'.tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppTheme.getSecondaryTextColor(),

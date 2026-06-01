@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
@@ -6,10 +7,10 @@ import '../shared/custom_filter_chips.dart';
 class AiQuickPrompts extends StatelessWidget {
   final Function(String) onPromptSelected;
 
-  static const List<String> prompts = [
-    'Is my area safe?',
-    'Safest route home',
-    'Emergency numbers',
+  List<String> get prompts => [
+    'ai.prompt_area_safe'.tr(),
+    'ai.prompt_safest_route'.tr(),
+    'ai.prompt_emergency_numbers'.tr(),
   ];
 
   const AiQuickPrompts({Key? key, required this.onPromptSelected})
@@ -47,7 +48,7 @@ class AiQuickPrompts extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'QUICK PROMPTS',
+                'ai.quick_prompts'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,

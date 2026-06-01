@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../shared/custom_search_bar.dart';
 
@@ -16,7 +17,7 @@ class NewsSearchBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: CustomSearchBar(
-        hintText: 'Search incidents...',
+        hintText: 'news.search_hint'.tr(),
         onChanged: onSearchChanged,
       ),
     );

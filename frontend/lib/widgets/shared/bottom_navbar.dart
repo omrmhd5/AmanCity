@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -67,34 +68,42 @@ class BottomNavBar extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNavItem(
-                        icon: Icons.map_outlined,
-                        activeIcon: Icons.map,
-                        label: 'Map',
-                        item: NavItem.map,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.map_outlined,
+                          activeIcon: Icons.map,
+                          label: 'map.title'.tr(),
+                          item: NavItem.map,
+                          isDark: isDark,
+                        ),
                       ),
-                      _buildNavItem(
-                        icon: Icons.flag_outlined,
-                        activeIcon: Icons.flag,
-                        label: 'Report',
-                        item: NavItem.report,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.flag_outlined,
+                          activeIcon: Icons.flag,
+                          label: 'report.title'.tr(),
+                          item: NavItem.report,
+                          isDark: isDark,
+                        ),
                       ),
                       _buildHomeButton(isDark: isDark),
-                      _buildNavItem(
-                        icon: Icons.psychology_outlined,
-                        activeIcon: Icons.psychology,
-                        label: 'AI',
-                        item: NavItem.ai,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.psychology_outlined,
+                          activeIcon: Icons.psychology,
+                          label: 'ai.title'.tr(),
+                          item: NavItem.ai,
+                          isDark: isDark,
+                        ),
                       ),
-                      _buildNavItem(
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person,
-                        label: 'Profile',
-                        item: NavItem.profile,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.person_outline,
+                          activeIcon: Icons.person,
+                          label: 'profile.title'.tr(),
+                          item: NavItem.profile,
+                          isDark: isDark,
+                        ),
                       ),
                     ],
                   ),

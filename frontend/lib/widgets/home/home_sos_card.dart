@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -89,9 +90,9 @@ class _HomeSosCardState extends State<HomeSosCard>
                                     ),
                                   ),
                                   const SizedBox(width: 7),
-                                  const Text(
-                                    'EMERGENCY SOS',
-                                    style: TextStyle(
+                                  Text(
+                                    'sos.emergency_sos'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w800,
                                       color: AppColors.danger,
@@ -102,7 +103,7 @@ class _HomeSosCardState extends State<HomeSosCard>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Hold the button to activate alert & recording',
+                                'sos.hold_button'.tr(),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppTheme.getSecondaryTextColor(),
@@ -166,7 +167,7 @@ class _HomeSosCardState extends State<HomeSosCard>
                 Expanded(
                   child: _quickLink(
                     icon: Icons.people_rounded,
-                    label: 'Contacts',
+                    label: 'sos.contacts'.tr(),
                     onTap: widget.onContactsTap,
                   ),
                 ),
@@ -178,7 +179,7 @@ class _HomeSosCardState extends State<HomeSosCard>
                 Expanded(
                   child: _quickLink(
                     icon: Icons.history_rounded,
-                    label: 'Recordings',
+                    label: 'sos.recordings'.tr(),
                     onTap: widget.onRecordingsTap,
                   ),
                 ),
@@ -332,7 +333,7 @@ class _SosHoldButtonState extends State<_SosHoldButton>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _holding ? '${secs}s' : 'HOLD',
+                        _holding ? '${secs}s' : 'sos.hold'.tr(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,

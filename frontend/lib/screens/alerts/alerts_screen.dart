@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../models/alerts/alert_notification.dart';
 import '../../services/notifications/notification_service.dart';
@@ -76,7 +77,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                     ),
                     const Spacer(),
                     Text(
-                      'Alerts',
+                      'alerts.title'.tr(),
                       style: TextStyle(
                         color: AppTheme.getPrimaryTextColor(),
                         fontSize: 18,
@@ -109,7 +110,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                                   ),
                                 ),
                                 child: Text(
-                                  'Read all',
+                                  'alerts.read_all'.tr(),
                                   style: TextStyle(
                                     color: AppColors.secondary,
                                     fontWeight: FontWeight.w600,
@@ -187,7 +188,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'RECENT ALERTS',
+                                'alerts.recent'.tr(),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
@@ -253,7 +254,7 @@ class _AlertsScreenState extends State<AlertsScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'All Clear',
+            'alerts.all_clear'.tr(),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -262,7 +263,7 @@ class _AlertsScreenState extends State<AlertsScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'No alerts at the moment.\nYou\'re in a safe zone.',
+            'alerts.no_alerts'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -294,7 +295,7 @@ class _AlertsScreenState extends State<AlertsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Clear all alerts?',
+                'alerts.clear_confirm_title'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -303,7 +304,7 @@ class _AlertsScreenState extends State<AlertsScreen>
               ),
               const SizedBox(height: 12),
               Text(
-                'This will remove all notifications from your inbox.',
+                'alerts.clear_confirm_body'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.getSecondaryTextColor(),
@@ -316,7 +317,7 @@ class _AlertsScreenState extends State<AlertsScreen>
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
                     child: Text(
-                      'Cancel',
+                      'common.cancel'.tr(),
                       style: TextStyle(
                         color: AppTheme.getSecondaryTextColor(),
                         fontSize: 14,
@@ -337,9 +338,9 @@ class _AlertsScreenState extends State<AlertsScreen>
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Clear',
-                      style: TextStyle(
+                    child: Text(
+                      'common.clear'.tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -610,7 +611,7 @@ class _AlertCardState extends State<_AlertCard> {
 
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inSeconds < 60) return 'common.just_now'.tr();
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';

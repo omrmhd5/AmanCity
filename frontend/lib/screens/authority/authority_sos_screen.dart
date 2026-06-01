@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -80,7 +81,7 @@ class _AuthoritySosScreenState extends State<AuthoritySosScreen>
         child: GestureDetector(
           onTap: _load,
           child: CustomText(
-            text: 'Error. Tap to retry.',
+            text: 'common.error_tap_retry'.tr(),
             color: AppTheme.getSecondaryTextColor(),
           ),
         ),
@@ -109,7 +110,7 @@ class _AuthoritySosScreenState extends State<AuthoritySosScreen>
                           ),
                           const SizedBox(height: 12),
                           CustomText(
-                            text: 'No active SOS sessions',
+                            text: 'authority.no_sos_sessions'.tr(),
                             size: 15,
                             weight: FontWeight.w600,
                             color: AppTheme.getSecondaryTextColor(),

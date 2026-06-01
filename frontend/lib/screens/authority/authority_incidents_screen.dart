@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -101,7 +102,7 @@ class _AuthorityIncidentsScreenState extends State<AuthorityIncidentsScreen>
         child: GestureDetector(
           onTap: _load,
           child: CustomText(
-            text: 'Error. Tap to retry.',
+            text: 'common.error_tap_retry'.tr(),
             color: AppTheme.getSecondaryTextColor(),
           ),
         ),
@@ -140,7 +141,7 @@ class _AuthorityIncidentsScreenState extends State<AuthorityIncidentsScreen>
                           const SizedBox(height: 60),
                           Center(
                             child: CustomText(
-                              text: 'No incidents found.',
+                              text: 'authority.no_incidents'.tr(),
                               color: AppTheme.getSecondaryTextColor(),
                             ),
                           ),

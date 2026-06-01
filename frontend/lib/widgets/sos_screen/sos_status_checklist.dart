@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -86,9 +87,9 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
                 color: AppColors.danger,
               ),
               const SizedBox(width: 6),
-              const Text(
-                'TRACKING STATUS',
-                style: TextStyle(
+              Text(
+                'sos.tracking_status'.tr(),
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   color: AppColors.danger,
@@ -122,9 +123,9 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
                       ),
                     ),
                     const SizedBox(width: 5),
-                    const Text(
-                      'LIVE',
-                      style: TextStyle(
+                    Text(
+                      'common.live'.tr(),
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: AppColors.danger,
@@ -161,10 +162,10 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
             iconColor: widget.locationAcquired
                 ? AppColors.success
                 : AppColors.warning,
-            title: 'Location Acquired',
+            title: 'sos.location_acquired'.tr(),
             subtitle: widget.locationAcquired
-                ? (widget.locationText ?? 'Sent to contacts')
-                : 'Acquiring GPS...',
+                ? (widget.locationText ?? 'sos.sent_to_contacts'.tr())
+                : 'sos.acquiring_gps'.tr(),
           ),
           const SizedBox(height: 16),
 
@@ -176,10 +177,10 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
             iconColor: widget.contactsNotified
                 ? AppColors.success
                 : AppColors.warning,
-            title: 'Contacts Notified',
+            title: 'sos.contacts_notified'.tr(),
             subtitle: widget.contactsNotified
-                ? 'WhatsApp alerts sent'
-                : 'Opening WhatsApp...',
+                ? 'sos.whatsapp_sent'.tr()
+                : 'sos.opening_whatsapp'.tr(),
           ),
           const SizedBox(height: 16),
 
@@ -217,7 +218,7 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Audio Recording',
+                      'sos.audio_recording'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -226,7 +227,7 @@ class _SosStatusChecklistState extends State<SosStatusChecklist>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Capturing audio evidence...',
+                      'sos.capturing_audio'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         color: AppTheme.getSecondaryTextColor(),

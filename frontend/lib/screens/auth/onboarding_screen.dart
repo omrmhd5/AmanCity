@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -63,11 +64,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     if (mounted) setState(() {});
   }
 
-  static final _pages = [
-    const _PageData(
+  List<_PageData> get _pages => [
+    _PageData(
       mainIcon: Icons.explore_outlined,
-      accentColor: Color(0xFF3B82F6),
-      badges: [
+      accentColor: const Color(0xFF3B82F6),
+      badges: const [
         _FloatingBadge(
           icon: Icons.warning_amber_rounded,
           color: Colors.redAccent,
@@ -79,14 +80,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           alignment: Alignment(0.55, 0.38),
         ),
       ],
-      title: 'Live City Intelligence',
-      description:
-          'Real-time incidents on an interactive map — reported by the community, verified by AI, and powered by social media signals.',
+      title: 'onboarding.page1_title'.tr(),
+      description: 'onboarding.page1_desc'.tr(),
     ),
     _PageData(
       mainIcon: Icons.alt_route_rounded,
       accentColor: AppColors.secondary,
-      badges: [
+      badges: const [
         _FloatingBadge(
           icon: Icons.insights_outlined,
           color: AppColors.secondary,
@@ -98,14 +98,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           alignment: Alignment(0.55, -0.45),
         ),
       ],
-      title: 'Predict. Navigate.\nStay Safe.',
-      description:
-          'AI forecasts high-risk hotspots and calculates the safest routes. Get instant alerts before you enter a danger zone.',
+      title: 'onboarding.page2_title'.tr(),
+      description: 'onboarding.page2_desc'.tr(),
     ),
-    const _PageData(
+    _PageData(
       mainIcon: Icons.shield_outlined,
-      accentColor: Color(0xFFA855F7),
-      badges: [
+      accentColor: const Color(0xFFA855F7),
+      badges: const [
         _FloatingBadge(
           icon: Icons.smart_toy_outlined,
           color: Color(0xFFA855F7),
@@ -117,9 +116,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           alignment: Alignment(0.55, -0.38),
         ),
       ],
-      title: 'Your Personal\nSafety Shield',
-      description:
-          'Ask our AI assistant about area safety. Trigger SOS to instantly alert your emergency contacts with your live location.',
+      title: 'onboarding.page3_title'.tr(),
+      description: 'onboarding.page3_desc'.tr(),
     ),
   ];
 
@@ -189,7 +187,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     TextButton(
                       onPressed: _goToPermissions,
                       child: Text(
-                        'Skip',
+                        'onboarding.skip'.tr(),
                         style: TextStyle(
                           color: AppTheme.getSecondaryTextColor(),
                           fontSize: 14,
@@ -264,8 +262,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           children: [
                             Text(
                               _currentPage == _pages.length - 1
-                                  ? 'Get Started'
-                                  : 'Next',
+                                  ? 'onboarding.get_started'.tr()
+                                  : 'common.next'.tr(),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

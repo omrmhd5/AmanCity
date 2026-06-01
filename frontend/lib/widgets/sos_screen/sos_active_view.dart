@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -205,9 +206,9 @@ class _SosActiveViewState extends State<SosActiveView>
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Text(
-                              'EMERGENCY MODE ACTIVE',
-                              style: TextStyle(
+                            Text(
+                              'sos.emergency_mode_active'.tr(),
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.danger,
@@ -233,9 +234,9 @@ class _SosActiveViewState extends State<SosActiveView>
                           ],
                         ),
                       ),
-                      const Text(
-                        'ACTIVATED',
-                        style: TextStyle(
+                      Text(
+                        'sos.activated'.tr(),
+                        style: const TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w900,
                           color: AppColors.danger,
@@ -244,7 +245,7 @@ class _SosActiveViewState extends State<SosActiveView>
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Help request broadcasted',
+                        'sos.help_broadcasted'.tr(),
                         style: TextStyle(
                           fontSize: 13,
                           color: AppTheme.getSecondaryTextColor(),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../models/incidents/bulk_incident.dart';
@@ -39,9 +40,17 @@ class BulkSourceChips extends StatelessWidget {
       spacing: 8,
       children: [
         if (bulk.hasHumanReports)
-          _chip(Icons.person_outline, 'Human Reports', AppColors.secondary),
+          _chip(
+            Icons.person_outline,
+            'map.human_reports'.tr(),
+            AppColors.secondary,
+          ),
         if (bulk.hasOsintReports)
-          _chip(Icons.radar, 'OSINT Intelligence', const Color(0xFF7C3AED)),
+          _chip(
+            Icons.radar,
+            'map.osint_intelligence'.tr(),
+            const Color(0xFF7C3AED),
+          ),
         _chip(
           Icons.analytics_outlined,
           '${(bulk.avgConfidence * 100).round()}% confidence',

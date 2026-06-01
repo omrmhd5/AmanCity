@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
@@ -135,14 +136,14 @@ class _MapLoadingIndicatorState extends State<MapLoadingIndicator>
                     ),
                     const SizedBox(height: 14),
                     CustomText(
-                      text: 'Getting your location...',
+                      text: 'map.getting_location'.tr(),
                       size: 13,
                       weight: FontWeight.w600,
                       color: AppTheme.getPrimaryTextColor(),
                     ),
                     const SizedBox(height: 4),
                     CustomText(
-                      text: 'Please wait',
+                      text: 'common.please_wait'.tr(),
                       size: 11,
                       weight: FontWeight.w400,
                       color: AppTheme.getSecondaryTextColor().withOpacity(0.7),

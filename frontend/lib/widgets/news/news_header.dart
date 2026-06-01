@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -25,7 +26,7 @@ class NewsHeader extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            'Twitter Incidents',
+            'news.title'.tr(),
             style: TextStyle(
               color: AppTheme.getPrimaryTextColor(),
               fontSize: 18,
@@ -44,7 +45,7 @@ class NewsHeader extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Grok AI',
+              'news.powered_by'.tr(),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,

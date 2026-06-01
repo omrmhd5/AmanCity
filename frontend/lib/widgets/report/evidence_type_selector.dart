@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -26,7 +27,7 @@ class _EvidenceTypeSelectorState extends State<EvidenceTypeSelector> {
       children: [
         _buildEvidenceButton(
           type: EvidenceType.photo,
-          label: 'Photo',
+          label: 'report.select_photo'.tr(),
           icon: Icons.photo_camera_rounded,
           isSelected: widget.selectedType == EvidenceType.photo,
           onTap: () => widget.onTypeSelected(EvidenceType.photo),
@@ -34,7 +35,7 @@ class _EvidenceTypeSelectorState extends State<EvidenceTypeSelector> {
         const SizedBox(width: 12),
         _buildEvidenceButton(
           type: EvidenceType.video,
-          label: 'Video',
+          label: 'report.select_video'.tr(),
           icon: Icons.videocam_rounded,
           isSelected: widget.selectedType == EvidenceType.video,
           onTap: () => widget.onTypeSelected(EvidenceType.video),

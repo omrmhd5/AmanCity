@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -45,7 +47,7 @@ void main() async {
           child: Text(
             'UI CRASH:\n${details.exception}\n\n${details.stack}',
             style: const TextStyle(color: Colors.yellow, fontSize: 12),
-            textDirection: TextDirection.ltr,
+            textDirection: ui.TextDirection.ltr,
           ),
         ),
       ),
@@ -80,8 +82,16 @@ void main() async {
     ConnectivityService.instance.init();
 
     await AppTheme.initTheme();
+    await EasyLocalization.ensureInitialized();
 
-    runApp(const MyApp());
+    runApp(
+      EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en'),
+        child: const MyApp(),
+      ),
+    );
   } catch (e, stack) {
     debugPrint('Fatal startup error: $e\n$stack');
     runApp(_ErrorApp(message: e.toString()));
@@ -152,6 +162,9 @@ class _MyAppState extends State<MyApp> {
     final isDark = AppTheme.currentMode == AppThemeMode.dark;
     return MaterialApp(
       title: 'AmanCity',
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

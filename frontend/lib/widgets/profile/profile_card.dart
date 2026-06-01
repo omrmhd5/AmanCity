@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,8 +72,8 @@ class _ProfileCardState extends State<ProfileCard>
                   color: AppColors.secondary,
                 ),
                 const SizedBox(width: 6),
-                const Text(
-                  'ACCOUNT',
+                Text(
+                  'profile.account_label'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -147,7 +148,7 @@ class _ProfileCardState extends State<ProfileCard>
 
                       // Name
                       Text(
-                        widget.user?.displayName ?? 'User',
+                        widget.user?.displayName ?? 'common.user'.tr(),
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -178,7 +179,7 @@ class _ProfileCardState extends State<ProfileCard>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _homeCity ?? 'Location not set',
+                            _homeCity ?? 'profile.location_not_set'.tr(),
                             style: TextStyle(
                               fontSize: 13,
                               color: AppTheme.getSecondaryTextColor(),
@@ -226,8 +227,8 @@ class _ProfileCardState extends State<ProfileCard>
                               color: AppColors.secondary,
                             ),
                             const SizedBox(width: 6),
-                            const Text(
-                              'Verified Guardian',
+                            Text(
+                              'profile.verified_guardian'.tr(),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,

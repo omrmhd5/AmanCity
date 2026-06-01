@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/app_colors.dart';
@@ -122,22 +123,22 @@ class _SosRecordingCardState extends State<SosRecordingCard> {
 
   String _formatDate(DateTime dt) {
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'common.jan'.tr(),
+      'common.feb'.tr(),
+      'common.mar'.tr(),
+      'common.apr'.tr(),
+      'common.may'.tr(),
+      'common.jun'.tr(),
+      'common.jul'.tr(),
+      'common.aug'.tr(),
+      'common.sep'.tr(),
+      'common.oct'.tr(),
+      'common.nov'.tr(),
+      'common.dec'.tr(),
     ];
     final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final minute = dt.minute.toString().padLeft(2, '0');
-    final period = dt.hour < 12 ? 'AM' : 'PM';
+    final period = dt.hour < 12 ? 'common.am'.tr() : 'common.pm'.tr();
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}  •  $hour:$minute $period';
   }
 

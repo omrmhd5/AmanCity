@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../models/incidents/osint_incident.dart';
 import '../../utils/app_theme.dart';
@@ -174,7 +175,7 @@ class _NewsFeedCardState extends State<NewsFeedCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        text: 'AI Confidence',
+                        text: 'news.ai_confidence'.tr(),
                         size: 10,
                         weight: FontWeight.w500,
                         color: AppTheme.getSecondaryTextColor(),

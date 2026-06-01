@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth/auth_service.dart';
 import '../../utils/app_theme.dart';
@@ -72,7 +73,7 @@ class _LogoutSectionState extends State<LogoutSection> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Sign Out?',
+                    'profile.sign_out'.tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -81,7 +82,7 @@ class _LogoutSectionState extends State<LogoutSection> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You\'ll need to log in again to use the app.',
+                    'profile.sign_out_message'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -104,7 +105,7 @@ class _LogoutSectionState extends State<LogoutSection> {
                             ),
                           ),
                           child: Text(
-                            'Cancel',
+                            'common.cancel'.tr(),
                             style: TextStyle(
                               color: AppTheme.getSecondaryTextColor(),
                               fontSize: 14,
@@ -125,9 +126,9 @@ class _LogoutSectionState extends State<LogoutSection> {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'Sign Out',
-                            style: TextStyle(
+                          child: Text(
+                            'profile.sign_out'.tr(),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -157,7 +158,9 @@ class _LogoutSectionState extends State<LogoutSection> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Sign out failed: $e'),
+          content: Text(
+            'profile.sign_out_failed'.tr(namedArgs: {'error': e.toString()}),
+          ),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -219,7 +222,7 @@ class _LogoutSectionState extends State<LogoutSection> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Sign Out',
+                          'profile.sign_out'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -228,7 +231,7 @@ class _LogoutSectionState extends State<LogoutSection> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'Log out of your account',
+                          'profile.sign_out_subtitle'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.getSecondaryTextColor(),
@@ -258,7 +261,7 @@ class _LogoutSectionState extends State<LogoutSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Account',
+            'profile.account'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: AppTheme.getPrimaryTextColor(),
@@ -282,7 +285,7 @@ class _LogoutSectionState extends State<LogoutSection> {
                   Icon(Icons.logout, color: AppColors.danger, size: 20),
                   const SizedBox(width: 12),
                   Text(
-                    'Sign Out',
+                    'profile.sign_out'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

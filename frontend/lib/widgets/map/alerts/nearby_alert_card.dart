@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
@@ -166,7 +167,7 @@ class _NearbyAlertCardState extends State<NearbyAlertCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        text: 'Confidence',
+                        text: 'map.confidence'.tr(),
                         size: 10,
                         weight: FontWeight.w500,
                         color: AppTheme.getSecondaryTextColor(),

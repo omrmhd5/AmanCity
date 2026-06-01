@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
@@ -204,7 +205,7 @@ class _NearbyBulkAlertCardState extends State<NearbyBulkAlertCard> {
                             ),
                             const SizedBox(width: 3),
                             CustomText(
-                              text: 'Human',
+                              text: 'authority.human'.tr(),
                               size: 10,
                               weight: FontWeight.w600,
                               color: AppColors.secondary,
@@ -236,7 +237,7 @@ class _NearbyBulkAlertCardState extends State<NearbyBulkAlertCard> {
                             ),
                             const SizedBox(width: 3),
                             CustomText(
-                              text: 'OSINT',
+                              text: 'authority.osint'.tr(),
                               size: 10,
                               weight: FontWeight.w600,
                               color: const Color(0xFF7C3AED),
@@ -254,7 +255,7 @@ class _NearbyBulkAlertCardState extends State<NearbyBulkAlertCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        text: 'Avg Confidence',
+                        text: 'map.avg_confidence'.tr(),
                         size: 10,
                         weight: FontWeight.w500,
                         color: AppTheme.getSecondaryTextColor(),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -27,7 +28,7 @@ class AuthorityTopAreasCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('MOST AFFECTED AREAS'),
+          _sectionLabel('authority.most_affected_areas'.tr()),
           const SizedBox(height: 14),
           ...topAreas.map((a) => _areaRow(a, maxCount)).toList(),
         ],

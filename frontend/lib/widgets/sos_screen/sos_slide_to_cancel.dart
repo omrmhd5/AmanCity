@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -52,7 +53,7 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
               ),
               const SizedBox(width: 6),
               Text(
-                'SLIDE TO MARK AS SAFE',
+                'sos.slide_to_mark_safe'.tr(),
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -144,7 +145,7 @@ class _SosSlideToCancelWidgetState extends State<SosSlideToCancelWidget> {
                             child: Opacity(
                               opacity: (1.0 - progress * 2.5).clamp(0.0, 0.5),
                               child: Text(
-                                'MARK AS SAFE',
+                                'sos.mark_as_safe'.tr(),
                                 style: TextStyle(
                                   color: AppTheme.getPrimaryTextColor(),
                                   fontSize: 12,

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
@@ -60,7 +61,7 @@ class _AppThemeSelectorState extends State<AppThemeSelector> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'App Theme',
+                    'profile.app_theme'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -82,7 +83,9 @@ class _AppThemeSelectorState extends State<AppThemeSelector> {
                       ),
                     ),
                     child: Text(
-                      _current == AppThemeMode.dark ? 'DARK' : 'LIGHT',
+                      _current == AppThemeMode.dark
+                          ? 'profile.dark'.tr()
+                          : 'profile.light'.tr(),
                       style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -99,7 +102,7 @@ class _AppThemeSelectorState extends State<AppThemeSelector> {
                 children: [
                   Expanded(
                     child: _ThemeOptionCard(
-                      label: 'DARK',
+                      label: 'profile.dark'.tr(),
                       icon: Icons.dark_mode_rounded,
                       isActive: _current == AppThemeMode.dark,
                       onTap: () => _select(AppThemeMode.dark),
@@ -108,7 +111,7 @@ class _AppThemeSelectorState extends State<AppThemeSelector> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _ThemeOptionCard(
-                      label: 'LIGHT',
+                      label: 'profile.light'.tr(),
                       icon: Icons.wb_sunny_rounded,
                       isActive: _current == AppThemeMode.light,
                       onTap: () => _select(AppThemeMode.light),
