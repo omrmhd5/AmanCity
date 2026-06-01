@@ -1665,6 +1665,8 @@ class _MapLayerWidget extends StatefulWidget {
 }
 
 class _MapLayerWidgetState extends State<_MapLayerWidget> {
+  bool _mapReady = false;
+
   @override
   void initState() {
     super.initState();
@@ -1690,22 +1692,42 @@ class _MapLayerWidgetState extends State<_MapLayerWidget> {
     if (mounted) setState(() {});
   }
 
+  void _onMapCreated(GoogleMapController controller) {
+    if (mounted) {
+      setState(() => _mapReady = true);
+    }
+    widget.onMapCreated(controller);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-      initialCameraPosition: widget.initialCameraPosition,
-      onMapCreated: widget.onMapCreated,
-      markers: widget.controller.markers,
-      circles: widget.controller.circles,
-      polylines: widget.controller.polylines,
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      mapToolbarEnabled: false,
-      compassEnabled: true,
-      trafficEnabled: false,
-      buildingsEnabled: true,
-      onLongPress: widget.onLongPress,
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: widget.initialCameraPosition,
+          onMapCreated: _onMapCreated,
+          markers: widget.controller.markers,
+          circles: widget.controller.circles,
+          polylines: widget.controller.polylines,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          mapToolbarEnabled: false,
+          compassEnabled: true,
+          trafficEnabled: false,
+          buildingsEnabled: true,
+          onLongPress: widget.onLongPress,
+        ),
+        if (!_mapReady)
+          Container(
+            color: AppTheme.getBackgroundColor().withOpacity(0.8),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(AppColors.secondary),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
