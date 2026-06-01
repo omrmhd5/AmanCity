@@ -17,6 +17,22 @@ router.put("/fcm-token", UserController.updateFcmToken);
 router.put("/location", UserController.updateLocation);
 router.put("/phone", UserController.updatePhone);
 
+// GET /api/users/me — return the current user's profile (including role)
+router.get("/me", async (req, res) => {
+  const decoded = await _verifyRequest(req, res);
+  if (!decoded) return;
+  try {
+    const user = await User.findOne(
+      { firebaseUid: decoded.uid },
+      { name: 1, email: 1, phone: 1, role: 1, _id: 0 },
+    ).lean();
+    if (!user) return res.status(404).json({ message: "User not found." });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 async function _verifyRequest(req, res) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;

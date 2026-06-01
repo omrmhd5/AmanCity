@@ -40,6 +40,7 @@ app.use("/api/hotspots", require("./routes/hotspots"));
 app.use("/api/osint", require("./routes/osint"));
 app.use("/api/chat", require("./routes/chat"));
 app.use("/api/sos", require("./routes/sos"));
+app.use("/api/authority", require("./routes/authority"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

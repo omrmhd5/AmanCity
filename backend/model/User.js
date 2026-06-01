@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     email: { type: String, default: "" },
     fcmToken: { type: String, default: null },
+    role: { type: String, enum: ["user", "authority"], default: "user" },
     trustedContacts: { type: [trustedContactSchema], default: [] },
     lastLocation: {
       type: {

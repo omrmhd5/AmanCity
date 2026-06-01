@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/core/home_screen.dart';
+import 'screens/authority/authority_home_screen.dart';
 import 'screens/auth/onboarding_screen.dart';
 import 'screens/auth/permissions_screen.dart';
 import 'data/app_colors.dart';
@@ -17,6 +18,7 @@ import 'services/notifications/notification_service.dart';
 import 'services/core/user_location_sync_service.dart';
 import 'services/core/connectivity_service.dart';
 import 'services/auth/auth_service.dart';
+import 'services/authority/authority_api_service.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'firebase_options.dart';
 
@@ -278,7 +280,27 @@ class AuthGate extends StatelessWidget {
 
               // Push the FCM token to the backend each time the user is authenticated
               NotificationService.instance.updateFcmToken();
-              return const HomeScreen();
+
+              // Check role and route accordingly
+              return FutureBuilder<String?>(
+                future: AuthorityApiService.instance.fetchCurrentUserRole(),
+                builder: (context, roleSnapshot) {
+                  if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      backgroundColor: AppColors.primary,
+                      body: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    );
+                  }
+                  if (roleSnapshot.data == 'authority') {
+                    return const AuthorityHomeScreen();
+                  }
+                  return const HomeScreen();
+                },
+              );
             }
             return const LoginScreen();
           },
