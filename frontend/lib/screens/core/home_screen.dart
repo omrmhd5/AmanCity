@@ -29,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _sosActive = false;
   final _mapKey = GlobalKey<MapScreenState>();
 
+  // Track which tab indices have been visited — unvisited screens are not built yet
+  final Set<int> _visited = {2}; // 2 = home tab, pre-visited
+
   // Entry animation
   late AnimationController _entryController;
   // Horizontal page slide controller — value == navIndex of visible screen
@@ -107,6 +110,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _onNavItemTapped(NavItem item) {
     if (item == _currentNavItem) return;
 
+    final newIndex = _navIndex(item);
+
+    // Mark as visited so the screen gets built
+    if (!_visited.contains(newIndex)) {
+      setState(() => _visited.add(newIndex));
+    }
+
     // Slide to new tab
     _pageSlideController.animateTo(
       _navIndex(item).toDouble(),
@@ -140,7 +150,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _onIncidentReportedSlide() {
-    setState(() => _currentNavItem = NavItem.map);
+    setState(() {
+      _currentNavItem = NavItem.map;
+      _visited.add(_navIndex(NavItem.map));
+    });
     _pageSlideController.animateTo(
       _navIndex(NavItem.map).toDouble(),
       duration: const Duration(milliseconds: 400),
@@ -259,9 +272,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               final offset = _pageSlideController.value;
               return Stack(
                 children: List.generate(screens.length, (i) {
+                  // Only build screens that have been visited at least once
+                  final child = _visited.contains(i)
+                      ? screens[i]
+                      : const SizedBox.shrink();
                   return Transform.translate(
                     offset: Offset((i - offset) * width, 0),
-                    child: SizedBox(width: width, child: screens[i]),
+                    child: SizedBox(width: width, child: child),
                   );
                 }),
               );
