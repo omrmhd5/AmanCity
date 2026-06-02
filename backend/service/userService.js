@@ -41,6 +41,24 @@ async function updateLocation(firebaseUid, lat, lng) {
 }
 
 /**
+ * Update profile (name and/or phone) for a user by Firebase UID.
+ * Only the provided fields are updated.
+ */
+async function updateProfile(firebaseUid, { name, phone }) {
+  const fields = {};
+  if (name !== undefined && name !== null) fields.name = name;
+  if (phone !== undefined && phone !== null) fields.phone = phone;
+  if (Object.keys(fields).length === 0) {
+    throw new Error("No fields provided to update.");
+  }
+  return User.findOneAndUpdate(
+    { firebaseUid },
+    { $set: fields },
+    { new: true, upsert: true, runValidators: true },
+  );
+}
+
+/**
  * Update phone number for a user by Firebase UID.
  */
 async function updatePhone(firebaseUid, phone) {
@@ -205,6 +223,7 @@ module.exports = {
   updateFcmToken,
   updateLocation,
   updatePhone,
+  updateProfile,
   findUsersNear,
   findUserByFirebaseUid,
   searchUsers,

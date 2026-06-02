@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
+import 'edit_profile_dialog.dart';
 
 class ProfileCard extends StatefulWidget {
   final User? user;
@@ -79,6 +80,53 @@ class _ProfileCardState extends State<ProfileCard>
                     fontWeight: FontWeight.w800,
                     color: AppColors.secondary,
                     letterSpacing: 1.2,
+                  ),
+                ),
+                const Spacer(),
+                // Edit profile button
+                GestureDetector(
+                  onTap: () async {
+                    if (widget.user == null) return;
+                    final updated = await showEditProfileDialog(
+                      context,
+                      user: widget.user!,
+                    );
+                    if (updated == true && mounted) {
+                      setState(() {}); // Rebuild to show new displayName
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withOpacity(0.10),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.secondary.withOpacity(0.25),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.edit_outlined,
+                          size: 12,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'profile.edit.button'.tr(),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

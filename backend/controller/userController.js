@@ -3,7 +3,9 @@ const {
   updateFcmToken,
   updateLocation,
   updatePhone,
+  updateProfile,
 } = require("../service/userService");
+const admin = require("firebase-admin");
 const { verifyIdToken } = require("../service/notificationService");
 
 /**
@@ -113,6 +115,48 @@ class UserController {
       res
         .status(500)
         .json({ message: err.message || "Failed to update phone." });
+    }
+  }
+
+  /**
+   * PUT /api/users/profile
+   * Update name and/or phone for the authenticated user.
+   * Also syncs displayName to Firebase Auth if name is changed.
+   */
+  static async updateUserProfile(req, res) {
+    const decoded = await _verifyRequest(req, res);
+    if (!decoded) return;
+
+    const name = typeof req.body.name === "string" ? req.body.name.trim() : undefined;
+    const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : undefined;
+
+    if (name === undefined && phone === undefined) {
+      return res.status(400).json({ message: "Provide at least name or phone." });
+    }
+    if (name !== undefined && name.length === 0) {
+      return res.status(400).json({ message: "Name cannot be empty." });
+    }
+    if (phone !== undefined && phone.length === 0) {
+      return res.status(400).json({ message: "Phone cannot be empty." });
+    }
+
+    try {
+      const user = await updateProfile(decoded.uid, { name, phone });
+
+      // Keep Firebase Auth displayName in sync when name changes
+      if (name !== undefined) {
+        try {
+          await admin.auth().updateUser(decoded.uid, { displayName: name });
+        } catch (_) {
+          // Non-fatal — MongoDB record is source of truth
+        }
+      }
+
+      res.status(200).json({ message: "Profile updated.", data: user });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ message: err.message || "Failed to update profile." });
     }
   }
 }

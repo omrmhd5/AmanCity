@@ -16,6 +16,7 @@ router.post("/", UserController.registerUser);
 router.put("/fcm-token", UserController.updateFcmToken);
 router.put("/location", UserController.updateLocation);
 router.put("/phone", UserController.updatePhone);
+router.put("/profile", UserController.updateUserProfile);
 
 // GET /api/users/me — return the current user's profile (including role)
 router.get("/me", async (req, res) => {

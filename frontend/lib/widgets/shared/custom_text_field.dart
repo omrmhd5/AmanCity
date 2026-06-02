@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import 'custom_text.dart';
@@ -10,6 +11,10 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
+  final bool enabled;
 
   const CustomTextField({
     Key? key,
@@ -19,6 +24,10 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.controller,
     this.validator,
+    this.keyboardType,
+    this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -66,18 +75,26 @@ class _CustomTextFieldState extends State<CustomTextField> {
             controller: widget.controller,
             obscureText: _obscureText,
             validator: widget.validator,
-            style: TextStyle(color: AppTheme.getPrimaryTextColor()),
+            keyboardType: widget.keyboardType,
+            inputFormatters: widget.inputFormatters,
+            textCapitalization: widget.textCapitalization,
+            enabled: widget.enabled,
+            style: TextStyle(
+              color: AppTheme.getPrimaryTextColor(),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
             decoration: InputDecoration(
               hintText: widget.placeholder,
               hintStyle: TextStyle(
-                color: AppColors.slateGray.withOpacity(0.6),
+                color: AppTheme.getSecondaryTextColor().withOpacity(0.6),
                 fontSize: 14,
               ),
               prefixIcon: Icon(
                 widget.prefixIcon,
                 color: _focusNode.hasFocus
-                    ? AppColors.primary
-                    : AppColors.slateGray,
+                    ? AppColors.secondary
+                    : AppTheme.getSecondaryTextColor().withOpacity(0.6),
               ),
               suffixIcon: widget.isPassword
                   ? GestureDetector(
@@ -88,7 +105,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
                       },
                       child: Icon(
                         _obscureText ? Icons.visibility_off : Icons.visibility,
-                        color: AppColors.slateGray,
+                        color: AppTheme.getSecondaryTextColor().withOpacity(
+                          0.6,
+                        ),
                       ),
                     )
                   : null,
@@ -96,24 +115,31 @@ class _CustomTextFieldState extends State<CustomTextField> {
               fillColor: AppTheme.currentMode == AppThemeMode.dark
                   ? Colors.white.withOpacity(0.08)
                   : Colors.white,
+
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: AppTheme.getBorderColor()),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: AppColors.secondary.withOpacity(0.15),
+                ),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: AppTheme.getBorderColor()),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: AppTheme.currentMode == AppThemeMode.dark
+                      ? Colors.white.withOpacity(0.08)
+                      : AppColors.softGray,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(
-                  color: AppColors.primary,
-                  width: 2,
+                  color: AppColors.secondary,
+                  width: 1.5,
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 16,
+                vertical: 14,
               ),
             ),
           ),

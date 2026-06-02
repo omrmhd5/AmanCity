@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "name": "AmanCity",
     "tagline": "Your Safety, Our Priority.",
@@ -550,7 +550,21 @@
     "theme_dark": "Dark",
     "trusted_contacts": "Trusted Contacts",
     "sos_history": "SOS History",
-    "language_section": "LANGUAGE"
+    "language_section": "LANGUAGE",
+    "edit": {
+      "button": "Edit",
+      "title": "Edit Profile",
+      "subtitle": "Update your name and phone number",
+      "name_label": "FULL NAME",
+      "name_hint": "Enter your full name",
+      "phone_label": "PHONE NUMBER",
+      "phone_hint": "Enter your phone number",
+      "save": "Save Changes",
+      "error_name_empty": "Name cannot be empty.",
+      "error_phone_empty": "Phone number cannot be empty.",
+      "error_generic": "Failed to update profile. Please try again.",
+      "success": "Profile updated successfully."
+    }
   },
   "authority": {
     "title": "Authority",
