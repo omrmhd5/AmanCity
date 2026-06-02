@@ -1,7 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
-import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,157 +32,49 @@ const _requiredPermissions = [
   Permission.notification,
 ];
 
-void main() {
-  runZonedGuarded(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
-      _installCrashHandlers();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-      // Paint immediately so TestFlight never sits on a blank native launch screen
-      // while Firebase / notifications / localization initialize.
-      runApp(const _StartupShell());
-    },
-    (Object error, StackTrace stack) {
-      debugPrint('Zone error: $error\n$stack');
-      runApp(_FatalErrorScreen(message: 'ZONE ERROR:\n$error', stack: stack));
-    },
-  );
-}
-
-void _installCrashHandlers() {
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return _FatalErrorScreen(
-      message: 'UI CRASH:\n${details.exception}',
-      stack: details.stack,
-    );
-  };
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    debugPrint('FlutterError: ${details.exceptionAsString()}');
-    runApp(
-      _FatalErrorScreen(
-        message: 'FLUTTER ERROR:\n${details.exceptionAsString()}',
-        stack: details.stack,
-      ),
-    );
-  };
-
-  ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-    debugPrint('Platform error: $error\n$stack');
-    runApp(
-      _FatalErrorScreen(
-        message: 'PLATFORM ERROR:\n$error',
-        stack: stack,
-      ),
-    );
-    return true;
-  };
-}
-
-/// Minimal first frame, then runs full init and swaps to [MyApp].
-class _StartupShell extends StatefulWidget {
-  const _StartupShell();
-
-  @override
-  State<_StartupShell> createState() => _StartupShellState();
-}
-
-class _StartupShellState extends State<_StartupShell> {
-  Widget? _app;
-  String? _fatal;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initialize());
-  }
-
-  Future<void> _initialize() async {
+  try {
     try {
-      try {
-        await dotenv.load();
-      } catch (e) {
-        debugPrint('Warning: .env not loaded — $e');
-      }
-
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-
-      try {
-        await NotificationService.instance.init();
-      } catch (e) {
-        debugPrint('Warning: Notifications init failed — $e');
-      }
-
-      UserLocationSyncService.instance.start();
-      ConnectivityService.instance.init();
-
-      await AppTheme.initTheme();
-      await EasyLocalization.ensureInitialized();
-
-      if (!mounted) return;
-      setState(() {
-        _app = EasyLocalization(
-          supportedLocales: const [Locale('en'), Locale('ar')],
-          path: 'assets/translations',
-          fallbackLocale: const Locale('en'),
-          child: const MyApp(),
-        );
-      });
-    } catch (e, stack) {
-      debugPrint('Fatal startup error: $e\n$stack');
-      if (!mounted) return;
-      setState(() => _fatal = 'STARTUP ERROR:\n$e\n\n$stack');
+      await dotenv.load();
+    } catch (e) {
+      debugPrint('Warning: .env not loaded — $e');
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_fatal != null) {
-      return _FatalErrorScreen(message: _fatal!, stack: null);
-    }
-    if (_app != null) {
-      return _app!;
-    }
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: AppColors.primary,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.secondary),
-        ),
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    await AppTheme.initTheme();
+    await EasyLocalization.ensureInitialized();
+
+    runApp(
+      EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en'),
+        child: const MyApp(),
       ),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startDeferredServices();
+    });
+  } catch (e, stack) {
+    debugPrint('Fatal startup error: $e\n$stack');
   }
 }
 
-/// Black screen + yellow text — readable on device when something fails.
-class _FatalErrorScreen extends StatelessWidget {
-  final String message;
-  final StackTrace? stack;
-
-  const _FatalErrorScreen({required this.message, this.stack});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              '$message\n\n${stack ?? ''}',
-              style: const TextStyle(color: Colors.yellow, fontSize: 12),
-              textDirection: ui.TextDirection.ltr,
-            ),
-          ),
-        ),
-      ),
-    );
+Future<void> _startDeferredServices() async {
+  try {
+    await NotificationService.instance.init();
+  } catch (e) {
+    debugPrint('Warning: Notifications init failed — $e');
   }
+
+  UserLocationSyncService.instance.start();
+  ConnectivityService.instance.init();
 }
 
 class MyApp extends StatefulWidget {
