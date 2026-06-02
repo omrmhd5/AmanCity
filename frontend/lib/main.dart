@@ -34,12 +34,14 @@ const _requiredPermissions = [
   Permission.notification,
 ];
 
-void main() async {
+/// Set while [_BootstrapApp] is on screen — routes fatal errors into bootstrap UI.
+_BootstrapAppState? _bootstrapState;
+
+void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Catch UI rendering errors and paint them on the screen instead of a white void.
       ErrorWidget.builder = (FlutterErrorDetails details) {
         return Material(
           color: Colors.black,
@@ -56,66 +58,151 @@ void main() async {
         );
       };
 
-      // Catch uncaught Flutter framework errors.
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details);
         debugPrint('FlutterError: ${details.exceptionAsString()}');
-        _showFatalError(
+        _reportFatal(
           'FLUTTER ERROR:\n${details.exceptionAsString()}',
           details.stack,
         );
       };
 
-      // Catch async/platform errors outside the Flutter framework.
       ui.PlatformDispatcher.instance.onError =
           (Object error, StackTrace stack) {
             debugPrint('PlatformDispatcher error: $error\n$stack');
-            _showFatalError('ASYNC/PLATFORM ERROR:\n$error', stack);
+            _reportFatal('ASYNC/PLATFORM ERROR:\n$error', stack);
             return true;
           };
 
-      try {
-        // Load .env — gracefully skip if file is missing in the build.
-        try {
-          await dotenv.load();
-        } catch (e) {
-          debugPrint('Warning: .env not loaded — $e');
-        }
-
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-
-        try {
-          await NotificationService.instance.init();
-        } catch (e) {
-          debugPrint('Warning: Notifications init failed — $e');
-        }
-
-        UserLocationSyncService.instance.start();
-        ConnectivityService.instance.init();
-
-        await AppTheme.initTheme();
-        await EasyLocalization.ensureInitialized();
-
-        runApp(
-          EasyLocalization(
-            supportedLocales: const [Locale('en'), Locale('ar')],
-            path: 'assets/translations',
-            fallbackLocale: const Locale('en'),
-            child: const MyApp(),
-          ),
-        );
-      } catch (e, stack) {
-        debugPrint('Fatal startup error: $e\n$stack');
-        _showFatalError('FATAL STARTUP ERROR:\n$e', stack);
-      }
+      // Paint immediately — never block runApp on Firebase/localization/etc.
+      runApp(const _BootstrapApp());
     },
     (Object error, StackTrace stack) {
       debugPrint('runZonedGuarded error: $error\n$stack');
-      _showFatalError('ZONE ERROR:\n$error', stack);
+      _reportFatal('ZONE ERROR:\n$error', stack);
     },
   );
+}
+
+void _reportFatal(String message, StackTrace? stack) {
+  final text = '$message\n\n${stack ?? ''}';
+  if (_bootstrapState != null) {
+    _bootstrapState!._setFatal(text);
+  } else {
+    runApp(_ErrorApp(message: message, stack: stack));
+  }
+}
+
+/// Boots the real app after painting a visible phase screen (avoids white void).
+class _BootstrapApp extends StatefulWidget {
+  const _BootstrapApp();
+
+  @override
+  State<_BootstrapApp> createState() => _BootstrapAppState();
+}
+
+class _BootstrapAppState extends State<_BootstrapApp> {
+  String _phase = 'PHASE 0: FLUTTER ENGINE ALIVE';
+  Widget? _app;
+  String? _fatal;
+
+  @override
+  void initState() {
+    super.initState();
+    _bootstrapState = this;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runBootSequence());
+  }
+
+  @override
+  void dispose() {
+    if (_bootstrapState == this) {
+      _bootstrapState = null;
+    }
+    super.dispose();
+  }
+
+  void _setPhase(String phase) {
+    if (!mounted) return;
+    setState(() => _phase = phase);
+  }
+
+  void _setFatal(String message) {
+    if (!mounted) return;
+    setState(() {
+      _fatal = message;
+      _app = null;
+    });
+  }
+
+  Future<void> _runBootSequence() async {
+    try {
+      _setPhase('PHASE 1: LOADING .ENV...');
+      try {
+        await dotenv.load();
+      } catch (e) {
+        debugPrint('Warning: .env not loaded — $e');
+      }
+
+      _setPhase('PHASE 2: FIREBASE INIT...');
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      _setPhase('PHASE 3: THEME...');
+      await AppTheme.initTheme();
+
+      _setPhase('PHASE 4: LOCALIZATION...');
+      await EasyLocalization.ensureInitialized();
+
+      if (!mounted) return;
+      setState(() {
+        _phase = 'PHASE 5: LAUNCHING APP...';
+        _app = EasyLocalization(
+          supportedLocales: const [Locale('en'), Locale('ar')],
+          path: 'assets/translations',
+          fallbackLocale: const Locale('en'),
+          child: const MyApp(),
+        );
+      });
+
+      // Non-blocking: defer services until after first real frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startDeferredServices();
+      });
+    } catch (e, stack) {
+      debugPrint('Fatal startup error: $e\n$stack');
+      _setFatal('FATAL STARTUP ERROR:\n$e\n\n$stack');
+    }
+  }
+
+  Future<void> _startDeferredServices() async {
+    _setPhase('PHASE 6: NOTIFICATIONS...');
+    try {
+      await NotificationService.instance.init();
+    } catch (e) {
+      debugPrint('Warning: Notifications init failed — $e');
+    }
+
+    _setPhase('PHASE 7: LOCATION SYNC...');
+    UserLocationSyncService.instance.start();
+
+    _setPhase('PHASE 8: CONNECTIVITY...');
+    ConnectivityService.instance.init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_fatal != null) {
+      return _ErrorApp(message: _fatal!, stack: null);
+    }
+    if (_app != null) {
+      return _app!;
+    }
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: _DiagnosticLoadingScreen(phaseLabel: _phase),
+    );
+  }
 }
 
 class _ErrorApp extends StatelessWidget {
@@ -141,10 +228,6 @@ class _ErrorApp extends StatelessWidget {
       ),
     );
   }
-}
-
-void _showFatalError(String message, StackTrace? stack) {
-  runApp(_ErrorApp(message: message, stack: stack));
 }
 
 class MyApp extends StatefulWidget {
@@ -225,7 +308,6 @@ class _StartGateState extends State<_StartGate> {
     final prefs = await SharedPreferences.getInstance();
     final onboardingDone = prefs.getBool('onboarding_complete') ?? false;
 
-    // Always verify required permissions, regardless of onboarding state.
     bool allGranted = true;
     if (onboardingDone) {
       for (final perm in _requiredPermissions) {
@@ -246,19 +328,16 @@ class _StartGateState extends State<_StartGate> {
   Widget build(BuildContext context) {
     if (_onboardingDone == null) {
       return const _DiagnosticLoadingScreen(
-        phaseLabel: 'CHECKING CONNECTIVITY & PERMISSIONS...',
+        phaseLabel: 'CHECKING ONBOARDING & PERMISSIONS...',
       );
     }
-    // Not done with onboarding → show onboarding
     if (!_onboardingDone!) {
-      // Check if onboarding was completed but permissions were revoked
       return FutureBuilder<bool>(
         future: SharedPreferences.getInstance().then(
           (p) => p.getBool('onboarding_complete') ?? false,
         ),
         builder: (context, snapshot) {
           if (snapshot.data == true) {
-            // Onboarding was done but permissions revoked → go to permissions directly
             return const PermissionsScreen();
           }
           return const OnboardingScreen();
@@ -288,7 +367,6 @@ class AuthGate extends StatelessWidget {
             }
             if (snapshot.hasData) {
               final user = snapshot.data!;
-              // Block unverified email users — sign them out silently
               if (!user.emailVerified &&
                   user.providerData.any((p) => p.providerId == 'password')) {
                 return const LoginScreen();
@@ -298,10 +376,8 @@ class AuthGate extends StatelessWidget {
                 return const LoginScreen();
               }
 
-              // Push the FCM token to the backend each time the user is authenticated
               NotificationService.instance.updateFcmToken();
 
-              // Check role and route accordingly
               return FutureBuilder<String?>(
                 future: AuthorityApiService.instance.fetchCurrentUserRole(),
                 builder: (context, roleSnapshot) {
@@ -347,9 +423,9 @@ class _DiagnosticLoadingScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.orangeAccent,
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
+                    letterSpacing: 0.8,
                   ),
                 ),
               ],
