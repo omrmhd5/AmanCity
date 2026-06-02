@@ -93,9 +93,13 @@
     "sign_out_failed": "فشل تسجيل الخروج: {error}",
     "google": "Google",
     "apple": "Apple",
-    "complete_signin": "إتمام تسجيل الدخول بـ {provider}",
-    "enter_phone_to_finish": "يرجى إدخال رقم هاتفك لإتمام إنشاء حسابك.",
-    "enter_phone_hint": "أدخل رقم هاتفك"
+    "complete_signin": "إكمال تسجيل الدخول عبر {provider}",
+    "enter_phone_to_finish": "يرجى إدخال رقم هاتفك لإنهاء إنشاء حسابك.",
+    "enter_phone_hint": "أدخل رقم هاتفك",
+    "reset_password_subtitle": "أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.",
+    "send_reset_link": "إرسال رابط إعادة التعيين",
+    "reset_email_sent": "تم إرسال بريد إعادة التعيين! تفقد صندوق الوارد.",
+    "email_required": "يرجى إدخال بريدك الإلكتروني."
   },
   "register": {
     "full_name": "الاسم الكامل",

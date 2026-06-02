@@ -174,6 +174,15 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: AppColors.lightBackground,
         useMaterial3: true,
         textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: const Color(0xFF0F172A),
+          contentTextStyle: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          actionTextColor: AppColors.secondary,
+        ),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -183,6 +192,15 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: AppColors.primary,
         useMaterial3: true,
         textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: const Color(0xFF1E293B),
+          contentTextStyle: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          actionTextColor: AppColors.secondary,
+        ),
       ),
       navigatorKey: navigation.Navigator.navigatorKey,
       home: const _StartGate(),

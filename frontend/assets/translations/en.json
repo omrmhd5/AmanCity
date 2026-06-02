@@ -95,7 +95,11 @@
     "apple": "Apple",
     "complete_signin": "Complete {provider} sign-in",
     "enter_phone_to_finish": "Please enter your phone number to finish creating your account.",
-    "enter_phone_hint": "Enter your phone number"
+    "enter_phone_hint": "Enter your phone number",
+    "reset_password_subtitle": "Enter your email address and we will send you a link to reset your password.",
+    "send_reset_link": "Send Reset Link",
+    "reset_email_sent": "Password reset email sent! Check your inbox.",
+    "email_required": "Please enter your email address."
   },
   "register": {
     "full_name": "Full Name",

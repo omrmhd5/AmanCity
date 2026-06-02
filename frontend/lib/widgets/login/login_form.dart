@@ -6,6 +6,7 @@ import '../shared/custom_text.dart';
 import '../shared/custom_gesture_detector.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
+import '../../screens/auth/forgot_password_screen.dart';
 
 class LoginForm extends StatefulWidget {
   final void Function(String email, String password) onLoginPressed;
@@ -78,7 +79,11 @@ class _LoginFormState extends State<LoginForm> {
         const SizedBox(height: 12),
         CustomGestureDetector(
           onTap: () {
-            // Handle forgot password
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ForgotPasswordScreen(),
+              ),
+            );
           },
           enableScale: false,
           child: Align(
