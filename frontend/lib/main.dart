@@ -1,8 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
-import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,199 +33,42 @@ const _requiredPermissions = [
   Permission.notification,
 ];
 
-/// Set while [_BootstrapApp] is on screen — routes fatal errors into bootstrap UI.
-_BootstrapAppState? _bootstrapState;
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
-  runZonedGuarded(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
-
-      ErrorWidget.builder = (FlutterErrorDetails details) {
-        return Material(
-          color: Colors.black,
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'UI CRASH:\n${details.exception}\n\n${details.stack}',
-                style: const TextStyle(color: Colors.yellow, fontSize: 12),
-                textDirection: ui.TextDirection.ltr,
-              ),
-            ),
-          ),
-        );
-      };
-
-      FlutterError.onError = (FlutterErrorDetails details) {
-        FlutterError.presentError(details);
-        debugPrint('FlutterError: ${details.exceptionAsString()}');
-        _reportFatal(
-          'FLUTTER ERROR:\n${details.exceptionAsString()}',
-          details.stack,
-        );
-      };
-
-      ui.PlatformDispatcher.instance.onError =
-          (Object error, StackTrace stack) {
-            debugPrint('PlatformDispatcher error: $error\n$stack');
-            _reportFatal('ASYNC/PLATFORM ERROR:\n$error', stack);
-            return true;
-          };
-
-      // Paint immediately — never block runApp on Firebase/localization/etc.
-      runApp(const _BootstrapApp());
-    },
-    (Object error, StackTrace stack) {
-      debugPrint('runZonedGuarded error: $error\n$stack');
-      _reportFatal('ZONE ERROR:\n$error', stack);
-    },
-  );
-}
-
-void _reportFatal(String message, StackTrace? stack) {
-  final text = '$message\n\n${stack ?? ''}';
-  if (_bootstrapState != null) {
-    _bootstrapState!._setFatal(text);
-  } else {
-    runApp(_ErrorApp(message: message, stack: stack));
-  }
-}
-
-/// Boots the real app after painting a visible phase screen (avoids white void).
-class _BootstrapApp extends StatefulWidget {
-  const _BootstrapApp();
-
-  @override
-  State<_BootstrapApp> createState() => _BootstrapAppState();
-}
-
-class _BootstrapAppState extends State<_BootstrapApp> {
-  String _phase = 'PHASE 0: FLUTTER ENGINE ALIVE';
-  Widget? _app;
-  String? _fatal;
-
-  @override
-  void initState() {
-    super.initState();
-    _bootstrapState = this;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _runBootSequence());
-  }
-
-  @override
-  void dispose() {
-    if (_bootstrapState == this) {
-      _bootstrapState = null;
-    }
-    super.dispose();
-  }
-
-  void _setPhase(String phase) {
-    if (!mounted) return;
-    setState(() => _phase = phase);
-  }
-
-  void _setFatal(String message) {
-    if (!mounted) return;
-    setState(() {
-      _fatal = message;
-      _app = null;
-    });
-  }
-
-  Future<void> _runBootSequence() async {
+  try {
     try {
-      _setPhase('PHASE 1: LOADING .ENV...');
-      try {
-        await dotenv.load();
-      } catch (e) {
-        debugPrint('Warning: .env not loaded — $e');
-      }
-
-      _setPhase('PHASE 2: FIREBASE INIT...');
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-
-      _setPhase('PHASE 3: THEME...');
-      await AppTheme.initTheme();
-
-      _setPhase('PHASE 4: LOCALIZATION...');
-      await EasyLocalization.ensureInitialized();
-
-      if (!mounted) return;
-      setState(() {
-        _phase = 'PHASE 5: LAUNCHING APP...';
-        _app = EasyLocalization(
-          supportedLocales: const [Locale('en'), Locale('ar')],
-          path: 'assets/translations',
-          fallbackLocale: const Locale('en'),
-          child: const MyApp(),
-        );
-      });
-
-      // Non-blocking: defer services until after first real frame.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startDeferredServices();
-      });
-    } catch (e, stack) {
-      debugPrint('Fatal startup error: $e\n$stack');
-      _setFatal('FATAL STARTUP ERROR:\n$e\n\n$stack');
+      await dotenv.load();
+    } catch (e) {
+      debugPrint('Warning: .env not loaded — $e');
     }
-  }
 
-  Future<void> _startDeferredServices() async {
-    _setPhase('PHASE 6: NOTIFICATIONS...');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
     try {
       await NotificationService.instance.init();
     } catch (e) {
       debugPrint('Warning: Notifications init failed — $e');
     }
 
-    _setPhase('PHASE 7: LOCATION SYNC...');
     UserLocationSyncService.instance.start();
-
-    _setPhase('PHASE 8: CONNECTIVITY...');
     ConnectivityService.instance.init();
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_fatal != null) {
-      return _ErrorApp(message: _fatal!, stack: null);
-    }
-    if (_app != null) {
-      return _app!;
-    }
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: _DiagnosticLoadingScreen(phaseLabel: _phase),
-    );
-  }
-}
+    await AppTheme.initTheme();
+    await EasyLocalization.ensureInitialized();
 
-class _ErrorApp extends StatelessWidget {
-  final String message;
-  final StackTrace? stack;
-  const _ErrorApp({required this.message, this.stack});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'AmanCity Fatal Error\n\n$message\n\n${stack ?? ''}',
-              style: const TextStyle(color: Colors.yellow, fontSize: 12),
-              textDirection: ui.TextDirection.ltr,
-            ),
-          ),
-        ),
+    runApp(
+      EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en'),
+        child: const MyApp(),
       ),
     );
+  } catch (e, stack) {
+    debugPrint('Fatal startup error: $e\n$stack');
   }
 }
 
@@ -268,6 +110,7 @@ class _MyAppState extends State<MyApp> {
         ),
         scaffoldBackgroundColor: AppColors.lightBackground,
         useMaterial3: true,
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -276,6 +119,7 @@ class _MyAppState extends State<MyApp> {
         ),
         scaffoldBackgroundColor: AppColors.primary,
         useMaterial3: true,
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
       ),
       navigatorKey: navigation.Navigator.navigatorKey,
       home: const _StartGate(),
@@ -327,8 +171,11 @@ class _StartGateState extends State<_StartGate> {
   @override
   Widget build(BuildContext context) {
     if (_onboardingDone == null) {
-      return const _DiagnosticLoadingScreen(
-        phaseLabel: 'CHECKING ONBOARDING & PERMISSIONS...',
+      return const Scaffold(
+        backgroundColor: AppColors.primary,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.secondary),
+        ),
       );
     }
     if (!_onboardingDone!) {
@@ -361,8 +208,11 @@ class AuthGate extends StatelessWidget {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const _DiagnosticLoadingScreen(
-                phaseLabel: 'WAITING FOR AUTH...',
+              return const Scaffold(
+                backgroundColor: AppColors.primary,
+                body: Center(
+                  child: CircularProgressIndicator(color: AppColors.secondary),
+                ),
               );
             }
             if (snapshot.hasData) {
@@ -382,8 +232,13 @@ class AuthGate extends StatelessWidget {
                 future: AuthorityApiService.instance.fetchCurrentUserRole(),
                 builder: (context, roleSnapshot) {
                   if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                    return const _DiagnosticLoadingScreen(
-                      phaseLabel: 'RESOLVING USER ROLE...',
+                    return const Scaffold(
+                      backgroundColor: AppColors.primary,
+                      body: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.secondary,
+                        ),
+                      ),
                     );
                   }
                   if (roleSnapshot.data == 'authority') {
@@ -397,42 +252,6 @@ class AuthGate extends StatelessWidget {
           },
         );
       },
-    );
-  }
-}
-
-class _DiagnosticLoadingScreen extends StatelessWidget {
-  final String phaseLabel;
-  const _DiagnosticLoadingScreen({required this.phaseLabel});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.deepPurpleAccent,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(color: Colors.orangeAccent),
-                const SizedBox(height: 24),
-                Text(
-                  phaseLabel,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.orangeAccent,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

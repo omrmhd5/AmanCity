@@ -4,7 +4,7 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<!-- Native rescue: disable Impeller on iOS Release; use Skia until boot is stable -->
+	<!-- iOS Release: Skia renderer (Impeller can hang on launch on some devices) -->
 	<key>FLTEnableImpeller</key>
 	<false/>
 	<key>CFBundleDevelopmentRegion</key>
