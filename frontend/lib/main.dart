@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,104 +35,116 @@ const _requiredPermissions = [
 ];
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-  // Catch UI rendering errors and paint them on the screen instead of a white void.
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Material(
-      color: Colors.black,
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'UI CRASH:\n${details.exception}\n\n${details.stack}',
-            style: const TextStyle(color: Colors.yellow, fontSize: 12),
-            textDirection: ui.TextDirection.ltr,
+      // Catch UI rendering errors and paint them on the screen instead of a white void.
+      ErrorWidget.builder = (FlutterErrorDetails details) {
+        return Material(
+          color: Colors.black,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'UI CRASH:\n${details.exception}\n\n${details.stack}',
+                style: const TextStyle(color: Colors.yellow, fontSize: 12),
+                textDirection: ui.TextDirection.ltr,
+              ),
+            ),
           ),
-        ),
-      ),
-    );
-  };
+        );
+      };
 
-  // Catch any uncaught Flutter framework errors and print them
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    debugPrint('FlutterError: ${details.exceptionAsString()}');
-  };
+      // Catch uncaught Flutter framework errors.
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details);
+        debugPrint('FlutterError: ${details.exceptionAsString()}');
+        _showFatalError(
+          'FLUTTER ERROR:\n${details.exceptionAsString()}',
+          details.stack,
+        );
+      };
 
-  try {
-    // Load .env — gracefully skip if file is missing in the build
-    try {
-      await dotenv.load();
-    } catch (e) {
-      debugPrint('Warning: .env not loaded — $e');
-    }
+      // Catch async/platform errors outside the Flutter framework.
+      ui.PlatformDispatcher.instance.onError =
+          (Object error, StackTrace stack) {
+            debugPrint('PlatformDispatcher error: $error\n$stack');
+            _showFatalError('ASYNC/PLATFORM ERROR:\n$error', stack);
+            return true;
+          };
 
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+      try {
+        // Load .env — gracefully skip if file is missing in the build.
+        try {
+          await dotenv.load();
+        } catch (e) {
+          debugPrint('Warning: .env not loaded — $e');
+        }
 
-    try {
-      await NotificationService.instance.init();
-    } catch (e) {
-      debugPrint('Warning: Notifications init failed — $e');
-    }
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
 
-    UserLocationSyncService.instance.start();
-    ConnectivityService.instance.init();
+        try {
+          await NotificationService.instance.init();
+        } catch (e) {
+          debugPrint('Warning: Notifications init failed — $e');
+        }
 
-    await AppTheme.initTheme();
-    await EasyLocalization.ensureInitialized();
+        UserLocationSyncService.instance.start();
+        ConnectivityService.instance.init();
 
-    runApp(
-      EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('ar')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en'),
-        child: const MyApp(),
-      ),
-    );
-  } catch (e, stack) {
-    debugPrint('Fatal startup error: $e\n$stack');
-    runApp(_ErrorApp(message: e.toString()));
-  }
+        await AppTheme.initTheme();
+        await EasyLocalization.ensureInitialized();
+
+        runApp(
+          EasyLocalization(
+            supportedLocales: const [Locale('en'), Locale('ar')],
+            path: 'assets/translations',
+            fallbackLocale: const Locale('en'),
+            child: const MyApp(),
+          ),
+        );
+      } catch (e, stack) {
+        debugPrint('Fatal startup error: $e\n$stack');
+        _showFatalError('FATAL STARTUP ERROR:\n$e', stack);
+      }
+    },
+    (Object error, StackTrace stack) {
+      debugPrint('runZonedGuarded error: $error\n$stack');
+      _showFatalError('ZONE ERROR:\n$error', stack);
+    },
+  );
 }
 
 class _ErrorApp extends StatelessWidget {
   final String message;
-  const _ErrorApp({required this.message});
+  final StackTrace? stack;
+  const _ErrorApp({required this.message, this.stack});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                const Text(
-                  'AmanCity failed to start',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  message,
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'AmanCity Fatal Error\n\n$message\n\n${stack ?? ''}',
+              style: const TextStyle(color: Colors.yellow, fontSize: 12),
+              textDirection: ui.TextDirection.ltr,
             ),
           ),
         ),
       ),
     );
   }
+}
+
+void _showFatalError(String message, StackTrace? stack) {
+  runApp(_ErrorApp(message: message, stack: stack));
 }
 
 class MyApp extends StatefulWidget {
@@ -173,7 +185,6 @@ class _MyAppState extends State<MyApp> {
         ),
         scaffoldBackgroundColor: AppColors.lightBackground,
         useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -182,7 +193,6 @@ class _MyAppState extends State<MyApp> {
         ),
         scaffoldBackgroundColor: AppColors.primary,
         useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
       ),
       navigatorKey: navigation.Navigator.navigatorKey,
       home: const _StartGate(),
@@ -235,11 +245,8 @@ class _StartGateState extends State<_StartGate> {
   @override
   Widget build(BuildContext context) {
     if (_onboardingDone == null) {
-      return const Scaffold(
-        backgroundColor: AppColors.primary,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.secondary),
-        ),
+      return const _DiagnosticLoadingScreen(
+        phaseLabel: 'CHECKING CONNECTIVITY & PERMISSIONS...',
       );
     }
     // Not done with onboarding → show onboarding
@@ -275,8 +282,8 @@ class AuthGate extends StatelessWidget {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+              return const _DiagnosticLoadingScreen(
+                phaseLabel: 'WAITING FOR AUTH...',
               );
             }
             if (snapshot.hasData) {
@@ -299,13 +306,8 @@ class AuthGate extends StatelessWidget {
                 future: AuthorityApiService.instance.fetchCurrentUserRole(),
                 builder: (context, roleSnapshot) {
                   if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                    return const Scaffold(
-                      backgroundColor: AppColors.primary,
-                      body: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.secondary,
-                        ),
-                      ),
+                    return const _DiagnosticLoadingScreen(
+                      phaseLabel: 'RESOLVING USER ROLE...',
                     );
                   }
                   if (roleSnapshot.data == 'authority') {
@@ -319,6 +321,42 @@ class AuthGate extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _DiagnosticLoadingScreen extends StatelessWidget {
+  final String phaseLabel;
+  const _DiagnosticLoadingScreen({required this.phaseLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.deepPurpleAccent,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: Colors.orangeAccent),
+                const SizedBox(height: 24),
+                Text(
+                  phaseLabel,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.orangeAccent,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
