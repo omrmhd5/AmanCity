@@ -119,6 +119,13 @@ class IncidentTypesConfig {
       icon: Icons.brush,
       color: Colors.purple,
     ),
+    // User-flagged / manual
+    IncidentTypeConfig(
+      key: 'Others',
+      displayName: 'Others',
+      icon: Icons.help_outline_rounded,
+      color: Colors.grey,
+    ),
   ];
 
   /// Get config by incident type key

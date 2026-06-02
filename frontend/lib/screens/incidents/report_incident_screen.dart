@@ -1104,7 +1104,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _selectedFile!.path.split('/').last,
+                      _selectedFile!.path.split('/').last.split('\\').last.replaceFirst('scaled_', ''),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

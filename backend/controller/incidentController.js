@@ -122,7 +122,7 @@ class IncidentController {
         description: description || "",
         type: incidentType._id,
         location: parsedLocation,
-        confidence: parseFloat(confidence) || 0.5,
+        confidence: className === "Others" ? 0.0 : (parseFloat(confidence) || 0.5),
         media: mediaArray,
         reportedBy: req.user?._id, // Set from authenticated user (server-side, trusted)
         timestamp: new Date(),

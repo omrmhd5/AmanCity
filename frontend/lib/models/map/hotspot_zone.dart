@@ -105,11 +105,10 @@ class HotspotZone {
     'incidentTypes': incidentTypes,
   };
 
-  /// Generate smart warning message based on incident types
   String get smartWarningMessage {
-    // Filter out "Unknown" and empty types
+    // Filter out "Unknown", "Others", and empty types
     final validTypes = incidentTypes
-        .where((type) => type.isNotEmpty && type.toLowerCase() != 'unknown')
+        .where((type) => type.isNotEmpty && type.toLowerCase() != 'unknown' && type.toLowerCase() != 'others')
         .toList();
 
     if (validTypes.isEmpty) {

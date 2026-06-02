@@ -194,7 +194,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                   ),
                                 ),
                                 child: Icon(
-                                  Icons.local_fire_department_rounded,
+                                  Icons.warning_rounded,
                                   color: widget.hotspot.riskColor,
                                   size: 26,
                                 ),

@@ -81,7 +81,7 @@ class IncidentApiService {
       request.fields['title'] = title;
       request.fields['className'] = className; // e.g., "Accident"
       request.fields['description'] = description;
-      request.fields['confidence'] = confidence.toString();
+      request.fields['confidence'] = (className == 'Others' ? 0.0 : confidence).toString();
       request.fields['location'] = jsonEncode({
         'latitude': latitude,
         'longitude': longitude,
@@ -106,24 +106,21 @@ class IncidentApiService {
         }
       } else {
         // Try to extract error message from JSON response
+        String errorMessage = 'Unable to save your report';
         try {
           final errorJson = jsonDecode(response.body);
-          final errorMessage =
-              errorJson['message'] ?? 'Unable to save your report';
-          throw Exception(errorMessage);
-        } catch (e) {
-          // If JSON parsing fails, show generic message
-          throw Exception('Unable to save your report. Please try again.');
+          errorMessage = errorJson['message'] ?? errorMessage;
+        } catch (_) {
+          // If JSON parsing fails, keep default message
         }
+        throw Exception(errorMessage);
       }
-    } on SocketException catch (e) {
-      // Network Error
+    } on SocketException catch (_) {
       throw Exception(
         'Unable to connect to the server. Please check your connection and try again.',
       );
     } catch (e) {
-      // Error saving incident
-      throw Exception('Unable to save your report. Please try again.');
+      rethrow;
     }
   }
 

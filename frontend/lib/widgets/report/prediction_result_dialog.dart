@@ -518,7 +518,42 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                       );
                     }).toList(),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+
+                  // "Inaccurate results?" hint
+                  GestureDetector(
+                    onTap: () {
+                      final othersPrediction = PredictionResult(
+                        classId: -1,
+                        className: 'Others',
+                        confidence: 0.0,
+                      );
+                      widget.onCreateIncident?.call(othersPrediction);
+                      Navigator.of(context).pop();
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.flag_outlined,
+                          size: 15,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'report.inaccurate_flag'.tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
 
                   // Action Buttons
                   Row(

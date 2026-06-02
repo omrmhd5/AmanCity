@@ -29,6 +29,8 @@ const incidentTypeSchema = new mongoose.Schema(
         "Shoplifting",
         "Stealing",
         "Vandalism",
+        // User-flagged / manual
+        "Others",
       ],
     },
     nameEn: {

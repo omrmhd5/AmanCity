@@ -15,6 +15,7 @@
     "edit": "Edit",
     "retry": "Retry",
     "close": "Close",
+    "change": "Change",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -413,6 +414,8 @@
     "evidence_type": "Evidence Type",
     "photo": "Photo",
     "video": "Video",
+    "gallery": "Gallery",
+    "camera": "Camera",
     "select_photo": "Photo",
     "select_video": "Video",
     "location_context": "Location Context",
@@ -436,7 +439,10 @@
     "nothing_found": "Nothing Found",
     "multiple_predictions": "Multiple Predictions",
     "prediction_result": "Prediction Result",
-    "detected_type": "Detected Type"
+    "detected_type": "Detected Type",
+    "inaccurate_flag": "Inaccurate results? Report as Others",
+    "unable_to_save": "Unable to save your report. Please try again.",
+    "incident_created": "Incident created: {title}"
   },
   "news": {
     "title": "News",

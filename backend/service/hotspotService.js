@@ -24,7 +24,12 @@ class HotspotService {
         .sort({ timestamp: -1 })
         .lean(); // Convert Mongoose documents to plain objects for worker thread serialization
 
-      return incidents;
+      // Ignore any flagged with 'Others'
+      const filteredIncidents = incidents.filter(
+        (incident) => incident.type && incident.type.type !== "Others"
+      );
+
+      return filteredIncidents;
     } catch (error) {
       throw new Error("Failed to fetch recent incidents");
     }

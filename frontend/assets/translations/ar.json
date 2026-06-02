@@ -15,6 +15,7 @@
     "edit": "تعديل",
     "retry": "إعادة المحاولة",
     "close": "إغلاق",
+    "change": "تغيير",
     "loading": "جاري التحميل...",
     "error": "خطأ",
     "success": "نجاح",
@@ -413,6 +414,8 @@
     "evidence_type": "نوع الدليل",
     "photo": "صورة",
     "video": "فيديو",
+    "gallery": "المعرض",
+    "camera": "الكاميرا",
     "select_photo": "صورة",
     "select_video": "فيديو",
     "location_context": "سياق الموقع",
@@ -436,7 +439,10 @@
     "nothing_found": "لم يتم العثور على شيء",
     "multiple_predictions": "تنبؤات متعددة",
     "prediction_result": "نتيجة التنبؤ",
-    "detected_type": "النوع المكتشف"
+    "detected_type": "النوع المكتشف",
+    "inaccurate_flag": "نتائج غير دقيقة؟ أبلغ عنها كـ \"أخرى\"",
+    "unable_to_save": "تعذر حفظ التقرير. يرجى المحاولة مرة أخرى.",
+    "incident_created": "تم إنشاء البلاغ بنجاح: {title}"
   },
   "news": {
     "title": "الأخبار",

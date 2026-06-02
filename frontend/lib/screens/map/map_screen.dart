@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as Math;
 import 'package:easy_localization/easy_localization.dart';
@@ -1535,14 +1535,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           child: _buildNearbyAlertsSection(),
         ),
 
-        // Loading indicator
-        if (_isLoadingLocation)
-          const Positioned(
-            top: 100,
-            left: 0,
-            right: 0,
-            child: MapLoadingIndicator(),
-          ),
       ],
     );
   }

@@ -49,6 +49,8 @@ class FileService {
         "Shoplifting",
         "Stealing",
         "Vandalism",
+        // Fallback / User-flagged
+        "Others",
       ];
 
       if (!validClasses.includes(className)) {
