@@ -95,6 +95,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final isDark = AppTheme.currentMode == AppThemeMode.dark;
     return MaterialApp(
+      key: ValueKey(context.locale.toString()),
       title: 'AmanCity',
       locale: context.locale,
       supportedLocales: context.supportedLocales,

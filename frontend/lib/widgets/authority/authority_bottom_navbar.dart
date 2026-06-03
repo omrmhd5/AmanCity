@@ -219,7 +219,12 @@ class AuthorityBottomNavBar extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 letterSpacing: isSelected ? 0.3 : 0.0,
               ),
-              child: Text(label),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+              ),
             ),
           ],
         ),
