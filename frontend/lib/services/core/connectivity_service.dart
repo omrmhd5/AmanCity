@@ -86,16 +86,14 @@ class ConnectivityService with WidgetsBindingObserver {
   Future<void> _forceCheck() async {
     _checking = true;
     try {
-      // Step 1: internet reachability via TCP socket to Cloudflare DNS.
+      // Step 1: internet reachability via DNS lookup.
+      // This is much more reliable on iOS for detecting when the active interface drops.
       bool hasInternet = false;
       try {
-        final socket = await Socket.connect(
-          '1.1.1.1',
-          53,
-          timeout: const Duration(seconds: 3),
-        );
-        socket.destroy();
-        hasInternet = true;
+        final result = await InternetAddress.lookup('google.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          hasInternet = true;
+        }
       } catch (_) {
         hasInternet = false;
       }
