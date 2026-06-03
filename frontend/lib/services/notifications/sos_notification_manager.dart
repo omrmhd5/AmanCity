@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../../models/alerts/alert_notification.dart';
-import '../../screens/sos/incoming_sos_alert_screen.dart';
-import '../../utils/navigation_service.dart' as navigation;
 import '../sos/sos_service.dart';
 import '../../models/notifications/incoming_sos_session.dart';
 import 'notification_storage.dart';
@@ -143,37 +141,16 @@ class SosNotificationManager {
     FlutterRingtonePlayer().stop();
     SosService().playAlertSound();
 
-    navigation.Navigator.navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (_) => IncomingSosAlertScreen(
-          sessionId: sessionId,
-          triggerUserName: name,
-          triggerUserPhone: phone,
-          lat: lat,
-          lng: lng,
-        ),
-        fullscreenDialog: true,
-      ),
-    );
+    // Navigation is handled by HomeScreen which listens to activeIncomingSession.
+    // Pushing here via the global navigatorKey is unreliable on iOS (key can be
+    // null when FCM fires), so we rely on the HomeScreen listener instead.
   }
 
   void pushSosScreenIfNeeded() {
     final session = activeIncomingSession.value;
     if (session != null && !_incomingScreenActive) {
-      _incomingScreenActive = true;
+      // Play the alarm sound — HomeScreen listener handles the navigation push.
       SosService().playAlertSound();
-      navigation.Navigator.navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (_) => IncomingSosAlertScreen(
-            sessionId: session.sessionId,
-            triggerUserName: session.senderName,
-            triggerUserPhone: session.senderPhone,
-            lat: session.lat,
-            lng: session.lng,
-          ),
-          fullscreenDialog: true,
-        ),
-      );
     }
   }
 

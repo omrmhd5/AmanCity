@@ -19,6 +19,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../sos/trusted_app_contacts_screen.dart';
 import '../../widgets/home/home_incoming_sos_tile.dart';
 import 'home_tour_guide.dart';
+import '../../services/notifications/notification_service.dart';
+import '../sos/incoming_sos_alert_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -62,6 +64,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final GlobalKey _newsCardKey = GlobalKey();
   final GlobalKey _sosCardKey = GlobalKey();
 
+  // Guards against double-pushing IncomingSosAlertScreen when the
+  // activeIncomingSession listener fires multiple times for the same session.
+  bool _sosPushPending = false;
+  String? _lastSosPushedSessionId;
+
   @override
   void initState() {
     super.initState();
@@ -79,8 +86,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     AppTheme.themeNotifier.addListener(_onThemeChange);
     _applySystemUI();
 
+    // Listen for incoming SOS sessions — push IncomingSosAlertScreen reactively.
+    // This is more reliable than using navigatorKey.currentState on iOS, where
+    // the global key can be null when FCM fires (foreground or background resume).
+    NotificationService.instance.activeIncomingSession
+        .addListener(_onIncomingSosSession);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTourGuide();
+      // Handle any session that was already set before this screen mounted
+      // (e.g. app opened from terminated state via notification tap).
+      _onIncomingSosSession();
     });
   }
 
@@ -130,11 +146,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     AppTheme.themeNotifier.removeListener(_onThemeChange);
+    NotificationService.instance.activeIncomingSession
+        .removeListener(_onIncomingSosSession);
     _entryController.dispose();
     _pageSlideController.dispose();
     _sosActivateSignal.dispose();
     _sosViewSignal.dispose();
     super.dispose();
+  }
+
+  /// Called whenever [NotificationService.instance.activeIncomingSession] changes.
+  /// Pushes [IncomingSosAlertScreen] using the local BuildContext, which is
+  /// always valid here — avoiding the iOS issue where the global navigatorKey
+  /// is null when FCM delivers a message.
+  void _onIncomingSosSession() {
+    final session = NotificationService.instance.activeIncomingSession.value;
+    if (session == null || !mounted) return;
+    // Don't push again if we already pushed this exact session
+    if (session.sessionId == _lastSosPushedSessionId) return;
+    // Don't push again if a push is already queued for this frame
+    if (_sosPushPending) return;
+    _sosPushPending = true;
+
+    // Post-frame so the navigator is guaranteed ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _sosPushPending = false;
+      if (!mounted) return;
+      // Re-read in case the session was cleared during this frame.
+      final s = NotificationService.instance.activeIncomingSession.value;
+      if (s == null) return;
+      if (s.sessionId == _lastSosPushedSessionId) return;
+      _lastSosPushedSessionId = s.sessionId;
+      NotificationService.instance.reopenIncomingAlert();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => IncomingSosAlertScreen(
+            sessionId: s.sessionId,
+            triggerUserName: s.senderName,
+            triggerUserPhone: s.senderPhone,
+            lat: s.lat,
+            lng: s.lng,
+          ),
+          fullscreenDialog: true,
+        ),
+      );
+    });
   }
 
   void _onIncidentReported() {
