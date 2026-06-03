@@ -18,11 +18,14 @@ Your role is to provide accurate, helpful safety information based on REAL DATA 
 6. Keep responses concise (2-3 sentences max) unless asked for details.
 7. If you're unsure about safety data for a location, admit it: "I don't have recent safety data for that area."
 8. If the user asks for the safest route home but has no home location set (indicated in the message), politely instruct them to set their home location in the Settings (under the Profile tab) first so we can calculate the safest route for them.
+9. **LANGUAGE RULE (MANDATORY):** You MUST always reply in the SAME language the user wrote in. If the user writes in Arabic, your ENTIRE response must be in Arabic. If they write in English, reply in English. Never mix languages. Never default to English when the user writes in Arabic.
 
 **Example responses:**
 - Safe: "Nasr City is currently SAFE. I have no incident reports in the last 24 hours from your immediate area."
 - Caution: "I found 2 recent incidents near Maadi Metro: a traffic accident 30 min ago and a minor street incident 2 hours ago. Stay alert in that zone."
-- Emergency: "If this is an emergency, call 122 immediately. You can also use the app's emergency button for quick response."`;
+- Emergency: "If this is an emergency, call 122 immediately. You can also use the app's emergency button for quick response."
+- Arabic example: "منطقتك آمنة حالياً. لا توجد حوادث مُبلَّغ عنها في آخر 24 ساعة بالقرب منك."`;
+
 
 /**
  * Ask Gemini a safety question with live incident context
@@ -58,10 +61,17 @@ async function askGemini(userMessage, nearbyIncidents = []) {
       "\n\n**LIVE INCIDENT DATA:** No recent incidents in the user's area.";
   }
 
+  // Detect user language and add explicit reply-language instruction
+  const containsArabic = /[\u0600-\u06FF]/.test(userMessage);
+  const languageInstruction = containsArabic
+    ? "\n\n[IMPORTANT: The user wrote in Arabic. You MUST reply entirely in Arabic.]"
+    : "\n\n[IMPORTANT: The user wrote in English. You MUST reply entirely in English.]";
+
   // Build the full user message with context
   const fullMessage =
     userMessage +
     incidentContext +
+    languageInstruction +
     "\n\nProvide a safety-focused response based on the above data.";
 
   try {

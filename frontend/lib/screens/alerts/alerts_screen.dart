@@ -5,6 +5,7 @@ import '../../services/notifications/notification_service.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 import '../../data/incident_types_config.dart';
+import '../../utils/localization_formatter.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({Key? key}) : super(key: key);
@@ -518,13 +519,18 @@ class _AlertCardState extends State<_AlertCard> {
                           runSpacing: 4,
                           children: [
                             _chip(
-                              _timeAgo(widget.alert.timestamp),
+                              LocalizationFormatter.formatTimeAgo(context, widget.alert.timestamp),
                               Icons.access_time,
                               AppTheme.getSecondaryTextColor(),
                             ),
                             if (widget.alert.distanceKm != null)
                               _chip(
-                                '${widget.alert.distanceKm!.toStringAsFixed(1)} km away',
+                                'map.away_suffix'.tr(namedArgs: {
+                                  'distance': LocalizationFormatter.formatDistance(
+                                    context,
+                                    '${widget.alert.distanceKm!.toStringAsFixed(1)}km',
+                                  ),
+                                }),
                                 Icons.location_on_outlined,
                                 stripeColor,
                               ),
@@ -609,11 +615,4 @@ class _AlertCardState extends State<_AlertCard> {
     );
   }
 
-  String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'common.just_now'.tr();
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
-  }
 }

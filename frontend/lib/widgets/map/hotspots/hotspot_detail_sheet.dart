@@ -6,6 +6,7 @@ import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
 import '../../shared/custom_text.dart';
 import 'hotspot_detail_row.dart';
+import '../../../utils/localization_formatter.dart';
 
 class HotspotDetailSheet extends StatefulWidget {
   final HotspotZone hotspot;
@@ -71,6 +72,29 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
         ),
       ],
     );
+  }
+
+  String _localizedWarningMessage() {
+    final validTypes = widget.hotspot.incidentTypes
+        .where((t) => t.isNotEmpty && t.toLowerCase() != 'unknown' && t.toLowerCase() != 'others')
+        .toList();
+
+    if (validTypes.isEmpty) {
+      return 'map.advisory_generic'.tr();
+    }
+
+    final translatedTypes = validTypes.map((t) {
+      final key = 'incident_type.$t';
+      final translated = key.tr();
+      return translated == key ? t : translated;
+    }).toList();
+    final typeList = translatedTypes.join('، ');
+
+    if (translatedTypes.length == 1) {
+      return 'map.advisory_single'.tr(namedArgs: {'type': typeList});
+    } else {
+      return 'map.advisory_multiple'.tr(namedArgs: {'types': typeList});
+    }
   }
 
   @override
@@ -212,7 +236,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                                     ),
                                     const SizedBox(height: 4),
                                     CustomText(
-                                      text: widget.hotspot.riskLevel,
+                                      text: 'map.risk_${widget.hotspot.riskLevel.toLowerCase()}'.tr(),
                                       size: 20,
                                       weight: FontWeight.w900,
                                       color: widget.hotspot.riskColor,
@@ -343,8 +367,10 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                               ),
                               HotspotDetailRow(
                                 label: 'map.zone_radius'.tr(),
-                                value:
-                                    '${widget.hotspot.radiusKm.toStringAsFixed(2)} km',
+                                value: LocalizationFormatter.formatDistance(
+                                  context,
+                                  '${widget.hotspot.radiusKm.toStringAsFixed(2)}km',
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Divider(
@@ -367,7 +393,10 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                               ),
                               HotspotDetailRow(
                                 label: 'map.last_updated'.tr(),
-                                value: widget.hotspot.timeSinceUpdate,
+                                value: LocalizationFormatter.formatTimeAgo(
+                                  context,
+                                  widget.hotspot.updatedAt,
+                                ),
                               ),
                             ],
                           ),
@@ -398,7 +427,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                               const SizedBox(width: 12),
                               Expanded(
                                 child: CustomText(
-                                  text: widget.hotspot.smartWarningMessage,
+                                  text: _localizedWarningMessage(),
                                   size: 12,
                                   color: AppTheme.getPrimaryTextColor(),
                                   weight: FontWeight.w500,

@@ -94,6 +94,28 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final isDark = AppTheme.currentMode == AppThemeMode.dark;
+    final isArabic = context.locale.languageCode == 'ar';
+
+    final textThemeLight = isArabic
+        ? GoogleFonts.cairoTextTheme(ThemeData.light().textTheme)
+        : GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme);
+
+    final textThemeDark = isArabic
+        ? GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme)
+        : GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme);
+
+    final snackBarTextStyle = isArabic
+        ? GoogleFonts.cairo(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          )
+        : GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          );
+
     return MaterialApp(
       key: ValueKey(context.locale.toString()),
       title: 'AmanCity',
@@ -108,14 +130,10 @@ class _MyAppState extends State<MyApp> {
         ),
         scaffoldBackgroundColor: AppColors.lightBackground,
         useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+        textTheme: textThemeLight,
         snackBarTheme: SnackBarThemeData(
           backgroundColor: const Color(0xFF0F172A),
-          contentTextStyle: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          contentTextStyle: snackBarTextStyle,
           actionTextColor: AppColors.secondary,
         ),
       ),
@@ -126,14 +144,10 @@ class _MyAppState extends State<MyApp> {
         ),
         scaffoldBackgroundColor: AppColors.primary,
         useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+        textTheme: textThemeDark,
         snackBarTheme: SnackBarThemeData(
           backgroundColor: const Color(0xFF1E293B),
-          contentTextStyle: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          contentTextStyle: snackBarTextStyle,
           actionTextColor: AppColors.secondary,
         ),
       ),

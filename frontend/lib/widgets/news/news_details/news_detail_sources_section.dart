@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/incidents/osint_incident.dart';
 import '../../../utils/app_theme.dart';
@@ -24,7 +25,7 @@ class NewsDetailSourcesSection extends StatelessWidget {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Could not open tweet link'),
+                content: Text('news.cant_open_tweet'.tr()),
                 backgroundColor: Colors.red,
                 duration: const Duration(seconds: 2),
               ),
@@ -36,7 +37,7 @@ class NewsDetailSourcesSection extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('news.error_opening'.tr(namedArgs: {'error': e.toString()})),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 2),
           ),
@@ -58,7 +59,7 @@ class NewsDetailSourcesSection extends StatelessWidget {
               Icon(Icons.link_rounded, size: 15, color: AppColors.secondary),
               const SizedBox(width: 6),
               Text(
-                'SOURCES',
+                'news.sources_label'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -141,7 +142,7 @@ class NewsDetailSourcesSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CustomText(
-                text: '🤖 Detected by Grok AI from Twitter',
+                text: 'news.grok_detected'.tr(),
                 size: 11,
                 weight: FontWeight.w500,
                 color: AppColors.secondary,

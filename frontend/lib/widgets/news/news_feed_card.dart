@@ -5,6 +5,7 @@ import '../../utils/app_theme.dart';
 import '../../data/app_colors.dart';
 import '../../data/incident_types_config.dart';
 import '../shared/custom_text.dart';
+import '../../utils/localization_formatter.dart';
 
 class NewsFeedCard extends StatefulWidget {
   final OsintIncident incident;
@@ -92,7 +93,11 @@ class _NewsFeedCardState extends State<NewsFeedCard> {
                         ),
                         const SizedBox(width: 4),
                         CustomText(
-                          text: widget.incident.type,
+                          text: () {
+                            final key = 'incident_type.${widget.incident.type}';
+                            final t = key.tr();
+                            return t == key ? widget.incident.type : t;
+                          }(),
                           size: 10,
                           weight: FontWeight.w600,
                           color: typeConfig.color,
@@ -103,7 +108,7 @@ class _NewsFeedCardState extends State<NewsFeedCard> {
                   const Spacer(),
                   // Time
                   CustomText(
-                    text: widget.incident.timeAgo,
+                    text: LocalizationFormatter.formatTimeAgo(context, widget.incident.timestamp),
                     size: 11,
                     weight: FontWeight.w900,
                     color: AppTheme.getSecondaryTextColor(),
@@ -155,7 +160,9 @@ class _NewsFeedCardState extends State<NewsFeedCard> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: CustomText(
-                      text: widget.incident.locationPrecision,
+                      text: widget.incident.locationPrecision == 'EXACT'
+                          ? 'news.precision_exact'.tr()
+                          : 'news.precision_approximate'.tr(),
                       size: 8,
                       weight: FontWeight.w600,
                       color: widget.incident.locationPrecision == "EXACT"
@@ -220,8 +227,9 @@ class _NewsFeedCardState extends State<NewsFeedCard> {
                     Icon(Icons.link, size: 12, color: AppColors.secondary),
                     const SizedBox(width: 4),
                     CustomText(
-                      text:
-                          '${widget.incident.sourceUrls.length} source${widget.incident.sourceUrls.length != 1 ? 's' : ''}',
+                      text: widget.incident.sourceUrls.length == 1
+                          ? 'news.sources_count_one'.tr()
+                          : 'news.sources_count_other'.tr(namedArgs: {'count': '${widget.incident.sourceUrls.length}'}),
                       size: 10,
                       weight: FontWeight.w500,
                       color: AppColors.secondary,

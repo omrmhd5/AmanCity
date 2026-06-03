@@ -10,6 +10,7 @@ import '../../data/app_colors.dart';
 import '../../models/sos/sos_session_info.dart';
 import '../../services/sos/sos_service.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/localization_formatter.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
   final String sessionId;
@@ -158,12 +159,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  String get _lastUpdatedLabel {
-    if (_session == null) return '';
-    final diff = DateTime.now().difference(_session!.updatedAt);
-    if (diff.inSeconds < 60) return '${diff.inSeconds}s ago';
-    return '${diff.inMinutes}m ago';
-  }
+
 
   Future<void> _callUser() async {
     final phone = _session?.triggerUserPhone ?? widget.initialUserPhone;
@@ -380,7 +376,11 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
                       ),
                     ),
                     Text(
-                      'Updated $_lastUpdatedLabel',
+                      _session == null
+                          ? ''
+                          : 'common.updated_ago'.tr(namedArgs: {
+                              'time': LocalizationFormatter.formatTimeAgo(context, _session!.updatedAt),
+                            }),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.35),
                         fontSize: 11,

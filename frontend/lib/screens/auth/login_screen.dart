@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (!result.isNewUser) {
         AuthService.socialProfileCompletionRequired.value = false;
-        _showSuccess('Login successful!');
+        _showSuccess('auth.login_successful'.tr());
         return;
       }
 

@@ -221,7 +221,13 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Search failed: $e')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              'map.search_failed'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
+        );
       }
     }
   }

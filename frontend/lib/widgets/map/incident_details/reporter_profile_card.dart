@@ -62,7 +62,7 @@ class ReporterProfileCard extends StatelessWidget {
                   ),
                 ),
                 child: CustomText(
-                  text: '🤖 OSINT — Detected from Twitter/X',
+                  text: 'map.osint_intelligence'.tr(),
                   size: 10,
                   weight: FontWeight.w500,
                   color: AppColors.secondary,
@@ -122,7 +122,11 @@ class ReporterProfileCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             CustomText(
-                              text: incident.type.toUpperCase(),
+                              text: () {
+                                final key = 'incident_type.${incident.type}';
+                                final t = key.tr();
+                                return (t == key ? incident.type : t).toUpperCase();
+                              }(),
                               size: 10,
                               weight: FontWeight.w600,
                               color: incident.typeColor,

@@ -13,6 +13,7 @@ import '../../widgets/map/bulk_incident_details/bulk_media_feed.dart';
 import '../../widgets/map/bulk_incident_details/bulk_osint_sources.dart';
 import '../../widgets/map/bulk_incident_details/bulk_reports_section.dart';
 import './incident_detail_sheet.dart';
+import '../../utils/localization_formatter.dart';
 
 class BulkIncidentDetailSheet extends StatefulWidget {
   final BulkIncident bulk;
@@ -85,10 +86,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
   }
 
   String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+    return LocalizationFormatter.formatTimeAgo(context, dt);
   }
 
   @override
@@ -349,12 +347,7 @@ class _BulkIncidentDetailSheetState extends State<BulkIncidentDetailSheet>
       bulkIncidentId: parentBulk.id,
     );
 
-    final diff = DateTime.now().difference(sub.timestamp);
-    final timeAgo = diff.inMinutes < 60
-        ? '${diff.inMinutes}m ago'
-        : diff.inHours < 24
-        ? '${diff.inHours}h ago'
-        : '${diff.inDays}d ago';
+    final timeAgo = LocalizationFormatter.formatTimeAgo(context, sub.timestamp);
 
     showModalBottomSheet(
       context: context,

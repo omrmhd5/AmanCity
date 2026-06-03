@@ -13,6 +13,13 @@ class BulkIncidentHeader extends StatelessWidget {
     required this.timeAgo,
   }) : super(key: key);
 
+  String _translateType() {
+    final key = 'incident_type.${bulk.type}';
+    final translated = key.tr();
+    // If easy_localization returns the key itself, it means no translation was found
+    return translated == key ? bulk.type : translated;
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = bulk.typeColor;
@@ -36,7 +43,7 @@ class BulkIncidentHeader extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      bulk.type,
+                      _translateType(),
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,

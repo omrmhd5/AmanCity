@@ -4,6 +4,7 @@ import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
 import '../../../widgets/shared/custom_text.dart';
 import '../../../services/authority/authority_api_service.dart';
+import '../../../utils/localization_formatter.dart';
 
 /// Compact tile for a single incident in the authority incidents list.
 class AuthorityIncidentTile extends StatelessWidget {
@@ -18,12 +19,8 @@ class AuthorityIncidentTile extends StatelessWidget {
   String get _sourceLabel =>
       incident.isOsint ? 'authority.osint'.tr() : 'authority.human'.tr();
 
-  String get _timeAgo {
-    final diff = DateTime.now().difference(incident.timestamp);
-    if (diff.inMinutes < 1) return 'common.just_now'.tr();
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+  String _timeAgo(BuildContext context) {
+    return LocalizationFormatter.formatTimeAgo(context, incident.timestamp);
   }
 
   @override
@@ -110,7 +107,7 @@ class AuthorityIncidentTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               CustomText(
-                text: _timeAgo,
+                text: _timeAgo(context),
                 size: 11,
                 weight: FontWeight.w400,
                 color: AppTheme.getSecondaryTextColor(),

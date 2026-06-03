@@ -481,7 +481,11 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                     titleIcon: isDual
                         ? _getModelIcon(widget.prediction.model)
                         : null,
-                    className: widget.prediction.className,
+                    className: () {
+                      final key = 'incident_type.${widget.prediction.className}';
+                      final t = key.tr();
+                      return t == key ? widget.prediction.className : t;
+                    }(),
                     confidence: widget.prediction.confidence,
                     isSelected:
                         _selectedPrediction.className ==
@@ -506,7 +510,11 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                         child: _buildPredictionCard(
                           title: _getModelLabel(alt.model),
                           titleIcon: _getModelIcon(alt.model),
-                          className: alt.className,
+                          className: () {
+                            final key = 'incident_type.${alt.className}';
+                            final t = key.tr();
+                            return t == key ? alt.className : t;
+                          }(),
                           confidence: alt.confidence,
                           isSelected:
                               _selectedPrediction.className == alt.className,

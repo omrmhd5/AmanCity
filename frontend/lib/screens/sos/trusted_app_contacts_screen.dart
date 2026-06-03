@@ -100,7 +100,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
     if (!mounted) return;
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Request sent to ${contact.name}')),
+        SnackBar(content: Text('sos.status_request_sent'.tr(namedArgs: {'name': contact.name}))),
       );
       setState(
         () => _searchResults.removeWhere((r) => r.userId == contact.userId),

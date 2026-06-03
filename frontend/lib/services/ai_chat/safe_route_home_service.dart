@@ -26,6 +26,7 @@ class SafeRouteHomeResult {
 class SafeRouteHomeService {
   /// Keywords that trigger route home detection
   static const List<String> homeKeywords = [
+    // English
     'safest route home',
     'route home',
     'get home safe',
@@ -33,19 +34,86 @@ class SafeRouteHomeService {
     'go home safe',
     'get me home',
     'navigate home',
+    'safe route home',
+    'way home',
+    // Arabic - بيت variants
     'البيت',
+    'بيتي',
     'أعود للبيت',
     'أعود إلى البيت',
     'طريق آمن للبيت',
     'طريقة آمنة للبيت',
+    'للبيت',
+    // Arabic - منزل variants (used by quick prompt: "أأمن طريق للمنزل")
+    'المنزل',
+    'منزلي',
+    'للمنزل',
+    'إلى المنزل',
+    'أعود للمنزل',
+    'أعود إلى المنزل',
+    'طريق آمن للمنزل',
+    'طريقة آمنة للمنزل',
+    'أأمن طريق للمنزل',
+    // Arabic - general safe route keywords
+    'أمن طريق',
+    'طريق أمن',
+    'مسار آمن',
   ];
 
   /// Detect if message is asking for route home
   static bool isRouteHomeRequest(String message) {
-    final lowerMessage = message.toLowerCase();
+    final lowerMessage = message.toLowerCase().trim();
     return homeKeywords.any(
       (keyword) => lowerMessage.contains(keyword.toLowerCase()),
     );
+  }
+
+  /// Returns true if the message appears to be in Arabic
+  static bool _isArabic(String message) {
+    return RegExp(r'[\u0600-\u06FF]').hasMatch(message);
+  }
+
+  /// Returns the "no home set" message for Gemini, in the right language
+  static String noHomeMessage(String userMessage) {
+    if (_isArabic(userMessage)) {
+      return 'المستخدم طلب أأمن طريق للمنزل، لكنه لم يحدد موقع منزله بعد. '
+          'قل له بالعربية أن يحدد موقع منزله من إعدادات الملف الشخصي (تبويب "الملف") '
+          'حتى نتمكن من حساب أأمن مسار له.';
+    }
+    return 'User requested the safest route home, but they have no home location set. '
+        'Tell them to set it in the Settings (under the Profile tab) first so we can calculate the safest route.';
+  }
+
+  /// Returns the Gemini context message when a route IS found, in the right language
+  static String routeFoundMessage({
+    required String userMessage,
+    required double dangerScore,
+    required String? distance,
+    required String? duration,
+    required String homeAddress,
+  }) {
+    final distanceStr = distance ?? '';
+    final durationStr = duration ?? '';
+
+    if (_isArabic(userMessage)) {
+      final String riskLevel = dangerScore < 0.2
+          ? 'آمن'
+          : dangerScore < 0.4
+              ? 'متوسط الخطورة'
+              : 'عالي الخطورة';
+      return 'تم حساب أأمن مسار للمنزل: $distanceStr ($durationStr). '
+          'المسار يمر عبر منطقة $riskLevel. '
+          'قدّم نصائح سلامة بالعربية للتنقل إلى $homeAddress.';
+    }
+
+    final String riskLevel = dangerScore < 0.2
+        ? 'safe'
+        : dangerScore < 0.4
+            ? 'moderately risky'
+            : 'high danger';
+    return 'I have calculated the safest route home: $distanceStr away ($durationStr). '
+        'The route passes through a $riskLevel area. '
+        'Please provide safety tips for traveling this route to $homeAddress.';
   }
 
   /// Check if the user has a saved home location

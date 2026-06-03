@@ -5,6 +5,7 @@ import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/safe_route_scorer.dart';
 import '../../../data/incident_types_config.dart';
+import '../../../utils/localization_formatter.dart';
 
 class RouteInfoCard extends StatefulWidget {
   final String? destinationName;
@@ -405,24 +406,8 @@ class _RouteOptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-    String displayDuration = duration;
-    String displayDistance = distance;
-
-    if (isArabic) {
-      displayDuration = displayDuration
-          .replaceAll('mins', 'دقيقة')
-          .replaceAll('min', 'دقيقة')
-          .replaceAll('hours', 'ساعة')
-          .replaceAll('hour', 'ساعة');
-
-      displayDistance = displayDistance.replaceAll('km', 'كم');
-      if (displayDistance.endsWith(' m')) {
-        displayDistance = displayDistance.substring(0, displayDistance.length - 2) + ' م';
-      } else if (displayDistance.endsWith('m') && !displayDistance.endsWith('km')) {
-        displayDistance = displayDistance.substring(0, displayDistance.length - 1) + ' م';
-      }
-    }
+    final displayDuration = LocalizationFormatter.formatDuration(context, duration);
+    final displayDistance = LocalizationFormatter.formatDistance(context, distance);
 
     final cardBg = AppTheme.currentMode == AppThemeMode.dark
         ? (isSelected

@@ -15,6 +15,7 @@ import '../../services/notifications/notification_service.dart';
 import '../../services/sos/sos_service.dart';
 import '../../utils/app_theme.dart';
 import 'live_tracking_screen.dart';
+import '../../utils/localization_formatter.dart';
 
 class IncomingSosAlertScreen extends StatefulWidget {
   final String sessionId;
@@ -469,7 +470,9 @@ class _IncomingSosAlertScreenState extends State<IncomingSosAlertScreen>
     final hasLocation = _locationText?.trim().isNotEmpty == true;
     final title = hasLocation ? _locationText! : 'sos.coordinates'.tr();
     final distanceSuffix = _distanceMeters != null
-        ? ' (${_distanceMeters}m away)'
+        ? ' (${'map.away_suffix'.tr(namedArgs: {
+            'distance': LocalizationFormatter.formatDistance(context, '${_distanceMeters}m'),
+          })})'
         : '';
     final coordsText =
         '${_resolvedLat.toStringAsFixed(5)}\n${_resolvedLng.toStringAsFixed(5)}';

@@ -163,8 +163,7 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
       if (isRouteHome) {
         final hasHome = await SafeRouteHomeService.hasSavedHomeLocation();
         if (!hasHome) {
-          messageForGemini =
-              'User requested the safest route home, but they have no home location set. Tell them to set it in the Settings (under the Profile tab) first so we can calculate the safest route.';
+          messageForGemini = SafeRouteHomeService.noHomeMessage(text);
         } else if (_userLat != null && _userLng != null) {
           final hotspots = await _getHotspots();
           final routeResult =
@@ -184,13 +183,13 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
             );
 
             // Modify message for Gemini to know route was calculated
-            final riskLevel = routeResult.dangerScore! < 0.2
-                ? "safe"
-                : routeResult.dangerScore! < 0.4
-                ? "moderately risky"
-                : "high danger";
-            messageForGemini =
-                'I have calculated the safest route home: ${routeResult.distance} away (${routeResult.duration}). The route passes through a $riskLevel area. Please provide safety tips for traveling this route to ${routeResult.homeAddress}.';
+            messageForGemini = SafeRouteHomeService.routeFoundMessage(
+              userMessage: text,
+              dangerScore: routeResult.dangerScore!,
+              distance: routeResult.distance,
+              duration: routeResult.duration,
+              homeAddress: routeResult.homeAddress!,
+            );
           }
         }
       }

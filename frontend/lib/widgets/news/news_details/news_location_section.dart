@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -84,7 +85,7 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
               ),
               const SizedBox(width: 6),
               Text(
-                'LOCATION',
+                'news.location_label'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -186,7 +187,7 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 CustomText(
-                                  text: 'Location',
+                                  text: 'news.location_label'.tr(),
                                   size: 9,
                                   weight: FontWeight.w500,
                                   color: AppTheme.getSecondaryTextColor(),
@@ -223,7 +224,7 @@ class _NewsLocationSectionState extends State<NewsLocationSection> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           CustomText(
-                            text: 'LOCATION',
+                            text: 'news.location_label'.tr(),
                             size: 11,
                             weight: FontWeight.w700,
                             color: AppTheme.getSecondaryTextColor(),

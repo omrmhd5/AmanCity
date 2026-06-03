@@ -15,6 +15,7 @@ import 'nearby_alert_card.dart';
 import 'nearby_bulk_alert_card.dart';
 import '../../../screens/incidents/incident_detail_sheet.dart';
 import '../../../screens/incidents/bulk_incident_detail_sheet.dart';
+import '../../../utils/localization_formatter.dart';
 
 class NearbyAlertsSheet extends StatefulWidget {
   final List<Map<String, dynamic>> alerts;
@@ -250,18 +251,6 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
     );
   }
 
-  String _getTimeAgo(DateTime timestamp) {
-    final difference = DateTime.now().difference(timestamp);
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
-    }
-  }
 
   void _showIncidentDetails(Map<String, dynamic> alert) {
     final incident = _alertToIncident(alert);
@@ -736,30 +725,16 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                                     bulk.type,
                                                   ).localizedName,
                                               count: bulk.count,
-                                              timeAgo: _getTimeAgo(
+                                              timeAgo: LocalizationFormatter.formatTimeAgo(
+                                                context,
                                                 bulk.lastUpdatedAt,
                                               ),
                                               distance: 'map.away_suffix'.tr(
                                                 namedArgs: {
-                                                  'distance':
-                                                      context
-                                                              .locale
-                                                              .languageCode ==
-                                                          'ar'
-                                                      ? LocationService.formatDistance(
-                                                              distanceKm,
-                                                            )
-                                                            .replaceAll(
-                                                              'km',
-                                                              'كم',
-                                                            )
-                                                            .replaceAll(
-                                                              'm',
-                                                              'م',
-                                                            )
-                                                      : LocationService.formatDistance(
-                                                          distanceKm,
-                                                        ),
+                                                  'distance': LocalizationFormatter.formatDistance(
+                                                    context,
+                                                    LocationService.formatDistance(distanceKm),
+                                                  ),
                                                 },
                                               ),
                                               borderColor: bulk.typeColor,

@@ -36,6 +36,7 @@ import '../../services/incidents/bulk_incident_api_service.dart';
 import '../../widgets/map/map_action_buttons.dart';
 import '../incidents/incident_detail_sheet.dart';
 import '../incidents/bulk_incident_detail_sheet.dart';
+import '../../utils/localization_formatter.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key, this.onReportPressed}) : super(key: key);
@@ -1241,7 +1242,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'common.error'.tr()}: $e')));
       }
     }
   }
@@ -1289,7 +1290,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'common.error'.tr()}: $e')));
       }
     }
   }
@@ -1301,7 +1302,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.transparent,
       builder: (context) => IncidentDetailScreen(
         incident: incident,
-        timeAgo: _getTimeAgo(incident.timestamp),
+        timeAgo: LocalizationFormatter.formatTimeAgo(context, incident.timestamp),
         onNavigate: (selectedIncident) async {
           await _drawRouteToIncident(selectedIncident);
         },
@@ -1357,18 +1358,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     );
   }
 
-  String _getTimeAgo(DateTime timestamp) {
-    final difference = DateTime.now().difference(timestamp);
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
-    }
-  }
 
   // Mock data for nearby alerts carousel
   List<Map<String, dynamic>> get nearbyAlerts {
@@ -1397,13 +1386,12 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             'type': incident.type,
             'title': incident.title,
             'description': incident.description,
-            'timeAgo': _getTimeAgo(incident.timestamp),
+            'timeAgo': LocalizationFormatter.formatTimeAgo(context, incident.timestamp),
             'distance': 'map.away_suffix'.tr(namedArgs: {
-              'distance': context.locale.languageCode == 'ar'
-                  ? LocationService.formatDistance(distanceKm)
-                      .replaceAll('km', 'كم')
-                      .replaceAll('m', 'م')
-                  : LocationService.formatDistance(distanceKm)
+              'distance': LocalizationFormatter.formatDistance(
+                context,
+                LocationService.formatDistance(distanceKm),
+              ),
             }),
             'color': incident.typeColor,
             'icon': incident.typeIcon,

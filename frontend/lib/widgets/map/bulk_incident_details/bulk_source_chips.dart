@@ -53,7 +53,7 @@ class BulkSourceChips extends StatelessWidget {
           ),
         _chip(
           Icons.analytics_outlined,
-          '${(bulk.avgConfidence * 100).round()}% confidence',
+          'incidents.confidence_percent'.tr(namedArgs: {'n': '${(bulk.avgConfidence * 100).round()}'}),
           bulk.avgConfidence >= 0.7
               ? AppColors.danger
               : bulk.avgConfidence >= 0.4

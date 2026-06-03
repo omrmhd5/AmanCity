@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../models/incidents/osint_incident.dart';
 import '../../../utils/app_theme.dart';
@@ -15,18 +16,16 @@ class NewsDetailConfidenceSection extends StatelessWidget {
     return AppColors.success;
   }
 
-  String _getLevelText() {
-    if (incident.osintConfidence >= 0.7) return 'HIGH';
-    if (incident.osintConfidence >= 0.4) return 'MEDIUM';
-    return 'LOW';
+  String _getLevelTextKey() {
+    if (incident.osintConfidence >= 0.7) return 'news.level_text_high';
+    if (incident.osintConfidence >= 0.4) return 'news.level_text_medium';
+    return 'news.level_text_low';
   }
 
-  String _getLevelDescription() {
-    if (incident.osintConfidence >= 0.7)
-      return 'High confidence in this incident detection';
-    if (incident.osintConfidence >= 0.4)
-      return 'Moderate confidence — treat with some caution';
-    return 'Low confidence — verify manually';
+  String _getLevelDescKey() {
+    if (incident.osintConfidence >= 0.7) return 'news.level_desc_high';
+    if (incident.osintConfidence >= 0.4) return 'news.level_desc_medium';
+    return 'news.level_desc_low';
   }
 
   @override
@@ -52,7 +51,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'CONFIDENCE',
+                    'news.confidence_label'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -70,7 +69,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                   border: Border.all(color: color.withOpacity(0.4), width: 1),
                 ),
                 child: Text(
-                  _getLevelText(),
+                  _getLevelTextKey().tr(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -138,7 +137,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            'score',
+                            'news.score_label'.tr(),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
@@ -157,7 +156,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Confidence Score',
+                        'news.confidence_score'.tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -179,13 +178,13 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                       Row(
                         children: [
                           _LevelDot(
-                            label: 'Low',
+                            label: 'news.level_low'.tr(),
                             active: incident.osintConfidence < 0.4,
                             color: AppColors.success,
                           ),
                           const SizedBox(width: 6),
                           _LevelDot(
-                            label: 'Med',
+                            label: 'news.level_med'.tr(),
                             active:
                                 incident.osintConfidence >= 0.4 &&
                                 incident.osintConfidence < 0.7,
@@ -193,7 +192,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           _LevelDot(
-                            label: 'High',
+                            label: 'news.level_high'.tr(),
                             active: incident.osintConfidence >= 0.7,
                             color: AppColors.danger,
                           ),
@@ -211,7 +210,7 @@ class NewsDetailConfidenceSection extends StatelessWidget {
                           const SizedBox(width: 5),
                           Expanded(
                             child: Text(
-                              _getLevelDescription(),
+                              _getLevelDescKey().tr(),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.getSecondaryTextColor(),

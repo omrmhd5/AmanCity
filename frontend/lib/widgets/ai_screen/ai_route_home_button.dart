@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/localization_formatter.dart';
 import '../../utils/safe_route_scorer.dart';
 
 class SafeRouteHomeData {
@@ -128,7 +129,7 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
                   children: [
                     if (widget.data.distance != null)
                       Text(
-                        widget.data.distance!,
+                        LocalizationFormatter.formatDistance(context, widget.data.distance!),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -138,7 +139,7 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
                     if (widget.data.duration != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        widget.data.duration!,
+                        LocalizationFormatter.formatDuration(context, widget.data.duration!),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.getSecondaryTextColor(),

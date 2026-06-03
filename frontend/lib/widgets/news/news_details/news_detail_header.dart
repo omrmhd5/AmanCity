@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../data/app_colors.dart';
@@ -68,7 +69,11 @@ class NewsDetailHeader extends StatelessWidget {
                 Icon(typeConfig.icon, size: 13, color: typeConfig.color),
                 const SizedBox(width: 6),
                 CustomText(
-                  text: incidentType,
+                  text: () {
+                    final key = 'incident_type.$incidentType';
+                    final t = key.tr();
+                    return t == key ? incidentType : t;
+                  }(),
                   size: 11,
                   weight: FontWeight.w600,
                   color: typeConfig.color,
