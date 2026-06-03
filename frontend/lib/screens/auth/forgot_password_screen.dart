@@ -4,7 +4,6 @@ import '../../services/auth/auth_service.dart';
 import '../../widgets/shared/custom_text_field.dart';
 import '../../widgets/shared/custom_button.dart';
 import '../../widgets/shared/custom_text.dart';
-import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -47,7 +46,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _handleResetPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      _showError('auth.email_required'.tr()); // Or fallback to hardcoded if not present
+      _showError(
+        'auth.email_required'.tr(),
+      ); // Or fallback to hardcoded if not present
       return;
     }
 
@@ -81,7 +82,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
