@@ -127,7 +127,7 @@ class SafeRouteScorer {
         'icon': '🟢',
         'color': Color(0xFF22C55E), // green
       };
-    } else if (dangerScore < 0.3) {
+    } else if (dangerScore < 0.4) {
       return {
         'label': 'Moderate Risk',
         'icon': '🟡',

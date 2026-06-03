@@ -333,16 +333,15 @@ class _PermissionsScreenState extends State<PermissionsScreen>
             ),
 
             // ── Continue button ─────────────────────────────────
-            _animated(
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _isDone ? 1.0 : 0.0,
-                child: Padding(
+            Visibility(
+              visible: _isDone,
+              child: _animated(
+                Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isDone ? _finish : null,
+                      onPressed: _finish,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondary,
                         foregroundColor: Colors.white,
@@ -362,9 +361,9 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                     ),
                   ),
                 ),
+                start: 0.25,
+                end: 0.8,
               ),
-              start: 0.25,
-              end: 0.8,
             ),
 
             // ── Trust signal ────────────────────────────────────

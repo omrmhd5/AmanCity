@@ -50,8 +50,22 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
       widget.data.dangerScore,
     );
     final dangerColor = dangerLevelInfo['color'] as Color;
-    final dangerIcon = dangerLevelInfo['icon'] as String;
-    final dangerLabel = dangerLevelInfo['label'] as String;
+
+    final scorePct = ((1.0 - widget.data.dangerScore) * 100).round().clamp(0, 100);
+
+    IconData statusIcon;
+    String statusText;
+
+    if (widget.data.dangerScore < 0.2) {
+      statusIcon = Icons.verified_user_rounded;
+      statusText = 'map.safe_route'.tr();
+    } else if (widget.data.dangerScore < 0.4) {
+      statusIcon = Icons.gpp_maybe_rounded; // Warning shield for middle yellow
+      statusText = 'map.moderate_route'.tr();
+    } else {
+      statusIcon = Icons.warning_amber_rounded; // Alert triangle for unsafe
+      statusText = 'map.unsafe_route'.tr();
+    }
 
     return Container(
       margin: const EdgeInsets.only(top: 12),
@@ -64,33 +78,49 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Danger Badge + Distance + Duration
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Danger Badge
+              // Left: Safe/Unsafe Route Info Box
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: dangerColor.withOpacity(0.1),
-                  border: Border.all(color: dangerColor),
-                  borderRadius: BorderRadius.circular(6),
+                  color: dangerColor.withOpacity(0.08),
+                  border: Border.all(color: dangerColor, width: 1.5),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(dangerIcon, style: const TextStyle(fontSize: 14)),
-                    const SizedBox(width: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, color: dangerColor, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$scorePct%',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: dangerColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
                     Text(
-                      dangerLabel,
+                      statusText,
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
                         color: dangerColor,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               // Distance + Duration
               Expanded(
                 child: Column(
@@ -100,8 +130,8 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
                       Text(
                         widget.data.distance!,
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                           color: AppTheme.getPrimaryTextColor(),
                         ),
                       ),
@@ -110,7 +140,7 @@ class _AiRouteHomeButtonState extends State<AiRouteHomeButton> {
                       Text(
                         widget.data.duration!,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           color: AppTheme.getSecondaryTextColor(),
                         ),
                       ),

@@ -1,7 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/map/hotspot_zone.dart';
-import 'directions_service.dart';
+import '../map/directions_service.dart';
 
 class SafeRouteHomeResult {
   final bool routeFound;
@@ -41,11 +41,17 @@ class SafeRouteHomeService {
   ];
 
   /// Detect if message is asking for route home
-  static bool _detectRouteHomeRequest(String message) {
+  static bool isRouteHomeRequest(String message) {
     final lowerMessage = message.toLowerCase();
     return homeKeywords.any(
       (keyword) => lowerMessage.contains(keyword.toLowerCase()),
     );
+  }
+
+  /// Check if the user has a saved home location
+  static Future<bool> hasSavedHomeLocation() async {
+    final loc = await _getHomeLocation();
+    return loc != null;
   }
 
   /// Load home location from SharedPreferences
@@ -99,7 +105,7 @@ class SafeRouteHomeService {
   ) async {
     try {
       // Check if message is asking for route home
-      if (!_detectRouteHomeRequest(message)) {
+      if (!isRouteHomeRequest(message)) {
         return SafeRouteHomeResult(routeFound: false);
       }
 

@@ -4,7 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../utils/app_theme.dart';
 import '../../services/ai_chat/gemini_chat_service.dart';
 import '../../services/map/hotspot_api_service.dart';
-import '../../services/map/safe_route_home_service.dart';
+import '../../services/ai_chat/safe_route_home_service.dart';
 import '../../widgets/ai_screen/ai_chat_header.dart';
 import '../../widgets/ai_screen/ai_message_bubble.dart';
 import '../../widgets/ai_screen/ai_quick_prompts.dart';
@@ -159,32 +159,39 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
       SafeRouteHomeData? routeHomeData;
       String messageForGemini = text; // May be modified if route home detected
 
-      if (_userLat != null && _userLng != null) {
-        final hotspots = await _getHotspots();
-        final routeResult =
-            await SafeRouteHomeService.detectAndCalculateRouteHome(
-              text,
-              LatLng(_userLat!, _userLng!),
-              hotspots,
+      final isRouteHome = SafeRouteHomeService.isRouteHomeRequest(text);
+      if (isRouteHome) {
+        final hasHome = await SafeRouteHomeService.hasSavedHomeLocation();
+        if (!hasHome) {
+          messageForGemini =
+              'User requested the safest route home, but they have no home location set. Tell them to set it in the Settings (under the Profile tab) first so we can calculate the safest route.';
+        } else if (_userLat != null && _userLng != null) {
+          final hotspots = await _getHotspots();
+          final routeResult =
+              await SafeRouteHomeService.detectAndCalculateRouteHome(
+                text,
+                LatLng(_userLat!, _userLng!),
+                hotspots,
+              );
+
+          if (routeResult.routeFound) {
+            routeHomeData = SafeRouteHomeData(
+              googleMapsUrl: routeResult.googleMapsUrl!,
+              dangerScore: routeResult.dangerScore!,
+              distance: routeResult.distance,
+              duration: routeResult.duration,
+              homeAddress: routeResult.homeAddress!,
             );
 
-        if (routeResult.routeFound) {
-          routeHomeData = SafeRouteHomeData(
-            googleMapsUrl: routeResult.googleMapsUrl!,
-            dangerScore: routeResult.dangerScore!,
-            distance: routeResult.distance,
-            duration: routeResult.duration,
-            homeAddress: routeResult.homeAddress!,
-          );
-
-          // Modify message for Gemini to know route was calculated
-          final riskLevel = routeResult.dangerScore! < 0.2
-              ? "safe"
-              : routeResult.dangerScore! < 0.3
-              ? "moderately risky"
-              : "high danger";
-          messageForGemini =
-              'I have calculated the safest route home: ${routeResult.distance} away (${routeResult.duration}). The route passes through a $riskLevel area. Please provide safety tips for traveling this route to ${routeResult.homeAddress}.';
+            // Modify message for Gemini to know route was calculated
+            final riskLevel = routeResult.dangerScore! < 0.2
+                ? "safe"
+                : routeResult.dangerScore! < 0.4
+                ? "moderately risky"
+                : "high danger";
+            messageForGemini =
+                'I have calculated the safest route home: ${routeResult.distance} away (${routeResult.duration}). The route passes through a $riskLevel area. Please provide safety tips for traveling this route to ${routeResult.homeAddress}.';
+          }
         }
       }
 

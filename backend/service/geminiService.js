@@ -4,6 +4,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
 
 const SYSTEM_PROMPT = `You are the Safety Assistant for AmanCity, an urban safety platform for Greater Cairo. 
 Your role is to provide accurate, helpful safety information based on REAL DATA from the platform.
@@ -16,6 +17,7 @@ Your role is to provide accurate, helpful safety information based on REAL DATA 
 5. Always encourage users to call 122 for emergencies or use the app to report new incidents.
 6. Keep responses concise (2-3 sentences max) unless asked for details.
 7. If you're unsure about safety data for a location, admit it: "I don't have recent safety data for that area."
+8. If the user asks for the safest route home but has no home location set (indicated in the message), politely instruct them to set their home location in the Settings (under the Profile tab) first so we can calculate the safest route for them.
 
 **Example responses:**
 - Safe: "Nasr City is currently SAFE. I have no incident reports in the last 24 hours from your immediate area."
@@ -34,7 +36,7 @@ async function askGemini(userMessage, nearbyIncidents = []) {
   }
 
   const client = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = client.getGenerativeModel({ model: GEMINI_MODEL });
 
   // Format incident context for Gemini
   let incidentContext = "";
