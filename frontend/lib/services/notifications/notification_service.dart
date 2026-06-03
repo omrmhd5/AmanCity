@@ -53,7 +53,14 @@ class NotificationService with WidgetsBindingObserver {
     // 3. Init local notifications
     await _localManager.init(_handleNotificationTap);
 
-    // 4. Load persisted alerts & lifecycle observer
+    // 4. Tell iOS to show FCM notifications as banners even while app is open
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // 5. Load persisted alerts & lifecycle observer
     await _loadFromPrefs();
     WidgetsBinding.instance.addObserver(this);
 

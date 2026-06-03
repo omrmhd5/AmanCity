@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/alerts/alert_notification.dart';
+import '../../firebase_options.dart';
 import 'notification_translator.dart';
 
 Future<String> getLanguageCode() async {
@@ -30,8 +32,10 @@ Future<String> getLanguageCode() async {
 /// Must be a top-level function — firebase_messaging requirement
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Ensure Flutter bindings are ready so platform plugins work in this isolate.
+  // Ensure Flutter bindings and Firebase are ready in this background isolate.
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   if (message.data['type'] == 'sos_alert') {
     await FlutterRingtonePlayer().playAlarm(looping: false, asAlarm: true);
   }

@@ -13,7 +13,12 @@ class LocalNotificationManager {
 
   Future<void> init(void Function(String?) onNotificationTap) async {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings();
+    const iosInit = DarwinInitializationSettings(
+      // Show notifications as banners/alerts even when app is in foreground
+      defaultPresentAlert: true,
+      defaultPresentSound: true,
+      defaultPresentBadge: true,
+    );
     await plugin.initialize(
       const InitializationSettings(android: androidInit, iOS: iosInit),
       onDidReceiveNotificationResponse: (details) {

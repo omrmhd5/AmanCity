@@ -45,9 +45,14 @@ async function sendPushToUsers(users, title, body, data = {}) {
       },
     },
     apns: {
+      headers: {
+        "apns-priority": "10",   // 10 = immediate, 5 = low-power delivery
+        "apns-push-type": "alert",
+      },
       payload: {
         aps: {
           sound: "default",
+          badge: 1,
           "content-available": 1,
         },
       },
