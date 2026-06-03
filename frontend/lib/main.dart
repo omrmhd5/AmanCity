@@ -13,6 +13,7 @@ import 'screens/auth/onboarding_screen.dart';
 import 'screens/auth/permissions_screen.dart';
 import 'data/app_colors.dart';
 import 'utils/app_theme.dart';
+import 'utils/required_permissions.dart';
 import 'utils/navigation_service.dart' as navigation;
 import 'routes/app_routes.dart';
 import 'services/notifications/notification_service.dart';
@@ -22,16 +23,6 @@ import 'services/auth/auth_service.dart';
 import 'services/authority/authority_api_service.dart';
 import 'widgets/connectivity_wrapper.dart';
 import 'firebase_options.dart';
-
-/// Permissions that must be granted before using the app.
-const _requiredPermissions = [
-  Permission.locationWhenInUse,
-  Permission.camera,
-  Permission.microphone,
-  Permission.phone,
-  Permission.photos,
-  Permission.notification,
-];
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -160,7 +151,7 @@ class _StartGateState extends State<_StartGate> {
 
     bool allGranted = true;
     if (onboardingDone) {
-      for (final perm in _requiredPermissions) {
+      for (final perm in requiredAppPermissions) {
         final status = await perm.status;
         if (!status.isGranted && !status.isLimited) {
           allGranted = false;
