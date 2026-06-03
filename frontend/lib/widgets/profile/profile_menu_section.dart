@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/app_colors.dart';
 import '../../utils/app_theme.dart';
-import '../../screens/auth/onboarding_screen.dart';
 import '../../services/core/connectivity_service.dart';
 import 'home_location_selector.dart';
 import 'logout_section.dart';
 import 'app_theme_selector.dart';
 import 'language_switcher_tile.dart';
+import '../../screens/core/initial_setup_screen.dart';
 
 class ProfileMenuSection extends StatelessWidget {
   const ProfileMenuSection({Key? key}) : super(key: key);
@@ -105,8 +105,6 @@ class ProfileMenuSection extends StatelessWidget {
   }
 }
 
-
-
 // ─── Reset Onboarding Tile ───────────────────────────────────────────────────
 
 class _ResetOnboardingTile extends StatefulWidget {
@@ -137,12 +135,13 @@ class _ResetOnboardingTileState extends State<_ResetOnboardingTile> {
 
   Future<void> _resetOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('initial_setup_complete');
     await prefs.remove('onboarding_complete');
     await prefs.remove('has_seen_tour');
     if (mounted) {
       ConnectivityService.instance.setBypass(true);
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        MaterialPageRoute(builder: (_) => const InitialSetupScreen()),
         (route) => false,
       );
     }

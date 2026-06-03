@@ -75,13 +75,13 @@ class _LanguageSwitcherTileState extends State<LanguageSwitcherTile> {
               Row(
                 children: [
                   _LangButton(
-                    label: 'EN',
+                    label: '🇺🇸 EN',
                     isActive: !isArabic,
                     onTap: () => context.setLocale(const Locale('en')),
                   ),
                   const SizedBox(width: 8),
                   _LangButton(
-                    label: 'AR',
+                    label: '🇪🇬 AR',
                     isActive: isArabic,
                     onTap: () => context.setLocale(const Locale('ar')),
                   ),

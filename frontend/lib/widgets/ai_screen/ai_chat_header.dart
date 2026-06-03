@@ -140,7 +140,7 @@ class _AiChatHeaderState extends State<AiChatHeader> {
                         ),
                         const PopupMenuItem(
                           value: 'ar_SA',
-                          child: Text('🇸🇦 العربية'),
+                          child: Text('🇪🇬 العربية'),
                         ),
                       ],
                       child: Container(
@@ -160,7 +160,7 @@ class _AiChatHeaderState extends State<AiChatHeader> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              _selectedLanguage == 'en_US' ? '🇺🇸' : '🇸🇦',
+                              _selectedLanguage == 'en_US' ? '🇺🇸' : '🇪🇬',
                               style: const TextStyle(fontSize: 15),
                             ),
                             const SizedBox(width: 5),

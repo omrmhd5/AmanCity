@@ -5,18 +5,18 @@ import '../data/app_colors.dart';
 enum AppThemeMode { light, dark }
 
 class AppTheme {
-  static AppThemeMode currentMode = AppThemeMode.dark;
+  static AppThemeMode currentMode = AppThemeMode.light;
 
   /// Reactive notifier — listen to this to rebuild on theme change.
   static final ValueNotifier<AppThemeMode> themeNotifier = ValueNotifier(
-    AppThemeMode.dark,
+    AppThemeMode.light,
   );
 
   /// Load persisted theme from SharedPreferences (call once before runApp).
   static Future<void> initTheme() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString('app_theme_mode');
-    final mode = stored == 'light' ? AppThemeMode.light : AppThemeMode.dark;
+    final mode = stored == 'dark' ? AppThemeMode.dark : AppThemeMode.light;
     currentMode = mode;
     themeNotifier.value = mode;
   }

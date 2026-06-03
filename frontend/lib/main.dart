@@ -9,8 +9,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/core/home_screen.dart';
 import 'screens/authority/authority_home_screen.dart';
-import 'screens/auth/onboarding_screen.dart';
-import 'screens/auth/permissions_screen.dart';
+import 'screens/core/initial_setup_screen.dart';
+import 'screens/core/onboarding_screen.dart';
+import 'screens/core/permissions_screen.dart';
 import 'data/app_colors.dart';
 import 'utils/app_theme.dart';
 import 'utils/required_permissions.dart';
@@ -170,6 +171,7 @@ class _StartGate extends StatefulWidget {
 }
 
 class _StartGateState extends State<_StartGate> {
+  bool? _setupDone;
   bool? _onboardingDone;
 
   @override
@@ -180,6 +182,7 @@ class _StartGateState extends State<_StartGate> {
 
   Future<void> _check() async {
     final prefs = await SharedPreferences.getInstance();
+    final setupDone = prefs.getBool('initial_setup_complete') ?? false;
     final onboardingDone = prefs.getBool('onboarding_complete') ?? false;
 
     bool allGranted = true;
@@ -194,13 +197,16 @@ class _StartGateState extends State<_StartGate> {
     }
 
     if (mounted) {
-      setState(() => _onboardingDone = onboardingDone && allGranted);
+      setState(() {
+        _setupDone = setupDone;
+        _onboardingDone = onboardingDone && allGranted;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_onboardingDone == null) {
+    if (_setupDone == null || _onboardingDone == null) {
       return const Scaffold(
         backgroundColor: AppColors.primary,
         body: Center(
@@ -208,6 +214,11 @@ class _StartGateState extends State<_StartGate> {
         ),
       );
     }
+
+    if (!_setupDone!) {
+      return const InitialSetupScreen();
+    }
+
     if (!_onboardingDone!) {
       return FutureBuilder<bool>(
         future: SharedPreferences.getInstance().then(

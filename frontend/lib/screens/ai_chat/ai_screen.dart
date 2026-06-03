@@ -50,7 +50,17 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
   double? _userLat;
   double? _userLng;
   List<HotspotZone>? _cachedHotspots;
-  String _selectedLanguage = 'en_US';
+  late String _selectedLanguage;
+  bool _isLangInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isLangInitialized) {
+      _selectedLanguage = context.locale.languageCode == 'ar' ? 'ar_SA' : 'en_US';
+      _isLangInitialized = true;
+    }
+  }
 
   @override
   void initState() {
