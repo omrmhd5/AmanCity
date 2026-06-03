@@ -237,7 +237,7 @@ class _SosScreenState extends State<SosScreen> with TickerProviderStateMixin {
 
     // Start periodic location update timer for the in-app session
     if (_sessionId != null) {
-      _locationUpdateTimer = Timer.periodic(const Duration(seconds: 10), (
+      _locationUpdateTimer = Timer.periodic(const Duration(seconds: 5), (
         _,
       ) async {
         final pos = await _sosService.getCurrentLocation();

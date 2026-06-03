@@ -109,7 +109,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen>
   }
 
   void _startPolling() {
-    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _poll());
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) => _poll());
   }
 
   void _startElapsedTimer() {
