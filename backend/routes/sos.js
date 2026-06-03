@@ -3,10 +3,7 @@ const router = express.Router();
 const crypto = require("crypto");
 const { verifyIdToken } = require("../service/notificationService");
 const { sendPushToUsers } = require("../service/notificationService");
-const {
-  findUserByFirebaseUid,
-  getAcceptedContacts,
-} = require("../service/userService");
+const UserService = require("../service/userService");
 const SosSession = require("../model/SosSession");
 const User = require("../model/User");
 
@@ -39,7 +36,7 @@ router.post("/sessions", async (req, res) => {
   }
 
   try {
-    const triggerUser = await findUserByFirebaseUid(decoded.uid);
+    const triggerUser = await UserService.findUserByFirebaseUid(decoded.uid);
     if (!triggerUser)
       return res.status(404).json({ message: "User not found." });
 
@@ -52,7 +49,7 @@ router.post("/sessions", async (req, res) => {
     });
 
     // Notify accepted trusted contacts
-    const contacts = await getAcceptedContacts(decoded.uid);
+    const contacts = await UserService.getAcceptedContacts(decoded.uid);
     const usersWithTokens = contacts
       .filter((c) => c.fcmToken)
       .map((c) => ({ fcmToken: c.fcmToken }));
@@ -129,7 +126,7 @@ router.patch("/sessions/:id/end", async (req, res) => {
     await session.save();
 
     const triggerUser = await User.findById(session.triggerUserId);
-    const contacts = await getAcceptedContacts(decoded.uid);
+    const contacts = await UserService.getAcceptedContacts(decoded.uid);
     const usersWithTokens = contacts
       .filter((c) => c.fcmToken)
       .map((c) => ({ fcmToken: c.fcmToken }));

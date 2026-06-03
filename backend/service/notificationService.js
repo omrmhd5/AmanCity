@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const path = require("path");
-const { findUsersNear } = require("./userService");
+const UserService = require("./userService");
 
 // Initialise Firebase Admin SDK once
 if (!admin.apps.length) {
@@ -69,7 +69,7 @@ async function notifyNearbyUsers(incident) {
     return;
   }
 
-  const nearbyUsers = await findUsersNear(lat, lng, 2);
+  const nearbyUsers = await UserService.findUsersNear(lat, lng, 2);
 
   if (!nearbyUsers.length) return;
 
