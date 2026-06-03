@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../data/app_colors.dart';
@@ -8,6 +9,7 @@ class CustomSearchBar extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final Widget? suffix;
+  final Duration debounceDuration;
 
   const CustomSearchBar({
     Key? key,
@@ -15,6 +17,7 @@ class CustomSearchBar extends StatefulWidget {
     this.controller,
     this.onChanged,
     this.suffix,
+    this.debounceDuration = const Duration(milliseconds: 500),
   }) : super(key: key);
 
   @override
@@ -25,6 +28,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   late TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
   bool _isFocused = false;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -37,6 +41,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -44,14 +49,23 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     super.dispose();
   }
 
+  void _handleChanged(String value) {
+    if (widget.onChanged == null) return;
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(widget.debounceDuration, () {
+      widget.onChanged!(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = AppTheme.currentMode == AppThemeMode.dark;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      height: 44,
+    return RepaintBoundary(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        height: 44,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -119,7 +133,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                       child: TextField(
                         controller: _controller,
                         focusNode: _focusNode,
-                        onChanged: widget.onChanged,
+                        onChanged: _handleChanged,
                         style: TextStyle(
                           color: AppTheme.getPrimaryTextColor(),
                           fontSize: 13,
@@ -176,6 +190,6 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

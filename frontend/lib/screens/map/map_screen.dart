@@ -86,7 +86,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   // User location
   LatLng? _userLocation;
-  bool _isLoadingLocation = false;
 
   // Initial camera position (will be set from user location)
   late CameraPosition _initialCameraPosition;
@@ -409,12 +408,9 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _getUserLocation() async {
-    setState(() => _isLoadingLocation = true);
-
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        setState(() => _isLoadingLocation = false);
         return;
       }
 
@@ -422,13 +418,11 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          setState(() => _isLoadingLocation = false);
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        setState(() => _isLoadingLocation = false);
         return;
       }
 
@@ -437,7 +431,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       setState(() {
         _userLocation = newLocation;
-        _isLoadingLocation = false;
         _locationCachedTime = DateTime.now();
         // Update initial camera position to user location
         _initialCameraPosition = CameraPosition(
@@ -481,7 +474,6 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
       _updateMapElements();
     } catch (e) {
-      setState(() => _isLoadingLocation = false);
       // Error getting location
     }
   }

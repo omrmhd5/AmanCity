@@ -29,7 +29,7 @@ class LocationPickerMap extends StatefulWidget {
 }
 
 class _LocationPickerMapState extends State<LocationPickerMap> {
-  late GoogleMapController _mapController;
+  GoogleMapController? _mapController;
   LatLng? _selectedLocation;
   final Set<Marker> _markers = {};
   bool _isLoading = true;
@@ -67,6 +67,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   void dispose() {
     searchController.dispose();
     _locationStreamSubscription?.cancel();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -96,7 +97,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         await _updateLocationPreview();
 
         // Animate to user location
-        _mapController.animateCamera(
+        _mapController?.animateCamera(
           CameraUpdate.newLatLngZoom(userLocation, 15.0),
         );
       }
@@ -117,7 +118,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                     _updateMarker();
                     _updateLocationPreview();
                     // Auto-animate camera to follow
-                    _mapController.animateCamera(
+                    _mapController?.animateCamera(
                       CameraUpdate.newLatLngZoom(newLocation, 15.0),
                     );
                   }
@@ -248,7 +249,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     });
 
     // Animate camera to selected location
-    _mapController.animateCamera(
+    _mapController?.animateCamera(
       CameraUpdate.newLatLngZoom(selectedLocation, 15.0),
     );
 
