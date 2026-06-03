@@ -259,96 +259,102 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Header
-        _animated(
-          AiChatHeader(
-            onLanguageChanged: (language) {
-              setState(() => _selectedLanguage = language);
-            },
-          ),
-          start: 0.0,
-          end: 0.5,
-        ),
-        // Messages area
-        Expanded(
-          child: _animated(
-            ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 40),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.getCardBackgroundColor(),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+    return Scaffold(
+      backgroundColor: AppTheme.getBackgroundColor(),
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+              _animated(
+                AiChatHeader(
+                  onLanguageChanged: (language) {
+                    setState(() => _selectedLanguage = language);
+                  },
+                ),
+                start: 0.0,
+                end: 0.5,
+              ),
+              // Messages area
+              Expanded(
+                child: _animated(
+                  ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    itemCount: _messages.length + (_isTyping ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _messages.length && _isTyping) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
-                              _buildDot(_dot1),
-                              const SizedBox(width: 4),
-                              _buildDot(_dot2),
-                              const SizedBox(width: 4),
-                              _buildDot(_dot3),
+                              const SizedBox(width: 40),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.getCardBackgroundColor(),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    _buildDot(_dot1),
+                                    const SizedBox(width: 4),
+                                    _buildDot(_dot2),
+                                    const SizedBox(width: 4),
+                                    _buildDot(_dot3),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                        );
+                      }
 
-                final message = _messages[index];
-                return AiMessageBubble(
-                  text: message.text,
-                  isUser: message.isUser,
-                  timestamp: message.timestamp,
-                  citationText: message.citationText,
-                  routeHomeData: message.routeHomeData,
-                );
-              },
-            ),
-            start: 0.1,
-            end: 0.7,
+                      final message = _messages[index];
+                      return AiMessageBubble(
+                        text: message.text,
+                        isUser: message.isUser,
+                        timestamp: message.timestamp,
+                        citationText: message.citationText,
+                        routeHomeData: message.routeHomeData,
+                      );
+                    },
+                  ),
+                  start: 0.1,
+                  end: 0.7,
+                ),
+              ),
+              // Quick prompts
+              _animated(
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: AiQuickPrompts(
+                    onPromptSelected: (prompt) {
+                      _inputController.text = prompt;
+                    },
+                  ),
+                ),
+                start: 0.2,
+                end: 0.8,
+              ),
+              // Input area
+              _animated(
+                AiChatInput(
+                  controller: _inputController,
+                  onSend: _sendMessage,
+                  selectedLanguage: _selectedLanguage,
+                ),
+                start: 0.3,
+                end: 0.9,
+              ),
+            ],
           ),
         ),
-        // Quick prompts
-        _animated(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: AiQuickPrompts(
-              onPromptSelected: (prompt) {
-                _inputController.text = prompt;
-              },
-            ),
-          ),
-          start: 0.2,
-          end: 0.8,
-        ),
-        // Input area
-        _animated(
-          AiChatInput(
-            controller: _inputController,
-            onSend: _sendMessage,
-            selectedLanguage: _selectedLanguage,
-          ),
-          start: 0.3,
-          end: 0.9,
-        ),
-      ],
-    );
-  }
+      );
+    }
 
   Widget _buildDot(AnimationController controller) {
     return AnimatedBuilder(

@@ -188,6 +188,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     context.locale;
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // Background gradient
@@ -207,12 +208,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // No padding when SOS is active (navbar is hidden)
           SafeArea(
             child: Padding(
-              padding: EdgeInsets.only(bottom: _sosActive ? 0 : 85),
+              padding: EdgeInsets.only(
+                bottom: (_sosActive || MediaQuery.of(context).viewInsets.bottom > 0)
+                    ? 0
+                    : 85,
+              ),
               child: _buildContent(),
             ),
           ),
           // Floating navbar — true overlay, zero background behind it
-          if (!_sosActive && MediaQuery.of(context).viewInsets.bottom == 0)
+          if (!_sosActive)
             Positioned(
               bottom: 0,
               left: 0,

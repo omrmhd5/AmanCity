@@ -1523,7 +1523,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
         // Nearby alerts section at bottom
         Positioned(
-          bottom: -MediaQuery.of(context).viewInsets.bottom,
+          bottom: 0,
           left: 0,
           right: 0,
           child: _buildNearbyAlertsSection(),

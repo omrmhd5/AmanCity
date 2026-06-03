@@ -690,7 +690,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                     16,
                                     0,
                                     16,
-                                    100,
+                                    16,
                                   ),
                                   child: Column(
                                     children: List.generate(
@@ -780,6 +780,9 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                     ),
                                   ),
                                 ),
+                              SizedBox(
+                                height: 80 + MediaQuery.of(context).viewInsets.bottom,
+                              ),
                             ],
                           ),
                         ),

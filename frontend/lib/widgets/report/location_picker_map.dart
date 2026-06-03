@@ -284,6 +284,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: AppTheme.getBackgroundColor(),
         elevation: 0,

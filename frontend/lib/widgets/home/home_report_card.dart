@@ -99,13 +99,14 @@ class _HomeReportCardState extends State<HomeReportCard> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
                         children: [
                           _featureChip(
                             Icons.bolt_rounded,
                             'home.real_time'.tr(),
                           ),
-                          const SizedBox(width: 8),
                           _featureChip(
                             Icons.smart_toy_rounded,
                             'home.ai_powered'.tr(),
