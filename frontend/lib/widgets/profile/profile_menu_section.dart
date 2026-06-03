@@ -138,6 +138,7 @@ class _ResetOnboardingTileState extends State<_ResetOnboardingTile> {
   Future<void> _resetOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('onboarding_complete');
+    await prefs.remove('has_seen_tour');
     if (mounted) {
       ConnectivityService.instance.setBypass(true);
       Navigator.of(context).pushAndRemoveUntil(

@@ -9,11 +9,13 @@ enum NavItem { map, report, home, ai, sos, profile, news }
 class BottomNavBar extends StatelessWidget {
   final NavItem currentItem;
   final Function(NavItem) onItemTapped;
+  final Map<NavItem, GlobalKey>? navKeys;
 
   const BottomNavBar({
     Key? key,
     required this.currentItem,
     required this.onItemTapped,
+    this.navKeys,
   }) : super(key: key);
 
   @override
@@ -195,6 +197,7 @@ class BottomNavBar extends StatelessWidget {
         : AppColors.slateGray;
 
     return GestureDetector(
+      key: navKeys?[item],
       onTap: () => onItemTapped(item),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(

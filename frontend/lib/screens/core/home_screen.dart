@@ -15,8 +15,10 @@ import '../map/map_screen.dart';
 import '../incidents/report_incident_screen.dart';
 import '../ai_chat/ai_screen.dart';
 import '../sos/sos_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../sos/trusted_app_contacts_screen.dart';
 import '../../widgets/home/home_incoming_sos_tile.dart';
+import 'home_tour_guide.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -53,6 +55,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Incremented each time the News tab becomes active
   final ValueNotifier<int> _newsActivationSignal = ValueNotifier(0);
 
+  final GlobalKey _navMapKey = GlobalKey();
+  final GlobalKey _navReportKey = GlobalKey();
+  final GlobalKey _navAiKey = GlobalKey();
+  final GlobalKey _navProfileKey = GlobalKey();
+  final GlobalKey _newsCardKey = GlobalKey();
+  final GlobalKey _sosCardKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -69,11 +78,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     AppTheme.themeNotifier.addListener(_onThemeChange);
     _applySystemUI();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkTourGuide();
+    });
   }
 
   void _onThemeChange() {
     _applySystemUI();
     if (mounted) setState(() {});
+  }
+
+  Future<void> _checkTourGuide() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTour = prefs.getBool('has_seen_tour') ?? false;
+    if (!hasSeenTour && mounted) {
+      // Small delay to ensure the UI has finished drawing its animations
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          HomeTourGuide.show(
+            context: context,
+            navMapKey: _navMapKey,
+            navReportKey: _navReportKey,
+            navAiKey: _navAiKey,
+            navProfileKey: _navProfileKey,
+            newsCardKey: _newsCardKey,
+            sosCardKey: _sosCardKey,
+          );
+        }
+      });
+    }
   }
 
   void _applySystemUI() {
@@ -225,6 +259,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: BottomNavBar(
                 currentItem: _currentNavItem,
                 onItemTapped: _onNavItemTapped,
+                navKeys: {
+                  NavItem.map: _navMapKey,
+                  NavItem.report: _navReportKey,
+                  NavItem.ai: _navAiKey,
+                  NavItem.profile: _navProfileKey,
+                },
               ),
             ),
         ],
@@ -364,13 +404,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _animated(const HomeIncomingSosTile(), start: 0.2, end: 0.8),
             const SizedBox(height: 12),
             _animated(
-              HomeReportCard(onTap: () => _onNavItemTapped(NavItem.news)),
+              HomeReportCard(
+                key: _newsCardKey,
+                onTap: () => _onNavItemTapped(NavItem.news),
+              ),
               start: 0.2,
               end: 0.8,
             ),
             const SizedBox(height: 12),
             _animated(
               HomeSosCard(
+                key: _sosCardKey,
                 onActivate: () {
                   _onNavItemTapped(NavItem.sos);
                   Future.delayed(const Duration(milliseconds: 80), () {

@@ -721,5 +721,20 @@
     "Stealing": "Stealing",
     "Vandalism": "Vandalism",
     "Others": "Others"
+  },
+  "tour": {
+    "skip": "Skip Tour",
+    "map_title": "Live Map",
+    "map_desc": "View live safety map, hotspots, and nearby incidents.",
+    "report_title": "Report Incident",
+    "report_desc": "Quickly report incidents to the community with photos or audio.",
+    "ai_title": "Aman AI",
+    "ai_desc": "Chat with our AI assistant for safety tips and analysis.",
+    "profile_title": "Your Profile",
+    "profile_desc": "Manage your trusted contacts, settings, and profile.",
+    "news_title": "Community News",
+    "news_desc": "View recent incidents reported by the community and OSINT.",
+    "sos_title": "Emergency SOS",
+    "sos_desc": "Activate a loud strobe alarm and notify trusted contacts instantly."
   }
 }

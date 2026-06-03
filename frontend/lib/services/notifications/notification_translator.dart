@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class NotificationTranslator {
   /// Translates notification title and body based on the alert type and user's locale.
   static MapEntry<String, String> translate({
@@ -55,21 +53,28 @@ class NotificationTranslator {
         return MapEntry(title, body);
 
       case 'nearbyIncident':
-        final incidentTitle = data['incidentTitle'] as String? ?? fallbackTitle ?? data['title'] as String? ?? 'Incident';
+        final incidentTitle =
+            data['incidentTitle'] as String? ??
+            fallbackTitle ??
+            data['title'] as String? ??
+            'Incident';
         final incidentType = data['incidentType'] as String? ?? '';
-        
+
         // Translate incident type
-        final translatedType = isAr ? _translateIncidentType(incidentType) : incidentType;
+        final translatedType = isAr
+            ? _translateIncidentType(incidentType)
+            : incidentType;
         final title = isAr
             ? '$incidentTitle · تنبيه $translatedType ⚠️'
             : '$incidentTitle · $incidentType Alert ⚠️';
 
         // Translate location text if it's "your area"
         final locationText = data['locationText'] as String? ?? '';
-        final translatedLocation = (locationText == 'your area' || locationText.isEmpty)
+        final translatedLocation =
+            (locationText == 'your area' || locationText.isEmpty)
             ? (isAr ? 'منطقتك' : 'your area')
             : locationText;
-        
+
         final body = isAr
             ? 'تم الإبلاغ بالقرب من في نطاق 2 كم و $translatedLocation. ابقَ حذراً.'
             : 'Reported near within 2km and $translatedLocation. Stay alert.';
@@ -80,7 +85,9 @@ class NotificationTranslator {
         final body = fallbackBody ?? (data['body'] as String?) ?? '';
         if (title.contains('Test Alert')) {
           return MapEntry(
-            isAr ? 'تنبيه تجريبي · تنبيه تجريبي ⚠️' : 'Test Alert · Test Alert ⚠️',
+            isAr
+                ? 'تنبيه تجريبي · تنبيه تجريبي ⚠️'
+                : 'Test Alert · Test Alert ⚠️',
             isAr
                 ? 'تم الإبلاغ بالقرب من في نطاق 2 كم وموقع تجريبي. ابقَ حذراً.'
                 : 'Reported near within 2km and test location. Stay alert.',
@@ -98,27 +105,48 @@ class NotificationTranslator {
 
   static String _translateIncidentType(String type) {
     switch (type) {
-      case 'Fire': return 'حريق';
-      case 'Accident': return 'حادث';
-      case 'Flood': return 'فيضان';
-      case 'Public Issue': return 'مشكلة عامة';
-      case 'Road Damage': return 'أضرار بالطريق';
-      case 'Damaged Building': return 'مبنى متضرر';
-      case 'Firearm': return 'سلاح ناري';
-      case 'Cold Weapon': return 'سلاح أبيض';
-      case 'Arrest': return 'اعتقال';
-      case 'Arson': return 'حريق متعمد';
-      case 'Assault': return 'اعتداء';
-      case 'Burglary': return 'سطو';
-      case 'Explosion': return 'انفجار';
-      case 'Fighting': return 'شجار';
-      case 'Robbery': return 'سرقة بالإكراه';
-      case 'Shooting': return 'إطلاق نار';
-      case 'Shoplifting': return 'سرقة متاجر';
-      case 'Stealing': return 'سرقة';
-      case 'Vandalism': return 'تخريب';
-      case 'Others': return 'أخرى';
-      default: return type;
+      case 'Fire':
+        return 'حريق';
+      case 'Accident':
+        return 'حادث';
+      case 'Flood':
+        return 'فيضان';
+      case 'Public Issue':
+        return 'مشكلة عامة';
+      case 'Road Damage':
+        return 'أضرار بالطريق';
+      case 'Damaged Building':
+        return 'مبنى متضرر';
+      case 'Firearm':
+        return 'سلاح ناري';
+      case 'Cold Weapon':
+        return 'سلاح أبيض';
+      case 'Arrest':
+        return 'اعتقال';
+      case 'Arson':
+        return 'حريق متعمد';
+      case 'Assault':
+        return 'اعتداء';
+      case 'Burglary':
+        return 'سطو';
+      case 'Explosion':
+        return 'انفجار';
+      case 'Fighting':
+        return 'شجار';
+      case 'Robbery':
+        return 'سرقة بالإكراه';
+      case 'Shooting':
+        return 'إطلاق نار';
+      case 'Shoplifting':
+        return 'سرقة متاجر';
+      case 'Stealing':
+        return 'سرقة';
+      case 'Vandalism':
+        return 'تخريب';
+      case 'Others':
+        return 'أخرى';
+      default:
+        return type;
     }
   }
 }
