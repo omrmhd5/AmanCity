@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>FLTEnableImpeller</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -80,6 +82,8 @@
 	<!-- Photo Library: incident evidence -->
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>AmanCity accesses your photo library to let you attach existing images and videos as evidence when reporting urban safety incidents.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>AmanCity saves incident evidence to your photo library when you choose to export or save media.</string>
 
 	<!-- Location permissions -->
 	<key>NSLocationWhenInUseUsageDescription</key>

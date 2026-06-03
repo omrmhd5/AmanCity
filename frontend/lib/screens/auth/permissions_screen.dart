@@ -62,13 +62,6 @@ class _PermissionsScreenState extends State<PermissionsScreen>
       required: true,
     ),
     _PermItem(
-      title: 'permissions.phone'.tr(),
-      reason: 'permissions.phone_reason'.tr(),
-      icon: Icons.phone_outlined,
-      permission: Permission.phone,
-      required: true,
-    ),
-    _PermItem(
       title: 'permissions.photos_videos'.tr(),
       reason: 'permissions.photos_reason'.tr(),
       icon: Icons.photo_library_outlined,
