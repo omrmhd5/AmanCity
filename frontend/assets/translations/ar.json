@@ -318,6 +318,7 @@
     "zoom_out": "تصغير",
     "select_location": "تحديد الموقع",
     "location_selected": "تم تحديد الموقع",
+    "selected_location": "الموقع المحدد",
     "error_generic": "خطأ: {error}",
     "getting_location": "جاري تحديد موقعك...",
     "please_wait": "يرجى الانتظار",

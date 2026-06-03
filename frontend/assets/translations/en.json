@@ -318,6 +318,7 @@
     "zoom_out": "Zoom Out",
     "select_location": "Select Location",
     "location_selected": "Location selected",
+    "selected_location": "Selected Location",
     "error_generic": "Error: {error}",
     "getting_location": "Getting your location...",
     "please_wait": "Please wait",
