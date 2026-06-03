@@ -44,7 +44,7 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'INDIVIDUAL REPORTS (${widget.reports.length})',
+                  '${'incidents.individual_reports'.tr().toUpperCase()} (${widget.reports.length})',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -143,7 +143,7 @@ class _BulkReportsSectionState extends State<BulkReportsSection> {
                   ),
                   const SizedBox(width: 3),
                   Text(
-                    'Reported by ${report.reportedByName}',
+                    '${'incidents.reported_by'.tr()} ${report.reportedByName}',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.getSecondaryTextColor(),

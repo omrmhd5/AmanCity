@@ -1398,7 +1398,13 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             'title': incident.title,
             'description': incident.description,
             'timeAgo': _getTimeAgo(incident.timestamp),
-            'distance': LocationService.formatDistance(distanceKm) + ' away',
+            'distance': 'map.away_suffix'.tr(namedArgs: {
+              'distance': context.locale.languageCode == 'ar'
+                  ? LocationService.formatDistance(distanceKm)
+                      .replaceAll('km', 'كم')
+                      .replaceAll('m', 'م')
+                  : LocationService.formatDistance(distanceKm)
+            }),
             'color': incident.typeColor,
             'icon': incident.typeIcon,
             'confidence': incident.confidence,
@@ -1503,7 +1509,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         // Route info card (if route selected)
         if (_routeDestination != null)
           Positioned(
-            bottom: 20,
+            bottom: 20 - MediaQuery.of(context).viewInsets.bottom,
             left: 16,
             right: 16,
             child: RouteInfoCard(
@@ -1529,7 +1535,7 @@ class MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
         // Nearby alerts section at bottom
         Positioned(
-          bottom: 0,
+          bottom: -MediaQuery.of(context).viewInsets.bottom,
           left: 0,
           right: 0,
           child: _buildNearbyAlertsSection(),

@@ -48,7 +48,7 @@ class NewsTypeFilter extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: CustomFilterChip(
-                    label: config.displayName,
+                    label: config.localizedName,
                     icon: config.icon,
                     isSelected: isSelected,
                     selectedColor: config.color,

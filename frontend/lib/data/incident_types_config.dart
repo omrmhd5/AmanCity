@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// Centralized configuration for all incident types
@@ -145,7 +146,7 @@ class IncidentTypesConfig {
     return allTypes
         .map(
           (type) => {
-            'title': type.displayName,
+            'title': type.localizedName,
             'icon': type.icon,
             'color': type.color,
             'key': type.key,
@@ -161,6 +162,8 @@ class IncidentTypeConfig {
   final String displayName; // Display name
   final IconData icon; // Icon
   final Color color; // Type color
+
+  String get localizedName => 'incident_type.$key'.tr();
 
   const IncidentTypeConfig({
     required this.key,

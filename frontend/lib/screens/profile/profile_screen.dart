@@ -66,6 +66,8 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Register dependency so this widget rebuilds on locale change
+    context.locale;
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
       body: SafeArea(

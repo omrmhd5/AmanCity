@@ -193,7 +193,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
               ),
               const SizedBox(height: 12),
               Text(
-                'All ${_recordings.length} recordings will be permanently deleted.',
+                'sos.delete_all_confirm'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.getSecondaryTextColor(),
@@ -433,7 +433,7 @@ class _SosHistoryScreenState extends State<SosHistoryScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Audio is recorded automatically\nwhen you activate SOS.',
+            'sos.past_recordings_desc'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppTheme.getSecondaryTextColor(),

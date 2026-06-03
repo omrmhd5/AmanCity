@@ -35,7 +35,7 @@ class EmergencyPOI {
 
   String get typeLabel {
     final typeKey = _getTypeKey();
-    return POITypesConfig.getByKey(typeKey).displayName;
+    return POITypesConfig.getByKey(typeKey).localizedName;
   }
 
   /// Helper to convert POIType enum to config key
@@ -44,13 +44,13 @@ class EmergencyPOI {
       case POIType.hospital:
         return 'hospital';
       case POIType.policeStation:
-        return 'policeStation';
+        return 'police_station';
       case POIType.fireStation:
-        return 'fireStation';
+        return 'fire_station';
       case POIType.safeCafe:
-        return 'safeCafe';
+        return 'safe_cafe';
       case POIType.safeZone:
-        return 'safeZone';
+        return 'safe_zone';
     }
   }
 

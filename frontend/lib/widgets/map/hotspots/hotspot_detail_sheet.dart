@@ -375,7 +375,7 @@ class _HotspotDetailSheetState extends State<HotspotDetailSheet>
                         const SizedBox(height: 20),
 
                         // Advisory section
-                        _sectionLabel(Icons.warning_amber_rounded, 'Advisory'),
+                        _sectionLabel(Icons.warning_amber_rounded, 'map.advisory'.tr()),
                         const SizedBox(height: 10),
                         Container(
                           decoration: BoxDecoration(

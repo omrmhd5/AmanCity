@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../utils/app_theme.dart';
@@ -48,7 +49,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
 
   static const double _minHeight = 90.0;
 
-  double get _maxHeight => MediaQuery.of(context).size.height * 0.85;
+  double get _maxHeight => MediaQuery.of(context).size.height * 0.8;
 
   @override
   void initState() {
@@ -430,7 +431,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                           CrossAxisAlignment.start,
                                       children: [
                                         CustomText(
-                                          text: 'Nearby Alerts',
+                                          text: 'map.nearby_alerts'.tr(),
                                           size: 16,
                                           weight: FontWeight.w800,
                                           color: AppTheme.getPrimaryTextColor(),
@@ -446,16 +447,18 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                             ),
                                             children: [
                                               TextSpan(
-                                                text:
-                                                    '${_getFilteredAlerts().length}',
-                                                style: TextStyle(
-                                                  color: AppColors.secondary,
-                                                  fontWeight: FontWeight.w700,
+                                                text: 'map.alerts_count'.tr(
+                                                  namedArgs: {
+                                                    'filtered':
+                                                        '${_getFilteredAlerts().length}',
+                                                    'total':
+                                                        '${_getAllAlertsWithin10km().length}',
+                                                  },
                                                 ),
-                                              ),
-                                              TextSpan(
-                                                text:
-                                                    ' of ${_getAllAlertsWithin10km().length} within 10 km',
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme.getSecondaryTextColor(),
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -517,7 +520,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                   8,
                                 ),
                                 child: CustomSearchBar(
-                                  hintText: 'Search incidents...',
+                                  hintText: 'map.search_incidents'.tr(),
                                   onChanged: (value) {
                                     setState(() => _searchQuery = value);
                                   },
@@ -533,7 +536,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                 ),
                                 child: _sectionLabel(
                                   Icons.tune_rounded,
-                                  'Filters',
+                                  'map.filters'.tr(),
                                 ),
                               ),
                               // Filter Chips
@@ -551,7 +554,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                     children: [
                                       // "All" chip
                                       CustomFilterChip(
-                                        label: 'All',
+                                        label: 'map.all'.tr(),
                                         isSelected: _selectedFilter == null,
                                         selectedColor: AppColors.secondary,
                                         onTap: () => setState(
@@ -589,7 +592,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                               right: 6,
                                             ),
                                             child: CustomFilterChip(
-                                              label: config.displayName,
+                                              label: config.localizedName,
                                               icon: config.icon,
                                               isSelected: isSelected,
                                               selectedColor: config.color,
@@ -661,7 +664,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                 ),
                                 child: _sectionLabel(
                                   Icons.warning_amber_rounded,
-                                  'Alerts',
+                                  'map.alerts'.tr(),
                                 ),
                               ),
                               // Alerts list
@@ -682,7 +685,7 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                         ),
                                         const SizedBox(height: 8),
                                         CustomText(
-                                          text: 'No alerts found',
+                                          text: 'map.no_alerts_found'.tr(),
                                           size: 14,
                                           weight: FontWeight.w500,
                                           color:
@@ -728,16 +731,37 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                               bottom: 12,
                                             ),
                                             child: NearbyBulkAlertCard(
-                                              incidentType: bulk.type,
+                                              incidentType:
+                                                  IncidentTypesConfig.getByKey(
+                                                    bulk.type,
+                                                  ).localizedName,
                                               count: bulk.count,
                                               timeAgo: _getTimeAgo(
                                                 bulk.lastUpdatedAt,
                                               ),
-                                              distance:
-                                                  LocationService.formatDistance(
-                                                    distanceKm,
-                                                  ) +
-                                                  ' away',
+                                              distance: 'map.away_suffix'.tr(
+                                                namedArgs: {
+                                                  'distance':
+                                                      context
+                                                              .locale
+                                                              .languageCode ==
+                                                          'ar'
+                                                      ? LocationService.formatDistance(
+                                                              distanceKm,
+                                                            )
+                                                            .replaceAll(
+                                                              'km',
+                                                              'كم',
+                                                            )
+                                                            .replaceAll(
+                                                              'm',
+                                                              'م',
+                                                            )
+                                                      : LocationService.formatDistance(
+                                                          distanceKm,
+                                                        ),
+                                                },
+                                              ),
                                               borderColor: bulk.typeColor,
                                               icon: bulk.typeIcon,
                                               avgConfidence: bulk.avgConfidence,
@@ -758,7 +782,10 @@ class _NearbyAlertsSheetState extends State<NearbyAlertsSheet>
                                               bottom: 12,
                                             ),
                                             child: NearbyAlertCard(
-                                              incidentType: alert['type'],
+                                              incidentType:
+                                                  IncidentTypesConfig.getByKey(
+                                                    alert['type'],
+                                                  ).localizedName,
                                               title: alert['title'],
                                               timeAgo: alert['timeAgo'],
                                               distance: alert['distance'],

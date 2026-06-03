@@ -159,7 +159,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Filters & Settings',
+                          'map.filters_settings'.tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -216,7 +216,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                               'map.display_range'.tr(),
                             ),
                             Text(
-                              '${radiusKm.toStringAsFixed(1)} km',
+                              'map.distance_km'.tr(namedArgs: {'distance': radiusKm.toStringAsFixed(1)}),
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.w900,
@@ -280,7 +280,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                                 children: [
                                   const Spacer(flex: 4),
                                   Text(
-                                    '5 km',
+                                    'map.distance_km'.tr(namedArgs: {'distance': '5'}),
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -289,7 +289,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                                   ),
                                   const Spacer(flex: 10),
                                   Text(
-                                    '15 km',
+                                    'map.distance_km'.tr(namedArgs: {'distance': '15'}),
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -298,7 +298,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                                   ),
                                   const Spacer(flex: 10),
                                   Text(
-                                    '25 km',
+                                    'map.distance_km'.tr(namedArgs: {'distance': '25'}),
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -367,7 +367,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet>
                                 duration: const Duration(milliseconds: 260),
                                 curve: Curves.easeOutBack,
                                 child: CustomFilterChip(
-                                  label: incident.displayName,
+                                  label: incident.localizedName,
                                   icon: incident.icon,
                                   isSelected: isSelected,
                                   selectedColor: incident.color,

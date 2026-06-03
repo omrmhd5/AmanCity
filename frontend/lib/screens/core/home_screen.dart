@@ -184,6 +184,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Register dependency so this widget rebuilds on locale change
+    context.locale;
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(),
       body: Stack(
@@ -210,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
           // Floating navbar — true overlay, zero background behind it
-          if (!_sosActive)
+          if (!_sosActive && MediaQuery.of(context).viewInsets.bottom == 0)
             Positioned(
               bottom: 0,
               left: 0,
@@ -271,6 +273,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             animation: _pageSlideController,
             builder: (context, _) {
               final offset = _pageSlideController.value;
+              final isRtl = context.locale.languageCode == 'ar';
+              final multiplier = isRtl ? -1 : 1;
               return Stack(
                 children: List.generate(screens.length, (i) {
                   // Only build screens that have been visited at least once
@@ -278,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ? screens[i]
                       : const SizedBox.shrink();
                   return Transform.translate(
-                    offset: Offset((i - offset) * width, 0),
+                    offset: Offset((i - offset) * width * multiplier, 0),
                     child: SizedBox(width: width, child: child),
                   );
                 }),

@@ -429,7 +429,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'SELECTED LOCATION',
+                          'report.selected_location'.tr(),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
@@ -471,7 +471,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                           if (_geoLocationCity != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'City: ${_geoLocationCity!}',
+                              '${'report.city'.tr()}: ${_geoLocationCity!}',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -497,7 +497,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          'Tap on the map to choose another location or drag the marker',
+                          'report.tap_to_choose_location'.tr(),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppTheme.getSecondaryTextColor(),
@@ -552,7 +552,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Confirm Location',
+                                'report.confirm_location'.tr(),
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,

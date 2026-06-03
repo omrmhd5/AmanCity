@@ -349,7 +349,7 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
               CustomText(
                 text:
                     widget.prediction.noIncidentReason ??
-                    'This image is classified as Normal - no incident detected.\n\nPlease upload another photo.',
+                    'report.normal_classification'.tr(),
                 size: 14,
                 weight: FontWeight.w400,
                 color: AppTheme.getSecondaryTextColor(),
@@ -461,7 +461,7 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                       padding: const EdgeInsets.only(top: 12),
                       child: CustomText(
                         text:
-                            'Multiple incidents detected.\nSelect which one to report:',
+                            'report.multiple_predictions_desc'.tr(),
                         size: 13,
                         weight: FontWeight.w400,
                         color: AppTheme.getSecondaryTextColor(),

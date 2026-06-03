@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
@@ -307,11 +308,11 @@ class _DropdownItemState extends State<_DropdownItem> {
   String _getTypeLabel(String? type) {
     switch (type) {
       case 'hospital':
-        return 'Hospital';
+        return 'poi.hospital'.tr();
       case 'police':
-        return 'Police Station';
+        return 'poi.police_station'.tr();
       case 'fire':
-        return 'Fire Station';
+        return 'poi.fire_station'.tr();
       default:
         return '';
     }

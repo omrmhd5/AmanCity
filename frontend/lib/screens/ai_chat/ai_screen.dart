@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -86,8 +87,7 @@ class _AiScreenState extends State<AiScreen> with TickerProviderStateMixin {
 
     _messages = [
       ChatMessage(
-        text:
-            'Hello! I\'m your Safety Assistant. I can help you learn about area safety, incident information, and emergency contacts. What would you like to know?',
+        text: 'ai.welcome'.tr(),
         isUser: false,
         timestamp: _getCurrentTime(),
       ),

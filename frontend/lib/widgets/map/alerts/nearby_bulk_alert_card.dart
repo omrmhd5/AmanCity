@@ -142,7 +142,7 @@ class _NearbyBulkAlertCardState extends State<NearbyBulkAlertCard> {
 
                 // Title
                 CustomText(
-                  text: '${widget.count} Grouped Incidents',
+                  text: 'map.grouped_incidents'.tr(namedArgs: {'count': '${widget.count}'}),
                   size: 13,
                   weight: FontWeight.w700,
                   color: AppTheme.getPrimaryTextColor(),

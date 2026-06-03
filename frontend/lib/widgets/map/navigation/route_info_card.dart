@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../data/app_colors.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/safe_route_scorer.dart';
+import '../../../data/incident_types_config.dart';
 
 class RouteInfoCard extends StatefulWidget {
   final String? destinationName;
@@ -61,6 +62,21 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
     return '$pct%';
   }
 
+  String _getLocalizedIncidentLabel(BuildContext context, String type) {
+    final isArabic = context.locale.languageCode == 'ar';
+    final lowerType = type.toLowerCase().trim();
+    if (lowerType == 'accident') {
+      return isArabic ? 'حادث سيارة' : 'Car Accident';
+    } else if (lowerType == 'fire') {
+      return isArabic ? 'حادث حريق' : 'Fire Incident';
+    } else if (lowerType == 'flood') {
+      return isArabic ? 'حادث فيضان' : 'Flood Incident';
+    } else {
+      final localizedName = IncidentTypesConfig.getByKey(type).localizedName;
+      return isArabic ? 'حادثة $localizedName' : '$type Incident';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final borderColor = widget.routeColor ?? AppColors.secondary;
@@ -103,7 +119,9 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.destinationName ?? 'map.destination'.tr(),
+                            widget.destinationName == 'Selected Location'
+                                ? 'map.selected_location'.tr()
+                                : (widget.destinationName ?? 'map.destination'.tr()),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -129,8 +147,12 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
                               ),
                               child: Text(
                                 widget.isIncident
-                                    ? '${widget.incidentType} Incident'
-                                    : widget.incidentType!,
+                                    ? _getLocalizedIncidentLabel(context, widget.incidentType!)
+                                    : (widget.incidentType == 'Destination'
+                                        ? 'map.destination'.tr()
+                                        : (widget.incidentType == 'Selected Location'
+                                            ? 'map.selected_location'.tr()
+                                            : widget.incidentType!)),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -186,57 +208,77 @@ class _RouteInfoCardState extends State<RouteInfoCard> {
               // ── Route cards ───────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Column(
-                  children: [
-                    // Safest route card
-                    _RouteOptionCard(
-                      label: widget.hasFastestAlternative
-                          ? 'map.safest'.tr()
-                          : 'Safest + Fastest',
-                      labelColor: const Color(0xFF10B981),
-                      duration: widget.duration ?? 'map.calculating'.tr(),
-                      distance: widget.distance ?? '...',
-                      safetyPercent: widget.dangerScore != null
-                          ? _safetyPercent(widget.dangerScore!)
-                          : null,
-                      safetyColor: safestInfo != null
-                          ? (safestInfo['color'] as Color)
-                          : const Color(0xFF10B981),
-                      safetyIcon: Icons.verified_user,
-                      isSelected: _safestSelected,
-                      isLoading: widget.isLoading,
-                      onTap: () {
-                        setState(() => _safestSelected = true);
-                        widget.onRouteSelectionChanged?.call(true);
-                      },
-                    ),
-
-                    // Fastest route card (only when there's an alternative)
-                    if (widget.hasFastestAlternative &&
-                        widget.fastestDuration != null) ...[
-                      const SizedBox(height: 8),
-                      _RouteOptionCard(
-                        label: 'map.fastest'.tr(),
-                        labelColor: const Color(0xFF3B82F6),
-                        duration: widget.fastestDuration!,
-                        distance: widget.fastestDistance ?? '...',
-                        safetyPercent: widget.fastestDangerScore != null
-                            ? _safetyPercent(widget.fastestDangerScore!)
+                child: widget.hasFastestAlternative &&
+                        widget.fastestDuration != null
+                    ? Row(
+                        children: [
+                          Expanded(
+                            child: _RouteOptionCard(
+                              label: 'map.safest'.tr(),
+                              labelColor: const Color(0xFF10B981),
+                              duration: widget.duration ?? 'map.calculating'.tr(),
+                              distance: widget.distance ?? '...',
+                              safetyPercent: widget.dangerScore != null
+                                  ? _safetyPercent(widget.dangerScore!)
+                                  : null,
+                              safetyColor: safestInfo != null
+                                  ? (safestInfo['color'] as Color)
+                                  : const Color(0xFF10B981),
+                              safetyIcon: Icons.verified_user,
+                              isSelected: _safestSelected,
+                              isLoading: widget.isLoading,
+                              isCompact: true,
+                              onTap: () {
+                                setState(() => _safestSelected = true);
+                                widget.onRouteSelectionChanged?.call(true);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _RouteOptionCard(
+                              label: 'map.fastest'.tr(),
+                              labelColor: const Color(0xFF3B82F6),
+                              duration: widget.fastestDuration!,
+                              distance: widget.fastestDistance ?? '...',
+                              safetyPercent: widget.fastestDangerScore != null
+                                  ? _safetyPercent(widget.fastestDangerScore!)
+                                  : null,
+                              safetyColor: fastestInfo != null
+                                  ? (fastestInfo['color'] as Color)
+                                  : const Color(0xFFF59E0B),
+                              safetyIcon: Icons.gpp_maybe,
+                              isSelected: !_safestSelected,
+                              isLoading: widget.isLoading,
+                              isCompact: true,
+                              onTap: () {
+                                setState(() => _safestSelected = false);
+                                widget.onRouteSelectionChanged?.call(false);
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    : _RouteOptionCard(
+                        label: 'map.safest_fastest'.tr(),
+                        labelColor: const Color(0xFF10B981),
+                        duration: widget.duration ?? 'map.calculating'.tr(),
+                        distance: widget.distance ?? '...',
+                        safetyPercent: widget.dangerScore != null
+                            ? _safetyPercent(widget.dangerScore!)
                             : null,
-                        safetyColor: fastestInfo != null
-                            ? (fastestInfo['color'] as Color)
-                            : const Color(0xFFF59E0B),
-                        safetyIcon: Icons.gpp_maybe,
-                        isSelected: !_safestSelected,
+                        safetyColor: safestInfo != null
+                            ? (safestInfo['color'] as Color)
+                            : const Color(0xFF10B981),
+                        safetyIcon: Icons.verified_user,
+                        isSelected: _safestSelected,
                         isLoading: widget.isLoading,
+                        isCompact: false,
                         onTap: () {
-                          setState(() => _safestSelected = false);
-                          widget.onRouteSelectionChanged?.call(false);
+                          setState(() => _safestSelected = true);
+                          widget.onRouteSelectionChanged?.call(true);
                         },
                       ),
-                    ],
-                  ],
-                ),
               ),
 
               const SizedBox(height: 12),
@@ -345,6 +387,7 @@ class _RouteOptionCard extends StatelessWidget {
   final bool isSelected;
   final bool isLoading;
   final VoidCallback onTap;
+  final bool isCompact;
 
   const _RouteOptionCard({
     required this.label,
@@ -357,10 +400,30 @@ class _RouteOptionCard extends StatelessWidget {
     required this.isSelected,
     required this.isLoading,
     required this.onTap,
+    this.isCompact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    String displayDuration = duration;
+    String displayDistance = distance;
+
+    if (isArabic) {
+      displayDuration = displayDuration
+          .replaceAll('mins', 'دقيقة')
+          .replaceAll('min', 'دقيقة')
+          .replaceAll('hours', 'ساعة')
+          .replaceAll('hour', 'ساعة');
+
+      displayDistance = displayDistance.replaceAll('km', 'كم');
+      if (displayDistance.endsWith(' m')) {
+        displayDistance = displayDistance.substring(0, displayDistance.length - 2) + ' م';
+      } else if (displayDistance.endsWith('m') && !displayDistance.endsWith('km')) {
+        displayDistance = displayDistance.substring(0, displayDistance.length - 1) + ' م';
+      }
+    }
+
     final cardBg = AppTheme.currentMode == AppThemeMode.dark
         ? (isSelected
               ? AppColors.primaryHover
@@ -371,7 +434,10 @@ class _RouteOptionCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 10 : 14,
+          vertical: isCompact ? 10 : 12,
+        ),
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(12),
@@ -391,100 +457,171 @@ class _RouteOptionCard extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Row(
-          children: [
-            // Left: label + time + distance
-            Expanded(
-              child: Column(
+        child: isCompact
+            ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: labelColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      label.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: labelColor,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: labelColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          label.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: labelColor,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                      if (safetyPercent != null)
+                        Row(
+                          children: [
+                            Icon(safetyIcon, color: safetyColor, size: 13),
+                            const SizedBox(width: 2),
+                            Text(
+                              safetyPercent!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: safetyColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        isLoading ? '...' : duration,
+                        isLoading ? '...' : displayDuration,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.getPrimaryTextColor(),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
+                      const SizedBox(width: 4),
+                      Expanded(
                         child: Text(
-                          isLoading ? '' : distance,
+                          isLoading ? '' : displayDistance,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: AppTheme.getSecondaryTextColor(),
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
                 ],
-              ),
-            ),
-            // Right: safety score
-            if (safetyPercent != null) ...[
-              Container(
-                height: 52,
-                width: 1,
-                color: AppTheme.getBorderColor(),
-                margin: const EdgeInsets.symmetric(horizontal: 14),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              )
+            : Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(safetyIcon, color: safetyColor, size: 15),
-                      const SizedBox(width: 4),
-                      Text(
-                        safetyPercent!,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: safetyColor,
+                  // Left: label + time + distance
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: labelColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            label.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: labelColor,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'map.safety_score'.tr(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.getSecondaryTextColor(),
-                      letterSpacing: 0.8,
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              isLoading ? '...' : displayDuration,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.getPrimaryTextColor(),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                isLoading ? '' : displayDistance,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.getSecondaryTextColor(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                  // Right: safety score
+                  if (safetyPercent != null) ...[
+                    Container(
+                      height: 52,
+                      width: 1,
+                      color: AppTheme.getBorderColor(),
+                      margin: const EdgeInsets.symmetric(horizontal: 14),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(safetyIcon, color: safetyColor, size: 15),
+                            const SizedBox(width: 4),
+                            Text(
+                              safetyPercent!,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: safetyColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'map.safety_score'.tr(),
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.getSecondaryTextColor(),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
-            ],
-          ],
-        ),
       ),
     );
   }

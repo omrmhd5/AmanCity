@@ -61,10 +61,12 @@ class _AuthorityHomeScreenState extends State<AuthorityHomeScreen>
           ],
         ),
       ),
-      bottomNavigationBar: AuthorityBottomNavBar(
-        currentItem: _current,
-        onItemTapped: _onNavTapped,
-      ),
+      bottomNavigationBar: MediaQuery.of(context).viewInsets.bottom > 0
+          ? null
+          : AuthorityBottomNavBar(
+              currentItem: _current,
+              onItemTapped: _onNavTapped,
+            ),
     );
   }
 }

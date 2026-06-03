@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// Centralized configuration for all POI (Point of Interest) types
@@ -11,25 +12,25 @@ class POITypesConfig {
       color: Color(0xFFEF4444), // Red
     ),
     POITypeConfig(
-      key: 'policeStation',
+      key: 'police_station',
       displayName: 'Police Station',
       icon: Icons.local_police,
       color: Color(0xFF3B82F6), // Blue
     ),
     POITypeConfig(
-      key: 'fireStation',
+      key: 'fire_station',
       displayName: 'Fire Station',
       icon: Icons.fire_truck,
       color: Color(0xFFF59E0B), // Orange
     ),
     POITypeConfig(
-      key: 'safeCafe',
+      key: 'safe_cafe',
       displayName: 'Safe Café',
       icon: Icons.local_cafe,
       color: Color(0xFF10B981), // Green
     ),
     POITypeConfig(
-      key: 'safeZone',
+      key: 'safe_zone',
       displayName: 'Safe Zone',
       icon: Icons.verified_user,
       color: Color(0xFF00B3A4), // Teal
@@ -53,7 +54,7 @@ class POITypesConfig {
     return allTypes
         .map(
           (type) => {
-            'title': type.displayName,
+            'title': type.localizedName,
             'icon': type.icon,
             'color': type.color,
             'key': type.key,
@@ -69,6 +70,8 @@ class POITypeConfig {
   final String displayName;
   final IconData icon;
   final Color color;
+
+  String get localizedName => 'poi.$key'.tr();
 
   const POITypeConfig({
     required this.key,

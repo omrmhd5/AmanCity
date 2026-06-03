@@ -18,6 +18,8 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Register dependency so this widget rebuilds on locale change
+    context.locale;
     final isDark = AppTheme.currentMode == AppThemeMode.dark;
 
     return SafeArea(

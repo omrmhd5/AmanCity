@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../models/incidents/bulk_incident.dart';
@@ -53,7 +54,7 @@ class BulkIncidentHeader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '${bulk.count} reports',
+                      'incidents.reports_count_value'.tr(namedArgs: {'count': '${bulk.count}'}),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -76,7 +77,10 @@ class BulkIncidentHeader extends StatelessWidget {
                 ),
               const SizedBox(height: 2),
               Text(
-                'First reported ${timeAgo(bulk.firstReportedAt)} · last updated ${timeAgo(bulk.lastUpdatedAt)}',
+                'incidents.first_reported_last_updated'.tr(namedArgs: {
+                  'first': timeAgo(bulk.firstReportedAt),
+                  'last': timeAgo(bulk.lastUpdatedAt)
+                }),
                 style: TextStyle(
                   fontSize: 11,
                   color: AppTheme.getSecondaryTextColor(),

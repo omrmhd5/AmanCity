@@ -180,7 +180,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Remove ${contact.name} from your trusted contacts?',
+                    'sos.remove_contact_desc'.tr(namedArgs: {'name': contact.name}),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -288,7 +288,7 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                 controller: _searchCtrl,
                 style: TextStyle(color: AppTheme.getPrimaryTextColor()),
                 decoration: InputDecoration(
-                  hintText: 'Search by name or phone…',
+                  hintText: 'sos.search_hint'.tr(),
                   hintStyle: TextStyle(color: AppTheme.getSecondaryTextColor()),
                   prefixIcon: Icon(
                     Icons.search,
@@ -387,11 +387,11 @@ class _TrustedAppContactsScreenState extends State<TrustedAppContactsScreen>
                         // Accepted contacts
                         if (!isSearchActive) ...[
                           _sectionHeader(
-                            'Trusted Contacts (${accepted.length})',
+                            '${'sos.trusted_contacts_title'.tr()} (${accepted.length})',
                           ),
                           if (accepted.isEmpty)
                             _emptyHint(
-                              'No trusted contacts yet.\nSearch for users above to add them.',
+                              'sos.trusted_contacts_empty'.tr(),
                             )
                           else
                             ...accepted.map(

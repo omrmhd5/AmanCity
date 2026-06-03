@@ -15,7 +15,13 @@ class AiChatHeader extends StatefulWidget {
 }
 
 class _AiChatHeaderState extends State<AiChatHeader> {
-  String _selectedLanguage = 'en_US';
+  late String _selectedLanguage;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectedLanguage = context.locale.languageCode == 'ar' ? 'ar_SA' : 'en_US';
+  }
 
   Future<void> _emergencyCall() async {
     try {

@@ -85,7 +85,7 @@ class _StepPasswordState extends State<StepPassword> {
             child: TextButton(
               onPressed: widget.onBack,
               child: Text(
-                '← Back',
+                '← ' + 'common.back'.tr(),
                 style: TextStyle(
                   color: AppTheme.getSecondaryTextColor(),
                   fontSize: 14,

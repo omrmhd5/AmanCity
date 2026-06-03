@@ -783,8 +783,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                             TextField(
                               controller: _titleController,
                               decoration: InputDecoration(
-                                hintText:
-                                    'e.g., Car Accident, Fire Incident...',
+                                hintText: 'report.title_placeholder'.tr(),
                                 hintStyle: TextStyle(
                                   color: AppTheme.getSecondaryTextColor(),
                                 ),
@@ -892,7 +891,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'DESCRIPTION (OPTIONAL)',
+                                  'report.description_optional'.tr(),
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -907,7 +906,7 @@ class _ReportIncidentScreenState extends State<ReportIncidentScreen>
                               controller: _descriptionController,
                               maxLines: 4,
                               decoration: InputDecoration(
-                                hintText: 'Add additional details...',
+                                hintText: 'report.description_placeholder'.tr(),
                                 hintStyle: TextStyle(
                                   color: AppTheme.getSecondaryTextColor(),
                                 ),

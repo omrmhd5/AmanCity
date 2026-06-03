@@ -439,7 +439,10 @@ class _NewsScreenState extends State<NewsScreen>
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Text(
-          '${filteredIncidents.length} of ${_incidents.length} incidents',
+          'news.showing_incidents'.tr(namedArgs: {
+            'filtered': filteredIncidents.length.toString(),
+            'total': _incidents.length.toString(),
+          }),
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
