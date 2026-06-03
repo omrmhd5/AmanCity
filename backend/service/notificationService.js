@@ -99,6 +99,8 @@ async function notifyNearbyUsers(incident) {
       type: "nearbyIncident",
       lat: String(lat),
       lng: String(lng),
+      incidentTitle: incidentTitle,
+      locationText: locationText,
     },
   );
 }

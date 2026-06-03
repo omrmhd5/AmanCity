@@ -12,6 +12,7 @@ import 'local_notification_manager.dart';
 import '../../models/notifications/incoming_sos_session.dart';
 import 'notification_storage.dart';
 import 'sos_notification_manager.dart';
+import 'notification_translator.dart';
 
 export 'fcm_background_handler.dart';
 export 'local_notification_manager.dart';
@@ -57,23 +58,30 @@ class NotificationService with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     // 5. Foreground message handler
-    FirebaseMessaging.onMessage.listen((message) {
+    FirebaseMessaging.onMessage.listen((message) async {
       final type = message.data['type'] as String?;
+      final lang = await getLanguageCode();
+
       if (type == 'sos_alert') {
-        _sosManager.handleSosAlert(message.data, _localManager, _addAlert);
+        _sosManager.handleSosAlert(message.data, _localManager, _addAlert, lang);
         return;
       }
       if (type == 'sos_ended') {
-        _sosManager.handleSosEnded(message.data, _addAlert);
+        _sosManager.handleSosEnded(message.data, _addAlert, lang);
         return;
       }
 
-      _onMessageReceived(message);
+      await _onMessageReceived(message, lang);
       final n = message.notification;
       if (n != null) {
+        final translation = NotificationTranslator.translate(
+          type: type ?? '',
+          data: message.data,
+          lang: lang,
+        );
         _localManager.showLocalNotification(
-          title: n.title ?? 'Alert',
-          body: n.body ?? '',
+          title: translation.key,
+          body: translation.value,
           payload: _buildPayload(message.data),
           incidentType: message.data['incidentType'],
         );
@@ -81,16 +89,18 @@ class NotificationService with WidgetsBindingObserver {
     });
 
     // 6. Tapped from background (app was minimised)
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+      final lang = await getLanguageCode();
       _handleMessageTap(message.data);
-      _onMessageReceived(message);
+      await _onMessageReceived(message, lang);
     });
 
     // 7. App launched from terminated state via notification
     final initial = await _messaging.getInitialMessage();
     if (initial != null) {
+      final lang = await getLanguageCode();
       _handleMessageTap(initial.data);
-      _onMessageReceived(initial);
+      await _onMessageReceived(initial, lang);
     }
   }
 
@@ -179,17 +189,19 @@ class NotificationService with WidgetsBindingObserver {
   // Private helpers
   // -------------------------------------------------------------------------
 
-  void _onMessageReceived(RemoteMessage message) {
-    final n = message.notification;
-    final title = n?.title ?? message.data['title'] as String?;
-    final body = n?.body ?? message.data['body'] as String?;
-    if (title == null && body == null) return;
+  Future<void> _onMessageReceived(RemoteMessage message, String lang) async {
+    final type = message.data['type'] as String?;
+    final translation = NotificationTranslator.translate(
+      type: type ?? '',
+      data: message.data,
+      lang: lang,
+    );
 
     final alert = AlertNotification(
       id: message.messageId ?? DateTime.now().toIso8601String(),
-      title: title ?? 'Alert',
-      body: body ?? '',
-      alertType: _parseAlertType(message.data['type']),
+      title: translation.key,
+      body: translation.value,
+      alertType: _parseAlertType(type),
       timestamp: DateTime.now(),
       distanceKm: message.data['distanceKm'] != null
           ? double.tryParse(message.data['distanceKm'].toString())

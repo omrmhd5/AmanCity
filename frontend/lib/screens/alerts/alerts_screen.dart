@@ -493,7 +493,7 @@ class _AlertCardState extends State<_AlertCard> {
                               child: Text(
                                 IncidentTypesConfig.getByKey(
                                   widget.alert.incidentType!,
-                                ).displayName,
+                                ).localizedName,
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,

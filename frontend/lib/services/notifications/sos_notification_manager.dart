@@ -8,6 +8,7 @@ import '../sos/sos_service.dart';
 import '../../models/notifications/incoming_sos_session.dart';
 import 'notification_storage.dart';
 import 'local_notification_manager.dart';
+import 'notification_translator.dart';
 
 class SosNotificationManager {
   // Emits sessionId when that SOS session is marked safe/ended
@@ -38,6 +39,7 @@ class SosNotificationManager {
   void handleSosEnded(
     Map<String, dynamic> data,
     void Function(AlertNotification) addAlertCallback,
+    String lang,
   ) {
     final sessionId = data['sessionId'] as String?;
     if (sessionId == null || sessionId.isEmpty) return;
@@ -46,12 +48,17 @@ class SosNotificationManager {
     FlutterRingtonePlayer().stop();
     sosEndedNotifier.value = sessionId;
 
-    final name = (data['triggerUserName'] as String?) ?? '';
+    final translation = NotificationTranslator.translate(
+      type: 'sos_ended',
+      data: data,
+      lang: lang,
+    );
+
     addAlertCallback(
       AlertNotification(
         id: 'sos_ended_$sessionId',
-        title: '✅ ${name.isNotEmpty ? name : "A contact"} is now safe',
-        body: 'They have cancelled their SOS alert.',
+        title: translation.key,
+        body: translation.value,
         alertType: AlertType.sosEnded,
         timestamp: DateTime.now(),
         isRead: false,
@@ -76,6 +83,7 @@ class SosNotificationManager {
     Map<String, dynamic> data,
     LocalNotificationManager localManager,
     void Function(AlertNotification) addAlertCallback,
+    String lang,
   ) {
     final sessionId = data['sessionId'] as String?;
     final name = (data['triggerUserName'] as String?) ?? '';
@@ -109,9 +117,15 @@ class SosNotificationManager {
       lng: lng,
     );
 
+    final translation = NotificationTranslator.translate(
+      type: 'sos_alert',
+      data: data,
+      lang: lang,
+    );
+
     localManager.showLocalNotification(
-      title: '🆘 ${name.isNotEmpty ? name : "A contact"} is in danger!',
-      body: 'Tap to view their live location and call for help.',
+      title: translation.key,
+      body: translation.value,
       payload: jsonEncode(data),
       isSos: true,
     );
@@ -119,8 +133,8 @@ class SosNotificationManager {
     addAlertCallback(
       AlertNotification(
         id: 'sos_$sessionId',
-        title: '🆘 ${name.isNotEmpty ? name : "A contact"} is in danger!',
-        body: 'Tap to view their live location and call for help.',
+        title: translation.key,
+        body: translation.value,
         alertType: AlertType.sosAlert,
         timestamp: DateTime.now(),
       ),

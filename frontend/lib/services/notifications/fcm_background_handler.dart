@@ -1,9 +1,31 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/alerts/alert_notification.dart';
+import 'notification_translator.dart';
+
+Future<String> getLanguageCode() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    // easy_localization key is normally 'locale'
+    final savedLocale = prefs.getString('locale');
+    if (savedLocale != null && savedLocale.isNotEmpty) {
+      if (savedLocale.startsWith('ar')) return 'ar';
+      if (savedLocale.startsWith('en')) return 'en';
+    }
+  } catch (_) {}
+  // Fallback to system locale
+  try {
+    final systemLocale = PlatformDispatcher.instance.locale.languageCode;
+    if (systemLocale == 'ar' || systemLocale == 'en') {
+      return systemLocale;
+    }
+  } catch (_) {}
+  return 'en';
+}
 
 /// Must be a top-level function — firebase_messaging requirement
 @pragma('vm:entry-point')
@@ -27,27 +49,33 @@ Future<void> persistBackgroundAlert(RemoteMessage message) async {
     const prefsKey = 'notification_alerts';
     const maxAlerts = 50;
     final prefs = await SharedPreferences.getInstance();
-
     final type = message.data['type'] as String?;
     final n = message.notification;
-
     final String id;
     final String title;
     final String body;
     final AlertType alertType;
 
+    final lang = await getLanguageCode();
+    final translation = NotificationTranslator.translate(
+      type: type ?? '',
+      data: message.data,
+      lang: lang,
+      fallbackTitle: n?.title,
+      fallbackBody: n?.body,
+    );
+
     if (type == 'sos_ended') {
       // Use deterministic id — same as _handleSosEnded — so dedup catches it
       final sessionId = (message.data['sessionId'] as String?) ?? '';
-      final name = (message.data['triggerUserName'] as String?) ?? '';
       id = 'sos_ended_$sessionId';
-      title = '✅ ${name.isNotEmpty ? name : "A contact"} is now safe';
-      body = 'They have cancelled their SOS alert.';
+      title = translation.key;
+      body = translation.value;
       alertType = AlertType.sosEnded;
     } else {
       id = message.messageId ?? DateTime.now().toIso8601String();
-      title = n?.title ?? message.data['title'] as String? ?? 'Alert';
-      body = n?.body ?? message.data['body'] as String? ?? '';
+      title = translation.key;
+      body = translation.value;
       switch (type) {
         case 'sos_alert':
           alertType = AlertType.sosAlert;

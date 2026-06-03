@@ -331,8 +331,11 @@ class UserController {
         "Test Alert · Test Alert ⚠️",
         "Reported near within 2km and test location. Stay alert.",
         {
+          incidentId: "test_incident_id",
           incidentType: "Test",
-          type: "system",
+          type: "nearbyIncident",
+          incidentTitle: "Test Alert",
+          locationText: "test location",
         },
       );
 

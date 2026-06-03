@@ -19,7 +19,7 @@ class CustomText extends StatelessWidget {
     this.size,
     this.weight = FontWeight.w400,
     this.color,
-    this.textAlign = TextAlign.left,
+    this.textAlign = TextAlign.start,
     this.maxLines = 999,
     this.overflow = TextOverflow.clip,
     this.height,
