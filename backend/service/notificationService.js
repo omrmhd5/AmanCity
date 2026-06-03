@@ -44,6 +44,14 @@ async function sendPushToUsers(users, title, body, data = {}) {
         sound: "default",
       },
     },
+    apns: {
+      payload: {
+        aps: {
+          sound: "default",
+          "content-available": 1,
+        },
+      },
+    },
   };
 
   try {
