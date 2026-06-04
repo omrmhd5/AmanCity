@@ -12,6 +12,7 @@ import 'screens/authority/authority_home_screen.dart';
 import 'screens/core/initial_setup_screen.dart';
 import 'screens/core/onboarding_screen.dart';
 import 'screens/core/permissions_screen.dart';
+import 'screens/core/splash_screen.dart';
 import 'data/app_colors.dart';
 import 'utils/app_theme.dart';
 import 'utils/required_permissions.dart';
@@ -173,6 +174,7 @@ class _StartGate extends StatefulWidget {
 class _StartGateState extends State<_StartGate> {
   bool? _setupDone;
   bool? _onboardingDone;
+  bool _splashFinished = false;
 
   @override
   void initState() {
@@ -206,39 +208,50 @@ class _StartGateState extends State<_StartGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_setupDone == null || _onboardingDone == null) {
-      return const Scaffold(
-        backgroundColor: AppColors.primary,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.secondary),
-        ),
+    Widget currentWidget;
+
+    if (_setupDone == null || _onboardingDone == null || !_splashFinished) {
+      currentWidget = SplashScreen(
+        key: const ValueKey('splash'),
+        onFinished: () {
+          if (mounted) {
+            setState(() {
+              _splashFinished = true;
+            });
+          }
+        },
       );
-    }
-
-    if (!_setupDone!) {
-      return const InitialSetupScreen();
-    }
-
-    if (!_onboardingDone!) {
-      return FutureBuilder<bool>(
+    } else if (!_setupDone!) {
+      currentWidget = const InitialSetupScreen(key: ValueKey('setup'));
+    } else if (!_onboardingDone!) {
+      currentWidget = FutureBuilder<bool>(
+        key: const ValueKey('onboarding_gate'),
         future: SharedPreferences.getInstance().then(
           (p) => p.getBool('onboarding_complete') ?? false,
         ),
         builder: (context, snapshot) {
           if (snapshot.data == true) {
-            return const PermissionsScreen();
+            return const PermissionsScreen(key: ValueKey('permissions'));
           }
-          return const OnboardingScreen();
+          return const OnboardingScreen(key: ValueKey('onboarding'));
         },
       );
+    } else {
+      currentWidget = const AuthGate(key: ValueKey('auth'));
     }
-    return const AuthGate();
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      switchInCurve: Curves.easeIn,
+      switchOutCurve: Curves.easeOut,
+      child: currentWidget,
+    );
   }
 }
 
 /// Listens to Firebase auth state — shows Login or Home accordingly.
 class AuthGate extends StatelessWidget {
-  const AuthGate();
+  const AuthGate({super.key});
 
   @override
   Widget build(BuildContext context) {
