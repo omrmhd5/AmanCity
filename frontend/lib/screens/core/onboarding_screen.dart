@@ -7,27 +7,12 @@ import 'permissions_screen.dart';
 
 // ─── Data models ────────────────────────────────────────────────────────────
 
-class _FloatingBadge {
-  final IconData icon;
-  final Color color;
-  final Alignment alignment;
-  const _FloatingBadge({
-    required this.icon,
-    required this.color,
-    required this.alignment,
-  });
-}
-
 class _PageData {
-  final IconData mainIcon;
-  final Color accentColor;
-  final List<_FloatingBadge> badges;
+  final String imagePath;
   final String title;
   final String description;
   const _PageData({
-    required this.mainIcon,
-    required this.accentColor,
-    required this.badges,
+    required this.imagePath,
     required this.title,
     required this.description,
   });
@@ -66,56 +51,17 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   List<_PageData> get _pages => [
     _PageData(
-      mainIcon: Icons.explore_outlined,
-      accentColor: const Color(0xFF3B82F6),
-      badges: const [
-        _FloatingBadge(
-          icon: Icons.warning_amber_rounded,
-          color: Colors.redAccent,
-          alignment: Alignment(-0.55, -0.48),
-        ),
-        _FloatingBadge(
-          icon: Icons.camera_alt_outlined,
-          color: Color(0xFF3B82F6),
-          alignment: Alignment(0.55, 0.38),
-        ),
-      ],
+      imagePath: 'assets/images/Onboarding_1.png',
       title: 'onboarding.page1_title'.tr(),
       description: 'onboarding.page1_desc'.tr(),
     ),
     _PageData(
-      mainIcon: Icons.alt_route_rounded,
-      accentColor: AppColors.secondary,
-      badges: const [
-        _FloatingBadge(
-          icon: Icons.insights_outlined,
-          color: AppColors.secondary,
-          alignment: Alignment(-0.58, 0.38),
-        ),
-        _FloatingBadge(
-          icon: Icons.notifications_active_outlined,
-          color: Colors.amber,
-          alignment: Alignment(0.55, -0.45),
-        ),
-      ],
+      imagePath: 'assets/images/Onboarding_2.png',
       title: 'onboarding.page2_title'.tr(),
       description: 'onboarding.page2_desc'.tr(),
     ),
     _PageData(
-      mainIcon: Icons.shield_outlined,
-      accentColor: const Color(0xFFA855F7),
-      badges: const [
-        _FloatingBadge(
-          icon: Icons.smart_toy_outlined,
-          color: Color(0xFFA855F7),
-          alignment: Alignment(-0.55, 0.4),
-        ),
-        _FloatingBadge(
-          icon: Icons.sos_rounded,
-          color: Colors.redAccent,
-          alignment: Alignment(0.55, -0.38),
-        ),
-      ],
+      imagePath: 'assets/images/Onboarding_3.png',
       title: 'onboarding.page3_title'.tr(),
       description: 'onboarding.page3_desc'.tr(),
     ),
@@ -354,77 +300,11 @@ class _IllustrationCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Radar rings (outermost → innermost)
-            for (int i = 2; i >= 0; i--)
-              Container(
-                width: 90.0 + i * 65,
-                height: 90.0 + i * 65,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: data.accentColor.withOpacity(0.08 + i * 0.04),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-
-            // Center icon
-            Container(
-              width: 86,
-              height: 86,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: data.accentColor.withOpacity(0.14),
-                border: Border.all(
-                  color: data.accentColor.withOpacity(0.45),
-                  width: 1.5,
-                ),
-              ),
-              child: Icon(data.mainIcon, color: data.accentColor, size: 38),
-            ),
-
-            // Floating badge icons
-            for (final badge in data.badges)
-              Align(
-                alignment: badge.alignment,
-                child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: badge.color.withOpacity(0.14),
-                    border: Border.all(
-                      color: badge.color.withOpacity(0.4),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(badge.icon, color: badge.color, size: 20),
-                ),
-              ),
-
-            // Bottom fade
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      AppColors.primary.withOpacity(0.75),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+        child: Image.asset(
+          data.imagePath,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
         ),
       ),
     );
