@@ -39,17 +39,6 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Initialise notifications BEFORE runApp so that FirebaseMessaging.onMessage
-    // is listening before the first frame paints. If we defer this to
-    // addPostFrameCallback, a notification arriving while the app resumes from
-    // background can land in the window where no Dart listener is registered
-    // and be silently dropped — which was causing the iOS foreground SOS issue.
-    try {
-      await NotificationService.instance.init();
-    } catch (e) {
-      debugPrint('Warning: Notifications init failed — $e');
-    }
-
     await AppTheme.initTheme();
     await EasyLocalization.ensureInitialized();
 
@@ -62,15 +51,23 @@ void main() async {
       ),
     );
 
-    // Start non-critical services after first frame — these have no
-    // notification-timing sensitivity so deferring is fine.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      UserLocationSyncService.instance.start();
-      ConnectivityService.instance.init();
+      _startDeferredServices();
     });
   } catch (e, stack) {
     debugPrint('Fatal startup error: $e\n$stack');
   }
+}
+
+Future<void> _startDeferredServices() async {
+  try {
+    await NotificationService.instance.init();
+  } catch (e) {
+    debugPrint('Warning: Notifications init failed — $e');
+  }
+
+  UserLocationSyncService.instance.start();
+  ConnectivityService.instance.init();
 }
 
 class MyApp extends StatefulWidget {
