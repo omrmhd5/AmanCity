@@ -682,7 +682,13 @@
     "coordinates": "الإحداثيات",
     "just_now": "الآن",
     "minutes_ago": "منذ {n} دقيقة",
-    "hours_ago": "منذ {n} ساعة"
+    "hours_ago": "منذ {n} ساعة",
+    "overview": "نظرة عامة",
+    "total": "الإجمالي",
+    "clusters": "الحوادث المجمّعة",
+    "most_affected_areas": "أكثر المناطق تضرراً",
+    "sos_monitor": "مراقبة الاستغاثة",
+    "no_sos_sessions": "لا توجد جلسات استغاثة نشطة"
   },
   "connectivity": {
     "offline": "لا يوجد اتصال بالإنترنت",

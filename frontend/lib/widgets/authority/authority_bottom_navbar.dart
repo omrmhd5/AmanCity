@@ -68,33 +68,41 @@ class AuthorityBottomNavBar extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNavItem(
-                        icon: Icons.dashboard_outlined,
-                        activeIcon: Icons.dashboard,
-                        label: 'authority.dashboard'.tr(),
-                        item: AuthorityNavItem.dashboard,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.dashboard_outlined,
+                          activeIcon: Icons.dashboard,
+                          label: 'authority.dashboard'.tr(),
+                          item: AuthorityNavItem.dashboard,
+                          isDark: isDark,
+                        ),
                       ),
-                      _buildNavItem(
-                        icon: Icons.list_alt_outlined,
-                        activeIcon: Icons.list_alt,
-                        label: 'authority.incidents'.tr(),
-                        item: AuthorityNavItem.incidents,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.list_alt_outlined,
+                          activeIcon: Icons.list_alt,
+                          label: 'authority.incidents'.tr(),
+                          item: AuthorityNavItem.incidents,
+                          isDark: isDark,
+                        ),
                       ),
-                      _buildNavItem(
-                        icon: Icons.emergency_outlined,
-                        activeIcon: Icons.emergency,
-                        label: 'sos.title'.tr(),
-                        item: AuthorityNavItem.sos,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.emergency_outlined,
+                          activeIcon: Icons.emergency,
+                          label: 'sos.title'.tr(),
+                          item: AuthorityNavItem.sos,
+                          isDark: isDark,
+                        ),
                       ),
-                      _buildNavItem(
-                        icon: Icons.person_outline,
-                        activeIcon: Icons.person,
-                        label: 'profile.title'.tr(),
-                        item: AuthorityNavItem.profile,
-                        isDark: isDark,
+                      Flexible(
+                        child: _buildNavItem(
+                          icon: Icons.person_outline,
+                          activeIcon: Icons.person,
+                          label: 'profile.title'.tr(),
+                          item: AuthorityNavItem.profile,
+                          isDark: isDark,
+                        ),
                       ),
                     ],
                   ),
@@ -189,7 +197,7 @@ class AuthorityBottomNavBar extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 260),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.secondary.withOpacity(0.15)

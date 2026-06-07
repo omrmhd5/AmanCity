@@ -682,7 +682,13 @@
     "coordinates": "Coordinates",
     "just_now": "Just now",
     "minutes_ago": "{n}m ago",
-    "hours_ago": "{n}h ago"
+    "hours_ago": "{n}h ago",
+    "overview": "Overview",
+    "total": "Total",
+    "clusters": "Clusters",
+    "most_affected_areas": "Most Affected Areas",
+    "sos_monitor": "SOS Monitor",
+    "no_sos_sessions": "No active SOS sessions"
   },
   "connectivity": {
     "offline": "No Internet Connection",

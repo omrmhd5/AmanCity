@@ -10,3 +10,4 @@ numpy
 onnxruntime
 joblib
 scikit-learn
+pydantic
