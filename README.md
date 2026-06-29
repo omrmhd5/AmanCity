@@ -118,19 +118,17 @@ The AI models were trained on highly curated, consolidated datasets:
   <tr>
     <td><img width="100%" alt="Home Screen After Login (Dark)" src="https://github.com/user-attachments/assets/f750d181-86b7-4fea-b8aa-51c4106098da" /></td>
     <td><img width="100%" alt="Home Screen Arabic (Dark)" src="https://github.com/user-attachments/assets/2daac5c2-a092-4d95-9df0-7e2f4b59608a" /></td>
-    <td><img width="100%" alt="Alerts Screen Showing Incoming Notifications and Alerts" src="[INSERT_LINK_HERE]" /></td>
+    <td><img width="100%" alt="Alerts Screen Showing Incoming Notifications and Alerts" src="https://github.com/user-attachments/assets/6322d730-1ed9-44a8-88ba-7d9d15e26db8" /></td>
   </tr>
 </table>
 
 <table>
   <tr>
     <td align="center"><b>Interactive Safety Map & Hotspots</b></td>
-    <td align="center"><b>Map With Fire Filter & Hotspot</b></td>
     <td align="center"><b>Safest Route Home & Safety Scores</b></td>
   </tr>
   <tr>
     <td><img width="100%" alt="Map Screen Showing Incident Markers and Hotspot Zone and POI Markers" src="https://github.com/user-attachments/assets/b6f459f1-b31b-4af5-a77d-8b001a64bc22" /></td>
-    <td><img width="100%" alt="Map Screen Showing Incidents With Fire Filter and Hotspot" src="[INSERT_LINK_HERE]" /></td>
     <td><img width="100%" alt="Map Screen Showing Safest Route Home With Safety Scores" src="https://github.com/user-attachments/assets/72d4fdd9-c042-4b77-8aa0-608aa500b5b4" /></td>
   </tr>
 </table>
@@ -142,9 +140,9 @@ The AI models were trained on highly curated, consolidated datasets:
     <td align="center"><b>Bulk Incident Details & Evidence</b></td>
   </tr>
   <tr>
-    <td><img width="100%" alt="Map Screen POI Details" src="[INSERT_LINK_HERE]" /></td>
-    <td><img width="100%" alt="Map Screen Showing Hotspot Details" src="[INSERT_LINK_HERE]" /></td>
-    <td><img width="100%" alt="Map Screen Showing Bulk Incident Details And Its Evidence" src="[INSERT_LINK_HERE]" /></td>
+    <td><img width="100%" alt="Map Screen POI Details" src="https://github.com/user-attachments/assets/738798c5-0b64-47ec-b7d5-9e76f2bbda0f" /></td>
+    <td><img width="100%" alt="Map Screen Showing Hotspot Details" src="https://github.com/user-attachments/assets/12f1c756-6b6c-468d-b44e-812602384a8d" /></td>
+    <td><img width="100%" alt="Map Screen Showing Bulk Incident Details And Its Evidence" src="https://github.com/user-attachments/assets/d9223b6f-ff86-4ebc-821b-792b054be07a" /></td>
   </tr>
 </table>
 
@@ -155,9 +153,9 @@ The AI models were trained on highly curated, consolidated datasets:
     <td align="center"><b>Incidents Details #2 (Location)</b></td>
   </tr>
   <tr>
-    <td><img width="100%" alt="Map Screen Showing Newely Submitted Incident" src="[INSERT_LINK_HERE]" /></td>
-    <td><img width="100%" alt="Map Screen Showing Incidents Details #1 (Reported By, AI Confidence, Evidence)" src="[INSERT_LINK_HERE]" /></td>
-    <td><img width="100%" alt="Map Screen Showing Incidents Details #2 (Location)" src="[INSERT_LINK_HERE]" /></td>
+    <td><img width="100%" alt="Map Screen Showing Newely Submitted Incident" src="https://github.com/user-attachments/assets/118a0dd6-7a94-42e2-a857-56a136bd0926" /></td>
+    <td><img width="100%" alt="Map Screen Showing Incidents Details #1 (Reported By, AI Confidence, Evidence)" src="https://github.com/user-attachments/assets/9179d683-07e9-43b1-974d-93f3b4d6b647" /></td>
+    <td><img width="100%" alt="Map Screen Showing Incidents Details #2 (Location)" src="https://github.com/user-attachments/assets/7eec5167-fdff-460c-a1e1-62d5856d22e1" /></td>
   </tr>
 </table>
 
@@ -216,7 +214,7 @@ The AI models were trained on highly curated, consolidated datasets:
   <tr>
     <td><img width="100%" alt="Authority Dashboard Screen Showing All Incident Details" src="https://github.com/user-attachments/assets/94a552b7-4fd9-47a1-8314-a7f8578f58e4" /></td>
     <td><img width="100%" alt="Authority Dashboard Screen Showing Summary Of Statistics" src="https://github.com/user-attachments/assets/ba9f5c21-37cc-41eb-b892-223f166f7ff4" /></td>
-    <td><img width="100%" alt="Authority Dashboard Screen Showing SOS triggers" src="[INSERT_LINK_HERE]" /></td>
+    <td><img width="100%" alt="Authority Dashboard Screen Showing SOS triggers" src="https://github.com/user-attachments/assets/c1425f15-beb1-4645-a2da-9466f77ee4ba" /></td>
   </tr>
 </table>
 
