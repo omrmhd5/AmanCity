@@ -104,15 +104,56 @@ The AI models were trained on highly curated, consolidated datasets:
 ## 📸 Screenshots
 
 - Home Screen (Arabic Localization & Dark Theme)
-- Interactive Safety Map with Hotspot Overlays
-- Incident Reporting with AI Prediction Result
-- Synthetic Media Gate Rejection Alert
-- AI Safety Assistant (Gemini) Chat
-- SOS Activation & Live Tracking
-- OSINT News Feed (Grok-4 Integration)
-- Authority Statistics Dashboard
+ <img width="378" height="834" alt="Home Screen After Login (Dark)" src="https://github.com/user-attachments/assets/f750d181-86b7-4fea-b8aa-51c4106098da" />
 
-_(Note: Add screenshot image links here)_
+
+ <img width="378" height="837" alt="Home Screen Arabic (Dark)" src="https://github.com/user-attachments/assets/2daac5c2-a092-4d95-9df0-7e2f4b59608a" />
+
+- Interactive Safety Map with Hotspot Overlays
+<img width="373" height="822" alt="Map Screen Showing Incident Markers and Hotspot Zone and POI Markers" src="https://github.com/user-attachments/assets/b6f459f1-b31b-4af5-a77d-8b001a64bc22" />
+<img width="376" height="833" alt="Map Screen Showing Safest Route Home With Safety Scores" src="https://github.com/user-attachments/assets/72d4fdd9-c042-4b77-8aa0-608aa500b5b4" />
+
+
+
+
+- 
+- Incident Reporting with AI Prediction Result
+
+- <img width="376" height="836" alt="Report Screen Showing Result Fire Prediction" src="https://github.com/user-attachments/assets/cadf7959-ef95-47af-9d1e-008febc2f679" />
+
+
+
+- Synthetic Media Gate Rejection Alert
+<img width="378" height="837" alt="Report Screen Showing AI-Generated Content" src="https://github.com/user-attachments/assets/989222e0-67d2-4a80-bdac-3c01a6047ff8" />
+- 
+- AI Safety Assistant (Gemini) Chat
+- <img width="376" height="830" alt="AI Screen Saying Nearby Incidents" src="https://github.com/user-attachments/assets/833e8e58-a357-4238-9a6e-9ef53ddd248b" />
+<img width="376" height="833" alt="AI Screen Showing Safest Home Route" src="https://github.com/user-attachments/assets/99504fcc-7e4f-4265-9c74-3b611e73694a" />
+
+
+- SOS Activation & Live Tracking
+
+-
+- <img width="376" height="831" alt="SOS Trigger Alert Screen" src="https://github.com/user-attachments/assets/4ebb4bad-6cca-4254-bf09-71ed85fb9563" />
+<img width="376" height="832" alt="SOS Incoming Alert Screen" src="https://github.com/user-attachments/assets/969f7913-6651-4f28-b746-31f35775a348" />
+<img width="378" height="834" alt="SOS Live Tracking Screen" src="https://github.com/user-attachments/assets/3bbde0f4-11ba-4110-9266-968c7dbc51ca" />
+
+
+
+- OSINT News Feed (Grok-4 Integration)
+- <img width="378" height="835" alt="News Screen Showing Incidents (Dark)" src="https://github.com/user-attachments/assets/f52a18ed-b08d-4834-a5a8-e8e0fa315a64" />
+<img width="376" height="834" alt="News Screen Showing Search Results" src="https://github.com/user-attachments/assets/98d41f7c-1422-4da3-814c-e33318f23cbe" />
+
+
+- 
+- Authority Statistics Dashboard
+-
+  <img width="378" height="837" alt="Authority Dashboard Screen Showing All Incident Details" src="https://github.com/user-attachments/assets/94a552b7-4fd9-47a1-8314-a7f8578f58e4" />
+  <img width="378" height="836" alt="Authority Dashboard Screen Showing Summary Of Statistics" src="https://github.com/user-attachments/assets/ba9f5c21-37cc-41eb-b892-223f166f7ff4" />
+
+
+<img width="3685" height="2551" alt="Omar232848_AmanCity_Poster" src="https://github.com/user-attachments/assets/7ef39499-b83a-4168-804f-76a705990154" />
+
 
 ---
 
@@ -124,6 +165,6 @@ _(Note: Add screenshot image links here)_
 
 ## Author
 
-👤 **Omar Mahmoud**
-📧 [omrmhd54@gmail.com](mailto:omrmhd54@gmail.com)
+👤 **Omar Mahmoud**  
+📧 [omrmhd54@gmail.com](mailto:omrmhd54@gmail.com)  
 🔗 [GitHub](https://github.com/omrmhd5)
